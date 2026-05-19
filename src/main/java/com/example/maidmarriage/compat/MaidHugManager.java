@@ -159,7 +159,11 @@ public final class MaidHugManager {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.need_standing", maid.getDisplayName()));
             return;
         }
-        if (maid.isPassenger() || MAID_TO_PLAYER.containsKey(maid.getUUID())) {
+        if (maid.isPassenger()) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.riding_blocked", maid.getDisplayName()));
+            return;
+        }
+        if (MAID_TO_PLAYER.containsKey(maid.getUUID())) {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.already_busy", maid.getDisplayName()));
             return;
         }

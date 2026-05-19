@@ -20,12 +20,23 @@ public class MaidMarriageGuideScreen extends Screen {
             new GuideSection("先从按键开始",
                     List.of(
                             "打开“选项 -> 控制 -> 心契同眠”，先看三个键：交互按键、摸头/举高高、节奏判定键。按键绑定以 Minecraft 原版控制设置为准，不在本页里改。",
-                            "交互按键：默认 Alt + J。对成年女仆打开恋爱互动；对小女仆打开小女仆互动。",
-                            "摸头/举高高：默认 Alt + K。对坐下的女仆摸头；对站着的小女仆举高高。已经举起时再按一次会放下。鞘翅滑翔时可以继续带着小女仆飞。",
-                            "节奏判定键：默认 J。同眠剧情进入节奏玩法时使用。如果不想玩，可以在节奏游戏设置里开启跳过。",
-                            "唤起互动面板：默认 H。膝枕或拥抱时点击隐藏按钮进入自由视角后，用这个键把互动 UI 再叫回来。",
-                            "退出膝枕：默认 Y。处于膝枕状态时可以直接结束膝枕。",
+                            "KEY:交互按键:对成年女仆打开恋爱互动；对小女仆打开小女仆互动。",
+                            "KEY:摸头/举高高:对坐下的女仆摸头；对站着的小女仆举高高。已经举起时再按一次会放下。鞘翅滑翔时可以继续带着小女仆飞。",
+                            "KEY:节奏判定键:同眠剧情进入节奏玩法时使用。如果不想玩，可以在节奏游戏设置里开启跳过。",
+                            "KEY:唤起互动面板:膝枕或拥抱时点击隐藏按钮进入自由视角后，用这个键把互动 UI 再叫回来。",
+                            "KEY:退出膝枕:互动 UI 打开时，这个键也可以先隐藏 UI；已经隐藏 UI 且处于膝枕状态时，再按它会直接结束膝枕。",
+                            "交互面板里，Esc、唤起互动面板键、退出膝枕键都可以隐藏/关闭当前 UI；空格或回车推进台词；按住 Ctrl 是快进，但会自动限速，且快进期间不会连续播放一堆语音。",
+                            "右上角麦克风按钮：单击试听当前句语音，短时间内连续点击会被冷却；双击会尝试跳转到附属 Voice Manager 的对应台词。",
                             "模组设置里可以调整举高高高度和拥抱距离：举高高高度偏移默认 0.10，可调 -0.20 到 1.50；拥抱锁定距离默认 0.80，可调 0.10 到 2.00。")),
+            new GuideSection("语音和 AstraTTS",
+                    List.of(
+                            "心契同眠本体只负责保存语音偏好和播放已经生成好的语音文件；批量生成、单句试听和重生成在附属模组 EasyTTSTouhouMaidAddon 里。",
+                            "安装附属后，打开“AstraTTS 配置 -> 心契同眠”，进入 Voice Manager。先确认服务地址、音色、女仆自称，然后点 Scan 扫描台本。",
+                            "Voice Manager 顶部的 Generate All 会生成全部缺失语音；Generate Group 只生成左侧选中的分组；Retry Failed 会重试失败项；生成中 Stop 会请求中止并保存进度。",
+                            "列表里每句前面会显示情绪和正文，S 列的 v/X 表示是否已经生成，T 是试听，R 是重生成这一句。情绪可以点击文本区域循环切换。",
+                            "语音台本名一般用 ja_jp、zh_cn、en_us。你可以游戏语言是中文、语音台本用日语；主模组会按配置读对应目录的预生成语音。",
+                            "TTS 变量要分清：{maid} 是女仆自己的自称；{child} 是孩子自称；{player} 是玩家显示/通用称呼；{player_maid} 是女仆在台词里叫玩家的称呼。后两个默认可以相同，但语义不同。",
+                            "生成进度保存在 config/easyttstlm/heart_pact_voice/<台本名>/progress.json；音频保存在同目录下。换音色或改台词后，建议对对应分组或单句重新生成。")),
             new GuideSection("好感阶段和解锁",
                     List.of(
                             "0-31：初始。先聊天、送礼、照顾她，亲密选项会比较少。",
@@ -75,7 +86,7 @@ public class MaidMarriageGuideScreen extends Screen {
                             "正餐：面包、牛奶、熟肉、熟鱼、炖菜、酱板鸭等，偏稳定恢复心情，恋人/婚后可能有少量好感。",
                             "贵重物：钻石、绿宝石、金锭、铁锭、紫水晶、石英、青金石、下界合金碎片等。初期她会犹豫，关系近了更容易接受。",
                             "奇怪/冒犯礼物：腐肉、蜘蛛眼、毒马铃薯、河豚、骨头等可能扣心情或好感。腐肉、发酵蛛眼、河豚、毒马铃薯属于很冒犯的礼物。",
-                            "求婚戒指、YES 枕头、发卡、调试工具、婚姻同意申请书不能当普通礼物送。")),
+                            "心契同眠指南、求婚戒指、YES 枕头、发卡、调试工具、婚姻同意申请书不能当普通礼物送。")),
             new GuideSection("物品和配方",
                     List.of(
                             "求婚戒指：钻石 + 铁粒合成。它可以放进女仆饰品栏；结婚时需要两枚，玩家主手和副手各一枚。",
@@ -163,6 +174,10 @@ public class MaidMarriageGuideScreen extends Screen {
             graphics.drawString(this.font, section.title(), panelLeft + CONTENT_PADDING, y, 0xFFFFD38B, false);
             y += 14;
             for (String paragraph : section.paragraphs()) {
+                if (paragraph.startsWith("KEY:")) {
+                    y = drawKeyParagraph(graphics, paragraph, panelLeft + CONTENT_PADDING, y, contentWidth);
+                    continue;
+                }
                 Component line = Component.literal(paragraph);
                 graphics.drawWordWrap(this.font, line, panelLeft + CONTENT_PADDING, y, contentWidth, 0xFFE7E0F5);
                 y += this.font.split(line, contentWidth).size() * this.font.lineHeight + 6;
@@ -198,6 +213,37 @@ public class MaidMarriageGuideScreen extends Screen {
         if (this.minecraft != null) {
             this.minecraft.setScreen(parent);
         }
+    }
+
+    private int drawKeyParagraph(GuiGraphics graphics, String paragraph, int x, int y, int width) {
+        String[] parts = paragraph.split(":", 3);
+        if (parts.length < 3) {
+            Component line = Component.literal(paragraph);
+            graphics.drawWordWrap(this.font, line, x, y, width, 0xFFE7E0F5);
+            return y + this.font.split(line, width).size() * this.font.lineHeight + 6;
+        }
+        String label = parts[1];
+        String key = keyName(label);
+        String prefix = label + "：";
+        graphics.drawString(this.font, prefix, x, y, 0xFFE7E0F5, false);
+        int keyX = x + this.font.width(prefix);
+        graphics.drawString(this.font, "[" + key + "]", keyX, y, 0xFFFFD38B, false);
+        int textX = keyX + this.font.width("[" + key + "] ");
+        Component body = Component.literal(parts[2]);
+        int bodyWidth = Math.max(40, width - (textX - x));
+        graphics.drawWordWrap(this.font, body, textX, y, bodyWidth, 0xFFE7E0F5);
+        return y + this.font.split(body, bodyWidth).size() * this.font.lineHeight + 6;
+    }
+
+    private static String keyName(String label) {
+        return switch (label) {
+            case "交互按键" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.INTERACTION);
+            case "摸头/举高高" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.PET_HEAD);
+            case "节奏判定键" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RHYTHM_HIT);
+            case "唤起互动面板" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RESTORE_HUG_UI);
+            case "退出膝枕" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.LAP_PILLOW_EXIT);
+            default -> "?";
+        };
     }
 
     private record GuideSection(String title, List<String> paragraphs) {

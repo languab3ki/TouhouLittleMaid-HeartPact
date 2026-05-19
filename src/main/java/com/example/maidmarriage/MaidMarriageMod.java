@@ -38,6 +38,7 @@ public final class MaidMarriageMod {
 
     private static void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)) {
+            event.accept(ModItems.HEART_PACT_GUIDE);
             event.accept(ModItems.PROPOSAL_RING);
             event.accept(ModItems.SUNFLOWER_HAIRPIN);
             event.accept(ModItems.YES_PILLOW);

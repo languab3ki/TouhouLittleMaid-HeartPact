@@ -28,6 +28,8 @@ import org.slf4j.Logger;
  */
 public final class HeartPactVoicePlayback {
     private static final Logger LOGGER = LogUtils.getLogger();
+    @Nullable
+    private static HeartPactVoiceSoundInstance currentSound;
 
     private HeartPactVoicePlayback() {
     }
@@ -99,7 +101,11 @@ public final class HeartPactVoicePlayback {
                 LOGGER.warn("Heart Pact voice playback skipped: Minecraft client is null");
                 return;
             }
-            minecraft.getSoundManager().play(new HeartPactVoiceSoundInstance(maid, audio, volume));
+            if (currentSound != null) {
+                minecraft.getSoundManager().stop(currentSound);
+            }
+            currentSound = new HeartPactVoiceSoundInstance(maid, audio, volume);
+            minecraft.getSoundManager().play(currentSound);
         } catch (Exception exception) {
             LOGGER.error("Heart Pact voice playback failed: {}", audioPath, exception);
         }

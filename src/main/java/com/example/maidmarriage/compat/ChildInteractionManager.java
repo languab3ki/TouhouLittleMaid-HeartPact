@@ -103,7 +103,11 @@ public final class ChildInteractionManager {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.child_interaction.need_standing", maid.getDisplayName()));
             return;
         }
-        if (maid.isPassenger() || MAID_TO_PLAYER.containsKey(maid.getUUID())) {
+        if (maid.isPassenger()) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.child_interaction.riding_blocked", maid.getDisplayName()));
+            return;
+        }
+        if (MAID_TO_PLAYER.containsKey(maid.getUUID())) {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.child_interaction.already_busy", maid.getDisplayName()));
             return;
         }

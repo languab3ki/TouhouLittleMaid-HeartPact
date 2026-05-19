@@ -38,6 +38,7 @@ public class MaidMarriageConfigScreen extends Screen {
     private EditBox maidAddressingBox;
     private EditBox childMaidAddressingBox;
     private EditBox voiceScriptNameBox;
+    private EditBox heartPactTtsMaidNameBox;
     private EditBox heartPactTtsChildNameBox;
     private EditBox heartPactTtsPlayerNameBox;
     private EditBox heartPactTtsPlayerMaidNameBox;
@@ -141,26 +142,33 @@ public class MaidMarriageConfigScreen extends Screen {
                 .build());
 
         y += 32;
-        heartPactTtsChildNameBox = addToPage(Page.VOICE, new EditBox(this.font, left, y, 156, 20,
+        heartPactTtsMaidNameBox = addToPage(Page.VOICE, new EditBox(this.font, left, y, 156, 20,
+                Component.translatable("config.maidmarriage.heart_pact_tts_maid_name")));
+        heartPactTtsMaidNameBox.setMaxLength(64);
+        heartPactTtsMaidNameBox.setValue(ModConfigs.heartPactTtsMaidName());
+        heartPactTtsMaidNameBox.setHint(Component.translatable("config.maidmarriage.heart_pact_tts_maid_name.hint.ja"));
+        heartPactTtsMaidNameBox.setResponder(ModConfigs::setHeartPactTtsMaidName);
+
+        heartPactTtsChildNameBox = addToPage(Page.VOICE, new EditBox(this.font, right, y, 156, 20,
                 Component.translatable("config.maidmarriage.heart_pact_tts_child_name")));
         heartPactTtsChildNameBox.setMaxLength(64);
         heartPactTtsChildNameBox.setValue(ModConfigs.heartPactTtsChildName());
         heartPactTtsChildNameBox.setHint(Component.literal("Little Maid / 小女仆 / 小さなメイド"));
         heartPactTtsChildNameBox.setResponder(ModConfigs::setHeartPactTtsChildName);
 
-        heartPactTtsPlayerNameBox = addToPage(Page.VOICE, new EditBox(this.font, right, y, 156, 20,
+        y += 32;
+        heartPactTtsPlayerNameBox = addToPage(Page.VOICE, new EditBox(this.font, left, y, 156, 20,
                 Component.translatable("config.maidmarriage.heart_pact_tts_player_name")));
         heartPactTtsPlayerNameBox.setMaxLength(64);
         heartPactTtsPlayerNameBox.setValue(ModConfigs.heartPactTtsPlayerName());
-        heartPactTtsPlayerNameBox.setHint(Component.literal("Empty = current username/addressing"));
+        heartPactTtsPlayerNameBox.setHint(Component.translatable("config.maidmarriage.heart_pact_tts_player_name.hint.ja"));
         heartPactTtsPlayerNameBox.setResponder(ModConfigs::setHeartPactTtsPlayerName);
 
-        y += 32;
-        heartPactTtsPlayerMaidNameBox = addToPage(Page.VOICE, new EditBox(this.font, left, y, 156, 20,
+        heartPactTtsPlayerMaidNameBox = addToPage(Page.VOICE, new EditBox(this.font, right, y, 156, 20,
                 Component.translatable("config.maidmarriage.heart_pact_tts_player_maid_name")));
         heartPactTtsPlayerMaidNameBox.setMaxLength(64);
         heartPactTtsPlayerMaidNameBox.setValue(ModConfigs.heartPactTtsPlayerMaidName());
-        heartPactTtsPlayerMaidNameBox.setHint(Component.literal("Empty = current maid addressing"));
+        heartPactTtsPlayerMaidNameBox.setHint(Component.translatable("config.maidmarriage.heart_pact_tts_player_maid_name.hint.ja"));
         heartPactTtsPlayerMaidNameBox.setResponder(ModConfigs::setHeartPactTtsPlayerMaidName);
         refreshVoiceTtsHints();
 
@@ -201,11 +209,11 @@ public class MaidMarriageConfigScreen extends Screen {
                         (btn, v) -> ModConfigs.setShowUiActionDebug(v)));
 
         resetButton = this.addRenderableWidget(Button.builder(Component.translatable("config.maidmarriage.reset_defaults"), b -> resetToDefaults())
-                .bounds(this.width / 2 - 76, panelTop + 228, 74, 20)
+                .bounds(this.width / 2 - 76, panelTop + 256, 74, 20)
                 .build());
 
         doneButton = this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
-                .bounds(this.width / 2 + 2, panelTop + 228, 74, 20)
+                .bounds(this.width / 2 + 2, panelTop + 256, 74, 20)
                 .build());
 
         setActivePage(Page.GENERAL);
@@ -268,7 +276,7 @@ public class MaidMarriageConfigScreen extends Screen {
         int panelLeft = this.width / 2 - 176;
         int panelRight = this.width / 2 + 176;
         int panelTop = this.height / 6;
-        int panelBottom = panelTop + 252;
+        int panelBottom = panelTop + 280;
 
         graphics.fill(panelLeft, panelTop, panelRight, panelBottom, 0xCC14121E);
         graphics.fill(panelLeft, panelTop, panelRight, panelTop + 20, 0xEE201A33);
@@ -290,6 +298,10 @@ public class MaidMarriageConfigScreen extends Screen {
                 graphics.drawString(this.font, Component.translatable("config.maidmarriage.heart_pact_tts_child_name"),
                         heartPactTtsChildNameBox.getX(), heartPactTtsChildNameBox.getY() - 10, 0xFFD8D0EB, false);
             }
+            if (heartPactTtsMaidNameBox != null && heartPactTtsMaidNameBox.visible) {
+                graphics.drawString(this.font, Component.translatable("config.maidmarriage.heart_pact_tts_maid_name"),
+                        heartPactTtsMaidNameBox.getX(), heartPactTtsMaidNameBox.getY() - 10, 0xFFD8D0EB, false);
+            }
             if (heartPactTtsPlayerNameBox != null && heartPactTtsPlayerNameBox.visible) {
                 graphics.drawString(this.font, Component.translatable("config.maidmarriage.heart_pact_tts_player_name"),
                         heartPactTtsPlayerNameBox.getX(), heartPactTtsPlayerNameBox.getY() - 10, 0xFFD8D0EB, false);
@@ -299,12 +311,12 @@ public class MaidMarriageConfigScreen extends Screen {
                         heartPactTtsPlayerMaidNameBox.getX(), heartPactTtsPlayerMaidNameBox.getY() - 10, 0xFFD8D0EB, false);
             }
             graphics.drawWordWrap(this.font, Component.translatable("config.maidmarriage.voice.hint"),
-                    panelLeft + 188, panelTop + 150, 148, 0xFFB7ADCF);
+                    panelLeft + 16, panelTop + 174, 320, 0xFFB7ADCF);
+            graphics.drawWordWrap(this.font, Component.translatable("config.maidmarriage.voice.tts_name_hint"),
+                    panelLeft + 16, panelTop + 202, 320, 0xFFB7ADCF);
             graphics.drawWordWrap(this.font, Component.translatable("config.maidmarriage.voice.directory",
                             voiceDirectory().toString()),
-                    panelLeft + 16, panelTop + 190, 320, 0xFFFFD38B);
-            graphics.drawWordWrap(this.font, Component.translatable("config.maidmarriage.voice.addon_hint"),
-                    panelLeft + 16, panelTop + 218, 320, 0xFFD8D0EB);
+                    panelLeft + 16, panelTop + 232, 320, 0xFFFFD38B);
         }
         if (activePage == Page.DEBUG) {
             graphics.drawWordWrap(this.font, Component.translatable("config.maidmarriage.debug.hint"),
@@ -340,6 +352,7 @@ public class MaidMarriageConfigScreen extends Screen {
         ModConfigs.setDialogueScriptPath("maidmarriage/custom-dialogues.json");
         ModConfigs.setHeartPactVoiceEnabled(false);
         ModConfigs.setHeartPactVoiceScriptName("ja_jp");
+        ModConfigs.setHeartPactTtsMaidName("");
         ModConfigs.setHeartPactTtsChildName("");
         ModConfigs.setHeartPactTtsPlayerName("");
         ModConfigs.setHeartPactTtsPlayerMaidName("");
@@ -386,6 +399,9 @@ public class MaidMarriageConfigScreen extends Screen {
     }
 
     private void refreshVoiceTtsHints() {
+        if (heartPactTtsMaidNameBox != null) {
+            heartPactTtsMaidNameBox.setHint(Component.translatable("config.maidmarriage.heart_pact_tts_maid_name.hint.ja"));
+        }
         if (heartPactTtsChildNameBox != null) {
             heartPactTtsChildNameBox.setHint(Component.translatable("config.maidmarriage.heart_pact_tts_child_name.hint.ja"));
         }

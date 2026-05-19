@@ -67,6 +67,9 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class HugActionScreen extends Screen {
     private static final Pattern STRUCTURED_DIALOGUE_LINE = Pattern.compile("^(女仆|小女仆|旁白|玩家|Maid|Little Maid|Narration|Player|メイド|小さなメイド|地の文|プレイヤー)\\s*[：:]\\s*(.+)$");
+    private static final long VOICE_DOUBLE_CLICK_WINDOW_MS = 280L;
+    private static final long VOICE_REPLAY_COOLDOWN_MS = 900L;
+    private static final long FAST_FORWARD_STEP_INTERVAL_MS = 180L;
     /**
      * 旧拥抱 UI 的默认主题。
      *
@@ -272,6 +275,9 @@ public class HugActionScreen extends Screen {
     private boolean currentLineHasVoice;
     private boolean giftResultDialogueActive;
     private long lastVoiceReplayClickAt;
+    private long lastVoiceReplayActionAt;
+    private long lastFastForwardStepAt;
+    private boolean suppressAutoVoicePlayback;
 
     public HugActionScreen() {
         this(HUG_SCENARIO_ID, null, false, text("ui.maidmarriage.hug_action.title"));
@@ -399,6 +405,7 @@ public class HugActionScreen extends Screen {
         if (Screen.hasControlDown()) {
             fastForwardDialogueUntilChoice();
         } else {
+            lastFastForwardStepAt = 0L;
             dialogueBox.tickTypewriter();
         }
 
@@ -469,16 +476,7 @@ public class HugActionScreen extends Screen {
 
         // 点击麦克风按钮：如果当前女仆台词已有预生成语音，就重新播放一次。
         if (voiceReplayButton.contains(mouseX, mouseY, this.width, this.height)) {
-            long now = System.currentTimeMillis();
-            if (now - lastVoiceReplayClickAt <= 250L) {
-                lastVoiceReplayClickAt = 0L;
-                if (!openVoiceManagerForCurrentLine()) {
-                    showDebugMessage(Component.translatable("message.maidmarriage.voice_manager.need_addon").getString());
-                }
-                return true;
-            }
-            lastVoiceReplayClickAt = now;
-            replayCurrentVoiceLine();
+            handleVoiceReplayClick();
             return true;
         }
 
@@ -572,7 +570,9 @@ public class HugActionScreen extends Screen {
             showDebugMessage("镜头微调已恢复默认值");
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_H) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE
+                || RhythmKeyMappings.RESTORE_HUG_UI.matches(keyCode, scanCode)
+                || RhythmKeyMappings.LAP_PILLOW_EXIT.matches(keyCode, scanCode)) {
             setCompactMode(!compactMode);
             return true;
         }
@@ -1073,8 +1073,10 @@ public class HugActionScreen extends Screen {
         if (effectiveResetTypewriter && structuredDialogueLines.isEmpty()) {
             String voiceSourceKey = resolveVoiceSourceKey(frame, 0, dialogueState.speaker());
             updateCurrentVoiceAvailability(frame, 0, dialogueState.speaker(), dialogueState.text(), voiceSourceKey);
-            HeartPactVoicePlayback.playFrame(frame, dialogueState.speaker(),
-                    dialogueState.text(), voiceSourceKey, resolveTargetMaid());
+            if (!suppressAutoVoicePlayback) {
+                HeartPactVoicePlayback.playFrame(frame, dialogueState.speaker(),
+                        dialogueState.text(), voiceSourceKey, resolveTargetMaid());
+            }
         }
     }
 
@@ -1140,16 +1142,24 @@ public class HugActionScreen extends Screen {
      * 推进剧情节点、遇到选项停止”拆开写，行为会更像 Galgame 的按住 Ctrl 快进。
      */
     private void fastForwardDialogueUntilChoice() {
-        int guard = 0;
-        while (guard++ < 24) {
+        long now = System.currentTimeMillis();
+        if (lastFastForwardStepAt != 0L && now - lastFastForwardStepAt < FAST_FORWARD_STEP_INTERVAL_MS) {
+            return;
+        }
+        lastFastForwardStepAt = now;
+
+        boolean previousSuppressVoice = suppressAutoVoicePlayback;
+        suppressAutoVoicePlayback = true;
+        try {
             if (!dialogueBox.isComplete()) {
                 dialogueBox.revealAll();
+                return;
             }
 
             if (giftResultDialogueActive) {
                 giftResultDialogueActive = false;
                 refreshDialogueState(true);
-                continue;
+                return;
             }
 
             DialogueFrameView frame = dialogueRuntime.currentFrame();
@@ -1160,15 +1170,17 @@ public class HugActionScreen extends Screen {
             if (structuredDialogueIndex + 1 < structuredDialogueLines.size()) {
                 structuredDialogueIndex++;
                 applyStructuredDialogueDisplay(structuredDialogueLines.get(structuredDialogueIndex), true);
-                continue;
+                return;
             }
 
             boolean advanced = dialogueRuntime.advance();
             drainScenarioActionRequests();
             refreshDialogueState(true);
             if (!advanced) {
-                return;
+                lastFastForwardStepAt = 0L;
             }
+        } finally {
+            suppressAutoVoicePlayback = previousSuppressVoice;
         }
     }
 
@@ -1249,7 +1261,7 @@ public class HugActionScreen extends Screen {
                 .setSpeaker(dialogueState.speaker())
                 .setFullText(dialogueState.text(), resetTypewriter)
                 .setHint(dialogueState.hint());
-        if (resetTypewriter && currentLineHasVoice) {
+        if (resetTypewriter && currentLineHasVoice && !suppressAutoVoicePlayback) {
             HeartPactVoicePlayback.playStructuredLine(frame, structuredDialogueIndex,
                     line.speaker(), line.text(), voiceSourceKey, resolveTargetMaid());
         }
@@ -1279,6 +1291,24 @@ public class HugActionScreen extends Screen {
                 resolveVoiceSourceKey(frame, structuredDialogueLines.isEmpty() ? 0 : structuredDialogueIndex, dialogueState.speaker()),
                 resolveTargetMaid()
         );
+    }
+
+    private void handleVoiceReplayClick() {
+        long now = System.currentTimeMillis();
+        if (lastVoiceReplayClickAt != 0L && now - lastVoiceReplayClickAt <= VOICE_DOUBLE_CLICK_WINDOW_MS) {
+            lastVoiceReplayClickAt = 0L;
+            if (!openVoiceManagerForCurrentLine()) {
+                showDebugMessage(Component.translatable("message.maidmarriage.voice_manager.need_addon").getString());
+            }
+            return;
+        }
+
+        lastVoiceReplayClickAt = now;
+        if (now - lastVoiceReplayActionAt < VOICE_REPLAY_COOLDOWN_MS) {
+            return;
+        }
+        lastVoiceReplayActionAt = now;
+        replayCurrentVoiceLine();
     }
 
     private String resolveVoiceSourceKey(@Nullable DialogueFrameView frame, int structuredIndex, String speaker) {

@@ -46,6 +46,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.IItemHandler;
@@ -56,6 +57,7 @@ public final class MarriageEventHandler {
     private static final String TAG_RING_PLAYER = "maidmarriage_ring_player";
     private static final String TAG_RING_MAID = "maidmarriage_ring_maid";
     private static final String TAG_FLOWER_GIFT_MASK = "maidmarriage_flower_gift_mask";
+    private static final String TAG_GUIDE_GIVEN = "maidmarriage_heart_pact_guide_given";
     private static final int NORMAL_FLOWER_FAVORABILITY_GAIN = 5;
     private static final int RAINBOW_BOUQUET_FAVORABILITY_GAIN = 5;
     private static final int FAVORABILITY_CAP = RelationshipThresholds.FAVORABILITY_MAX;
@@ -74,6 +76,20 @@ public final class MarriageEventHandler {
     private static final Map<UUID, Integer> PROPOSAL_PUNISH_ACTIVE = new ConcurrentHashMap<>();
 
     private MarriageEventHandler() {
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        CompoundTag data = player.getPersistentData();
+        if (data.getBoolean(TAG_GUIDE_GIVEN)) {
+            return;
+        }
+        data.putBoolean(TAG_GUIDE_GIVEN, true);
+        ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ModItems.HEART_PACT_GUIDE.get()));
+        player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.guide.given"));
     }
 
     @SubscribeEvent

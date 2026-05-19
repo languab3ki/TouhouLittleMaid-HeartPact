@@ -181,6 +181,7 @@ public final class GiftTable {
 
     private static boolean isBlockedSpecialItem(ItemStack stack) {
         return stack.is(ModItems.PROPOSAL_RING.get())
+                || stack.is(ModItems.HEART_PACT_GUIDE.get())
                 || stack.is(ModItems.YES_PILLOW.get())
                 || stack.is(ModItems.SUNFLOWER_HAIRPIN.get())
                 || stack.is(ModItems.LONGING_TESTER.get())

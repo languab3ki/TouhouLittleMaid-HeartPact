@@ -3,6 +3,7 @@ package com.example.maidmarriage.init;
 import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.item.DescriptionItem;
 import com.example.maidmarriage.item.FlowerTestKitItem;
+import com.example.maidmarriage.item.HeartPactGuideItem;
 import com.example.maidmarriage.item.MarriageConsentFormItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -21,6 +22,9 @@ public final class ModItems {
     public static final RegistryObject<Item> PROPOSAL_RING = ITEMS.register("proposal_ring",
             () -> new DescriptionItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON),
                     "tooltip.maidmarriage.proposal_ring"));
+
+    public static final RegistryObject<Item> HEART_PACT_GUIDE = ITEMS.register("heart_pact_guide",
+            () -> new HeartPactGuideItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
     public static final RegistryObject<Item> YES_PILLOW = ITEMS.register("yes_pillow",
             () -> new DescriptionItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE),

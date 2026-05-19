@@ -22,6 +22,7 @@ public final class ModConfigs {
     private static final ForgeConfigSpec.ConfigValue<String> DIALOGUE_SCRIPT_PATH;
     private static final ForgeConfigSpec.BooleanValue HEART_PACT_VOICE_ENABLED;
     private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_VOICE_SCRIPT_NAME;
+    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_MAID_NAME;
     private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_CHILD_NAME;
     private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_NAME;
     private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_MAID_NAME;
@@ -112,6 +113,11 @@ public final class ModConfigs {
                 .comment("Dialogue locale/script name used by Heart Pact voice files, for example ja_jp, zh_cn or en_us.")
                 .translation("config.maidmarriage.voice_script_name")
                 .define("heartPactVoiceScriptName", "ja_jp");
+
+        HEART_PACT_TTS_MAID_NAME = builder
+                .comment("TTS-only self-reference replacement for {maid} in Heart Pact voice text.")
+                .translation("config.maidmarriage.heart_pact_tts_maid_name")
+                .define("heartPactTtsMaidName", "");
 
         HEART_PACT_TTS_CHILD_NAME = builder
                 .comment("TTS-only replacement for {child} in Heart Pact voice text. Empty means use locale default.")
@@ -329,6 +335,14 @@ public final class ModConfigs {
         HEART_PACT_VOICE_SCRIPT_NAME.set(sanitized.isBlank() ? "ja_jp" : sanitized);
     }
 
+    public static String heartPactTtsMaidName() {
+        return HEART_PACT_TTS_MAID_NAME.get();
+    }
+
+    public static void setHeartPactTtsMaidName(String value) {
+        HEART_PACT_TTS_MAID_NAME.set(sanitizeTtsName(value));
+    }
+
     public static String heartPactTtsChildName() {
         return HEART_PACT_TTS_CHILD_NAME.get();
     }
@@ -356,6 +370,11 @@ public final class ModConfigs {
     public static String resolveHeartPactTtsChildName(String scriptName) {
         String custom = heartPactTtsChildName();
         return custom == null || custom.isBlank() ? "小さなメイド" : custom;
+    }
+
+    public static String resolveHeartPactTtsMaidName(String scriptName) {
+        String custom = heartPactTtsMaidName();
+        return custom == null || custom.isBlank() ? "メイド" : custom;
     }
 
     public static String resolveHeartPactTtsPlayerName(String scriptName, String fallbackPlayerName) {
