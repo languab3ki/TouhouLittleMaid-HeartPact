@@ -3,11 +3,10 @@ package com.example.maidmarriage;
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.client.ClientOnlyBootstrap;
 import com.example.maidmarriage.debug.ModDebugCommands;
+import com.example.maidmarriage.init.ModCreativeTabs;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.init.ModItems;
 import com.example.maidmarriage.network.ModNetworking;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.api.distmarker.Dist;
@@ -28,30 +27,11 @@ public final class MaidMarriageMod {
     public MaidMarriageMod() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         ModItems.ITEMS.register(modBus);
+        ModCreativeTabs.CREATIVE_TABS.register(modBus);
         ModEntities.ENTITY_TYPES.register(modBus);
         ModNetworking.register();
         MinecraftForge.EVENT_BUS.register(ModDebugCommands.class);
-        modBus.addListener(MaidMarriageMod::addCreativeTabItems);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientOnlyBootstrap::init);
-    }
-
-    private static void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)) {
-            event.accept(ModItems.HEART_PACT_GUIDE);
-            event.accept(ModItems.PROPOSAL_RING);
-            event.accept(ModItems.SUNFLOWER_HAIRPIN);
-            event.accept(ModItems.YES_PILLOW);
-            event.accept(ModItems.RAINBOW_BOUQUET);
-            event.accept(ModItems.LONGING_TESTER);
-            event.accept(ModItems.FLOWER_TEST_KIT);
-            event.accept(ModItems.SAUCE_DUCK);
-            event.accept(ModItems.GROWTH_TOOL);
-            event.accept(ModItems.BIRTH_TOOL);
-            event.accept(ModItems.PREGNANCY_TEST_TOOL);
-            event.accept(ModItems.PREGNANCY_SETTLEMENT_TOOL);
-            event.accept(ModItems.FAMILY_TREE_TOOL);
-            event.accept(ModItems.MARRIAGE_CONSENT_FORM);
-        }
     }
 }
