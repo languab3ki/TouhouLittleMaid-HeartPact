@@ -32,6 +32,12 @@ public final class ModAdvancements {
     public static final ResourceLocation FLOWER_PURPLE = id("flower_purple");
     public static final ResourceLocation FLOWER_BLACK = id("flower_black");
     public static final ResourceLocation FLOWER_RAINBOW = id("flower_rainbow");
+    public static final ResourceLocation SPIRIT_SOOTHE = id("spirit_soothe");
+    public static final ResourceLocation SPIRIT_REMEMBER = id("spirit_remember");
+    public static final ResourceLocation SPIRIT_RECOGNIZED = id("spirit_recognized");
+    public static final ResourceLocation SPIRIT_LANTERN = id("spirit_lantern");
+    public static final ResourceLocation SPIRIT_STAY = id("spirit_stay");
+    public static final ResourceLocation SPIRIT_FAREWELL = id("spirit_farewell");
 
     private ModAdvancements() {
     }
@@ -90,6 +96,36 @@ public final class ModAdvancements {
     public static void grantRainbowBouquet(ServerPlayer player) {
         grant(player, ROOT);
         grant(player, FLOWER_RAINBOW);
+    }
+
+    public static void grantSpiritSoothe(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_SOOTHE);
+    }
+
+    public static void grantSpiritRemember(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_REMEMBER);
+    }
+
+    public static void grantSpiritRecognized(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_RECOGNIZED);
+    }
+
+    public static void grantSpiritLantern(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_LANTERN);
+    }
+
+    public static void grantSpiritStay(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_STAY);
+    }
+
+    public static void grantSpiritFarewell(ServerPlayer player) {
+        grant(player, ROOT);
+        grant(player, SPIRIT_FAREWELL);
     }
 
     private static void grant(ServerPlayer player, ResourceLocation id) {

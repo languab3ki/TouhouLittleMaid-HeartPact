@@ -30,6 +30,8 @@ public final class MaidMoodManager {
     public static final String EVENT_ROMANCE = "romance";
     public static final String EVENT_LAP_PILLOW = "lap_pillow";
     public static final int LOVE_TEST_VALUE = MaidMoodData.MAX_MOOD;
+    public static final String TAG_CHILD_LOSS_GRIEF_ACTIVE = "maidmarriage_child_loss_grief_active";
+    public static final String TAG_CHILD_LOSS_GRIEF_CHILD_NAME = "maidmarriage_child_loss_grief_child_name";
     /**
      * 正式版固定三天未有效互动进入“忍耐”状态。
      *
@@ -130,6 +132,7 @@ public final class MaidMoodManager {
         }
 
         MaidMoodData current = get(maid);
+        current = syncLegacyChildLossGriefTag(maid, current);
         long today = maid.level().getDayTime() / 24000L;
         if (current.moodDay() == today) {
             return;
@@ -137,6 +140,59 @@ public final class MaidMoodManager {
 
         int rolledMood = applyLongingMoodPenalty(maid, current, today, rollDailyMoodValue(maid));
         maid.setAndSyncData(ModTaskData.MOOD_DATA, current.rerollForDay(rolledMood, today));
+    }
+
+    /**
+     * 子代小女仆死亡后的独立悲伤状态。
+     *
+     * <p>它不直接占用普通心情值，避免把安抚、送花等恢复玩法锁死；
+     * 亲密接触拒绝、丧子入口文本和后续灵体流程都单独读取这个 tag。
+     */
+    public static void markChildLossGrief(EntityMaid mother, net.minecraft.network.chat.Component childName) {
+        if (mother == null || mother.level().isClientSide()) {
+            return;
+        }
+        mother.getPersistentData().putBoolean(TAG_CHILD_LOSS_GRIEF_ACTIVE, true);
+        if (childName != null) {
+            mother.getPersistentData().putString(TAG_CHILD_LOSS_GRIEF_CHILD_NAME,
+                    net.minecraft.network.chat.Component.Serializer.toJson(childName));
+        }
+        if (ModTaskData.MOOD_DATA != null) {
+            mother.setAndSyncData(ModTaskData.MOOD_DATA, get(mother).setChildLossGrief(true));
+        }
+        applyFavorabilityDeltaWithRefresh(mother, -30, RelationshipThresholds.FAVORABILITY_MAX);
+    }
+
+    public static void clearChildLossGrief(EntityMaid mother) {
+        if (mother == null || mother.level().isClientSide()) {
+            return;
+        }
+        mother.getPersistentData().remove(TAG_CHILD_LOSS_GRIEF_ACTIVE);
+        mother.getPersistentData().remove(TAG_CHILD_LOSS_GRIEF_CHILD_NAME);
+        if (ModTaskData.MOOD_DATA != null) {
+            mother.setAndSyncData(ModTaskData.MOOD_DATA, get(mother).setChildLossGrief(false));
+        }
+    }
+
+    public static boolean hasChildLossGrief(EntityMaid maid) {
+        if (maid == null) {
+            return false;
+        }
+        return get(maid).childLossGrief() || maid.getPersistentData().getBoolean(TAG_CHILD_LOSS_GRIEF_ACTIVE);
+    }
+
+    private static MaidMoodData syncLegacyChildLossGriefTag(EntityMaid maid, MaidMoodData current) {
+        if (maid == null || maid.level().isClientSide() || ModTaskData.MOOD_DATA == null) {
+            return current == null ? MaidMoodData.EMPTY : current;
+        }
+        MaidMoodData safe = current == null ? MaidMoodData.EMPTY : current;
+        boolean legacyTag = maid.getPersistentData().getBoolean(TAG_CHILD_LOSS_GRIEF_ACTIVE);
+        if (legacyTag == safe.childLossGrief()) {
+            return safe;
+        }
+        MaidMoodData updated = safe.setChildLossGrief(legacyTag);
+        maid.setAndSyncData(ModTaskData.MOOD_DATA, updated);
+        return updated;
     }
 
     /**

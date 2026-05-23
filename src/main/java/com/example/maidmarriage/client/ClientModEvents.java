@@ -1,6 +1,9 @@
 package com.example.maidmarriage.client;
 
 import com.example.maidmarriage.MaidMarriageMod;
+import com.example.maidmarriage.client.interaction.BuiltinInteractionActions;
+import com.example.maidmarriage.client.interaction.InteractionTargetRegistry;
+import com.example.maidmarriage.client.interaction.SpiritInteractionTargetAdapter;
 import com.example.maidmarriage.init.ModEntities;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;
@@ -15,19 +18,24 @@ import net.minecraftforge.fml.common.Mod;
  * 该类的具体逻辑可参见下方方法与字段定义。
  */
 public final class ClientModEvents {
+    private static boolean genericInteractionsRegistered;
+
     private ClientModEvents() {
     }
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        registerGenericInteractions();
         EntityRenderers.register(ModEntities.MAID_CHILD.get(), MaidChildRenderer::new);
         EntityRenderers.register(ModEntities.LIFT_PROXY.get(), LiftProxyRenderer::new);
         EntityRenderers.register(ModEntities.MAID_CARRY_PROXY.get(), MaidCarryProxyRenderer::new);
         EntityRenderers.register(ModEntities.LAP_PILLOW_ANCHOR.get(), LapPillowAnchorRenderer::new);
+        EntityRenderers.register(ModEntities.MAID_SPIRIT.get(), MaidSpiritRenderer::new);
     }
 
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        registerGenericInteractions();
         RhythmKeyMappings.applyConfigKeyMappings();
         event.register(RhythmKeyMappings.RHYTHM_HIT);
         event.register(RhythmKeyMappings.PET_HEAD);
@@ -36,5 +44,14 @@ public final class ClientModEvents {
         event.register(RhythmKeyMappings.MAID_DEBUG_PANEL);
         event.register(RhythmKeyMappings.LAP_PILLOW_EXIT);
         event.register(RhythmKeyMappings.RESTORE_HUG_UI);
+    }
+
+    private static void registerGenericInteractions() {
+        if (genericInteractionsRegistered) {
+            return;
+        }
+        genericInteractionsRegistered = true;
+        InteractionTargetRegistry.register(new SpiritInteractionTargetAdapter());
+        BuiltinInteractionActions.register();
     }
 }

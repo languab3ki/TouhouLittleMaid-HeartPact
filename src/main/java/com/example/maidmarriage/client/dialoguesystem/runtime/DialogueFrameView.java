@@ -19,6 +19,7 @@ public record DialogueFrameView(
         int lineIndex,
         String speaker,
         String text,
+        String narration,
         String portraitId,
         String portraitTexture,
         String expressionId,

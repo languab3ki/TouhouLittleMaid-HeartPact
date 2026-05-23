@@ -11,7 +11,7 @@ import java.util.Locale;
  * 怀孕数据只负责生育流程，心情数据负责日常互动、好感加成和面板显示。
  * 这样以后继续改事件权重时，不会误伤已经存在的怀孕/分娩存档字段。</p>
  */
-public record MaidMoodData(int moodValue, long moodDay, long lastInteractionDay) {
+public record MaidMoodData(int moodValue, long moodDay, long lastInteractionDay, boolean childLossGrief) {
     /** 心情最小值：彻底疲惫。低于最低档时，部分行动会被阻止。 */
     public static final int MIN_MOOD = 0;
     /** 心情最大值：五档离散值中的最高档。 */
@@ -23,13 +23,14 @@ public record MaidMoodData(int moodValue, long moodDay, long lastInteractionDay)
 
     public static final long UNSET_DAY = -1L;
 
-    public static final MaidMoodData EMPTY = new MaidMoodData(DEFAULT_MOOD, UNSET_DAY, UNSET_DAY);
+    public static final MaidMoodData EMPTY = new MaidMoodData(DEFAULT_MOOD, UNSET_DAY, UNSET_DAY, false);
 
     public static final Codec<MaidMoodData> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
                     Codec.INT.optionalFieldOf("mood_value", DEFAULT_MOOD).forGetter(MaidMoodData::moodValue),
                     Codec.LONG.optionalFieldOf("mood_day", UNSET_DAY).forGetter(MaidMoodData::moodDay),
-                    Codec.LONG.optionalFieldOf("last_interaction_day", UNSET_DAY).forGetter(MaidMoodData::lastInteractionDay)
+                    Codec.LONG.optionalFieldOf("last_interaction_day", UNSET_DAY).forGetter(MaidMoodData::lastInteractionDay),
+                    Codec.BOOL.optionalFieldOf("child_loss_grief", false).forGetter(MaidMoodData::childLossGrief)
             ).apply(instance, MaidMoodData::new));
 
     public MaidMoodData {
@@ -37,27 +38,35 @@ public record MaidMoodData(int moodValue, long moodDay, long lastInteractionDay)
     }
 
     public MaidMoodData(int moodValue) {
-        this(moodValue, UNSET_DAY, UNSET_DAY);
+        this(moodValue, UNSET_DAY, UNSET_DAY, false);
     }
 
     public MaidMoodData(int moodValue, long moodDay) {
-        this(moodValue, moodDay, UNSET_DAY);
+        this(moodValue, moodDay, UNSET_DAY, false);
+    }
+
+    public MaidMoodData(int moodValue, long moodDay, long lastInteractionDay) {
+        this(moodValue, moodDay, lastInteractionDay, false);
     }
 
     public MaidMoodData add(int amount) {
-        return new MaidMoodData(moodValue + amount, moodDay, lastInteractionDay);
+        return new MaidMoodData(moodValue + amount, moodDay, lastInteractionDay, childLossGrief);
     }
 
     public MaidMoodData set(int value) {
-        return new MaidMoodData(value, moodDay, lastInteractionDay);
+        return new MaidMoodData(value, moodDay, lastInteractionDay, childLossGrief);
     }
 
     public MaidMoodData rerollForDay(int value, long day) {
-        return new MaidMoodData(value, day, lastInteractionDay);
+        return new MaidMoodData(value, day, lastInteractionDay, childLossGrief);
     }
 
     public MaidMoodData markInteraction(long day) {
-        return new MaidMoodData(moodValue, moodDay, day);
+        return new MaidMoodData(moodValue, moodDay, day, childLossGrief);
+    }
+
+    public MaidMoodData setChildLossGrief(boolean value) {
+        return new MaidMoodData(moodValue, moodDay, lastInteractionDay, value);
     }
 
     public MoodState state() {

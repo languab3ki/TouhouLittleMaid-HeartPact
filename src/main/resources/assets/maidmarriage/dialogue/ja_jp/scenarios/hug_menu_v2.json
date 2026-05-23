@@ -102,6 +102,16 @@
           "events": []
         },
         {
+          "id": "child_loss_grief",
+          "title": "あの子のこと",
+          "description": "彼女はまだ口にできないまま、毎日その名前が帰ってくるのを待っている。",
+          "condition": "child_loss_grief",
+          "next": "child_loss_grief",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
           "id": "confession",
           "title": "想いを伝える",
           "description": "今まで言えなかった言葉を、まっすぐ彼女に伝える。",
@@ -125,7 +135,7 @@
           "id": "action_menu",
           "title": "アクション",
           "description": "キス、抱きしめる、膝枕、頭をなでるなど。",
-          "next": "action_menu",
+          "next": "action_menu_router",
           "expression": "action_shy",
           "animation": "fade_in",
           "events": []
@@ -152,6 +162,137 @@
       "branches": [],
       "events": []
     },
+    "child_loss_grief": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "彼女はあなたを見ている。でもその視線は、あなたの後ろにいるはずの、もう二度と走ってこない小さな影を探しているようだった。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}……今日も、おやつを一つ多く用意してしまいました。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "忘れたわけじゃないんです。本当に。ただ、手が先に動いて、気づいたときにはお皿がそこにありました。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "テーブルのそばに、小さな席が空いている。そこに座る子はいない。足をぶらぶら揺らす音もない。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "あの子は、私たちには見えないどこかで待っているのでしょうか。怖くなったら、ママって呼ぶでしょうか。あなたのことも呼ぶでしょうか。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "僕も、ずっとあの子のことを考えている。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "その言葉を聞いた瞬間、彼女の肩が小さく震えた。空白が錯覚ではないと、誰かが認めてくれたみたいに。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "まだ教えてあげたいことがたくさんありました。ちゃんと私の名前を呼ぶ声も、まだ聞けていません。私たちのところへ来てくれて幸せだったと、もっと伝えたかった。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "一緒に覚えていよう。もしまた会えるなら、一緒に迎えに行こう。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "gentle",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "はい。私ひとりに忘れさせないでください。私ひとりに、覚えさせないでください。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "action_menu_router": {
+      "_comment": "親密行動拒否の統一入口。通常の depressed 気分、または子を失った grief のどちらでもここへ来る。",
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "intimacy_refused && !hugging && !lap_pillow_active",
+          "next": "depressed_intimacy_refuse"
+        }
+      ],
+      "next": "action_menu",
+      "lines": [],
+      "choices": [],
+      "events": []
+    },
+    "depressed_intimacy_refuse": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "あなたが近づこうとすると、彼女は無意識に半歩だけ下がった。拒んでいるのではなく、今は親密さを受け止める力が残っていない。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}……ごめんなさい。今は、少しだけ待ってください。嫌いになったわけじゃないんです。ただ、胸の奥が痛すぎて。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
     "action_menu": {
       "_comment": "Secondary action menu. Generic close actions are kept here so the main interaction screen stays compact.",
       "type": "choice",
@@ -169,7 +310,7 @@
           "id": "kiss",
           "title": "キスする",
           "description": "そっと口づけて、唇のあいだに想いを伝える。",
-          "condition": "!maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
+          "condition": "!intimacy_refused && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
           "next": "kiss_intro",
           "action": "maidmarriage:interaction_kiss",
           "events": []
@@ -178,7 +319,7 @@
           "id": "hug",
           "title": "抱きしめる",
           "description": "彼女を腕の中に抱き寄せて、互いの温もりを感じる。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
           "next": "hug_intro",
           "action": "maidmarriage:hug_toggle",
           "events": []
@@ -187,7 +328,7 @@
           "id": "lap_pillow",
           "title": "膝枕",
           "description": "彼女の膝に頭を預けて、静かにそばで休ませてもらう。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
           "next": "lap_pillow_start",
           "action": "maidmarriage:lap_pillow_start",
           "expression": "action_touched",
@@ -198,7 +339,7 @@
           "id": "lap_pillow_refuse",
           "title": "膝枕をお願いする",
           "description": "今日は少し元気がないみたい。先にやさしく慰めてあげよう。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
           "next": "lap_pillow_refuse",
           "expression": "troubled",
           "animation": "fade_in",
@@ -208,7 +349,7 @@
           "id": "lap_pillow_pet_player_head",
           "title": "慰めてほしい",
           "description": "そっとお願いして、彼女に頭をなでてもらう。",
-          "condition": "lap_pillow_active",
+          "condition": "lap_pillow_active && !intimacy_refused",
           "next": "lap_pillow_pet",
           "action": "maidmarriage:lap_pillow_pet_player_head",
           "expression": "embarrassed_smile",
@@ -241,7 +382,7 @@
           "description": "彼女の頭をやさしくなでる。",
           "next": "pet_intro",
           "action": "maidmarriage:pet_head",
-          "condition": "favor_pet_unlocked",
+          "condition": "favor_pet_unlocked && !intimacy_refused",
           "events": []
         },
         {

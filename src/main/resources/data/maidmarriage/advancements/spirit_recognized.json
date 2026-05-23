@@ -1,0 +1,28 @@
+{
+  "parent": "maidmarriage:spirit_remember",
+  "display": {
+    "icon": {
+      "item": "minecraft:heart_of_the_sea"
+    },
+    "title": {
+      "translate": "advancements.maidmarriage.spirit_recognized.title"
+    },
+    "description": {
+      "translate": "advancements.maidmarriage.spirit_recognized.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ]
+}

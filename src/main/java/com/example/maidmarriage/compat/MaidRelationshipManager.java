@@ -4,6 +4,7 @@ import com.example.maidmarriage.advancement.ModAdvancements;
 import com.example.maidmarriage.data.MarriageData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.data.RelationshipProgressData;
+import com.example.maidmarriage.entity.MaidChildEntity;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -65,6 +66,9 @@ public final class MaidRelationshipManager {
         if (maid == null) {
             return false;
         }
+        if (player != null && MaidChildEntity.isParentOfMaid(maid, player.getUUID())) {
+            return false;
+        }
         return maid.getFavorability() >= CONFESSION_UNLOCK_FAVORABILITY
                 && !isConfessionCompleted(maid)
                 && !isMarried(maid)
@@ -79,6 +83,9 @@ public final class MaidRelationshipManager {
         if (maid == null) {
             return false;
         }
+        if (player != null && MaidChildEntity.isParentOfMaid(maid, player.getUUID())) {
+            return false;
+        }
         return maid.getFavorability() >= MARRIAGE_UNLOCK_FAVORABILITY
                 && isConfessionCompleted(maid)
                 && !isMarried(maid)
@@ -87,6 +94,7 @@ public final class MaidRelationshipManager {
 
     public static boolean isKissUnlocked(EntityMaid maid) {
         return maid != null
+                && !(maid.getOwner() instanceof Player owner && MaidChildEntity.isParentOfMaid(maid, owner.getUUID()))
                 && maid.getFavorability() >= CONFESSION_UNLOCK_FAVORABILITY
                 && isConfessionCompleted(maid);
     }

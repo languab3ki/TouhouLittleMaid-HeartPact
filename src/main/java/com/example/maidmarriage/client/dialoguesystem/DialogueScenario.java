@@ -172,6 +172,7 @@ public final class DialogueScenario {
     public static class Prompt {
         public String speaker = "";
         public String text = "";
+        public String narration = "";
         public String portrait = "";
         public String expression = "";
         public String animation = "";
@@ -183,6 +184,9 @@ public final class DialogueScenario {
             }
             if (text == null) {
                 text = "";
+            }
+            if (narration == null) {
+                narration = "";
             }
             if (portrait == null) {
                 portrait = "";

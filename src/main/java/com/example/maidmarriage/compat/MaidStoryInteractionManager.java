@@ -4,6 +4,7 @@ import com.example.maidmarriage.advancement.ModAdvancements;
 import com.example.maidmarriage.config.DialogueScriptManager;
 import com.example.maidmarriage.data.MarriageData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.init.ModItems;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Map;
@@ -34,6 +35,9 @@ public final class MaidStoryInteractionManager {
     public static void handleStoryAction(ServerPlayer player, @Nullable UUID maidUuid, String actionId) {
         EntityMaid maid = resolveCurrentInteractionMaid(player, maidUuid);
         if (maid == null || !maid.isOwnedBy(player) || actionId == null || actionId.isBlank()) {
+            return;
+        }
+        if (MaidChildEntity.isParentOfMaid(maid, player.getUUID())) {
             return;
         }
 

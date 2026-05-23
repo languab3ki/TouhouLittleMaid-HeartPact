@@ -95,6 +95,7 @@ public final class HugDialogueStageFlavorComposer {
                 frame.lineIndex(),
                 frame.speaker(),
                 mergedText,
+                frame.narration(),
                 frame.portraitId(),
                 frame.portraitTexture(),
                 frame.expressionId(),

@@ -102,6 +102,16 @@
           "events": []
         },
         {
+          "id": "child_loss_grief",
+          "title": "孩子的事",
+          "description": "她一直没有问出口，可你知道她每天都在等那个名字回家。",
+          "condition": "child_loss_grief",
+          "next": "child_loss_grief",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
           "id": "confession",
           "title": "表白",
           "description": "认真回应她的心意，让你们的关系真正往前一步。",
@@ -125,7 +135,7 @@
           "id": "action_menu",
           "title": "行动",
           "description": "与女仆的互动",
-          "next": "action_menu",
+          "next": "action_menu_router",
           "expression": "action_shy",
           "animation": "fade_in",
           "events": []
@@ -152,6 +162,195 @@
       "branches": [],
       "events": []
     },
+    "child_loss_grief": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "她看着你，却像在看你身后那个永远不会再跑过来的小小身影。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}……我今天又多准备了一份点心。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "不是忘了。真的不是忘了。只是手自己先动了，等我反应过来，盘子已经放在那里了。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "桌边空着一个小小的位置。没有人坐在那里，也没有人把脚尖晃来晃去。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "我知道你也很难过……可是我还是会下意识去找她。醒来的时候，做饭的时候，听见门响的时候。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "她是不是还在某个我们看不见的地方等我们？如果她害怕的话，会不会喊妈妈，会不会喊你？",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "我也一直在想她。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "这句话出口的瞬间，她的肩膀轻轻颤了一下。像终于有人替她承认，那份空缺不是错觉。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "那你有没有梦见她？梦里她有没有长高一点？有没有笑？有没有……怪我们没有把她留住？",
+          "portrait": "maid",
+          "expression": "aggrieved",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "她不会怪你的。",
+          "portrait": "maid",
+          "expression": "aggrieved",
+          "emotion": "gentle",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "可是我是她的妈妈啊。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "她终于哭出声来。不是嚎啕大哭，而是把已经碎掉的声音一点点捧出来，像捧着一盏快灭的灯。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "我还没教会她好多事。还没听她好好叫我的名字。还没来得及告诉她，能来到我们身边，已经是我这辈子最幸福的事之一。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "我们一起记住她。等能见到她的时候，一起去接她回家。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "gentle",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "她没有立刻回答。只是慢慢靠近你，把额头抵在你的肩上。那一点重量很轻，却像把整个冬天都压了过来。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "嗯。不要让我一个人忘记她。也不要让我一个人记得她。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "你们在那个空出来的位置旁站了很久。没有奇迹发生。可至少这一次，悲伤不是只落在她一个人的手心里。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "action_menu_router": {
+      "_comment": "亲密接触拒绝的统一入口：普通心情值为 depressed 或处于丧子 grief 时都会走这里。",
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "intimacy_refused && !hugging && !lap_pillow_active",
+          "next": "depressed_intimacy_refuse"
+        }
+      ],
+      "next": "action_menu",
+      "lines": [],
+      "choices": [],
+      "events": []
+    },
+    "depressed_intimacy_refuse": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "你刚想靠近，她却下意识退了半步。不是躲你，而是现在的她已经没有力气接住任何亲密。",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}……对不起。现在先不要，好吗？我不是讨厌你，只是心里太疼了。",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
     "action_menu": {
       "_comment": "Secondary action menu. Generic close actions are kept here so the main interaction screen stays compact.",
       "type": "choice",
@@ -169,7 +368,7 @@
           "id": "kiss",
           "title": "亲吻",
           "description": "吻她一下，让心意在唇间轻轻传递。",
-          "condition": "!maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
+          "condition": "!intimacy_refused && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
           "next": "kiss_intro",
           "action": "maidmarriage:interaction_kiss",
           "events": []
@@ -178,7 +377,7 @@
           "id": "hug",
           "title": "拥抱",
           "description": "把她抱进怀里，感受彼此的温暖。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
           "next": "hug_intro",
           "action": "maidmarriage:hug_toggle",
           "events": []
@@ -187,7 +386,7 @@
           "id": "lap_pillow",
           "title": "膝枕",
           "description": "枕在她膝上，让她陪你安静休息一会儿。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
           "next": "lap_pillow_start",
           "action": "maidmarriage:lap_pillow_start",
           "expression": "action_touched",
@@ -198,7 +397,7 @@
           "id": "lap_pillow_refuse",
           "title": "想枕在她膝上",
           "description": "她今天心情不太好，也许需要先被哄一哄。",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
           "next": "lap_pillow_refuse",
           "expression": "troubled",
           "animation": "fade_in",
@@ -208,7 +407,7 @@
           "id": "lap_pillow_pet_player_head",
           "title": "求安慰",
           "description": "轻轻拜托她摸摸你的头。",
-          "condition": "lap_pillow_active",
+          "condition": "lap_pillow_active && !intimacy_refused",
           "next": "lap_pillow_pet",
           "action": "maidmarriage:lap_pillow_pet_player_head",
           "expression": "embarrassed_smile",
@@ -241,7 +440,7 @@
           "description": "摸摸她的头。",
           "next": "pet_intro",
           "action": "maidmarriage:pet_head",
-          "condition": "favor_pet_unlocked",
+          "condition": "favor_pet_unlocked && !intimacy_refused",
           "events": []
         },
         {

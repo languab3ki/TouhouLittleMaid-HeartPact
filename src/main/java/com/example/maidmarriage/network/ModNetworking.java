@@ -14,6 +14,7 @@ import com.example.maidmarriage.compat.LapPillowManager;
 import com.example.maidmarriage.compat.MaidStoryInteractionManager;
 import com.example.maidmarriage.compat.PetHeadManager;
 import com.example.maidmarriage.compat.RomanceSleepManager;
+import com.example.maidmarriage.compat.SpiritInteractionManager;
 import com.example.maidmarriage.network.payload.CarryChildMaidPayload;
 import com.example.maidmarriage.network.payload.CarryChildStateSyncPayload;
 import com.example.maidmarriage.network.payload.ChildInteractionPayload;
@@ -36,6 +37,8 @@ import com.example.maidmarriage.network.payload.MaidDebugDataPayload;
 import com.example.maidmarriage.network.payload.PetHeadPayload;
 import com.example.maidmarriage.network.payload.StartRomanceRhythmPayload;
 import com.example.maidmarriage.network.payload.StoryProgressActionPayload;
+import com.example.maidmarriage.network.payload.SpiritInteractionPayload;
+import com.example.maidmarriage.network.payload.SpiritOfferingPayload;
 import com.example.maidmarriage.network.payload.ToggleHugPosePayload;
 import com.example.maidmarriage.network.payload.SubmitRomanceRhythmPayload;
 import com.example.maidmarriage.network.payload.UpdateMaidAddressingPayload;
@@ -50,7 +53,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ModNetworking {
-    private static final String PROTOCOL = "19";
+    private static final String PROTOCOL = "22";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(MaidMarriageMod.MOD_ID, "main"),
             () -> PROTOCOL,
@@ -320,6 +323,28 @@ public final class ModNetworking {
                     }
                 })
                 .add();
+
+        CHANNEL.messageBuilder(SpiritInteractionPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SpiritInteractionPayload::encode)
+                .decoder(SpiritInteractionPayload::decode)
+                .consumerMainThread((msg, ctx) -> {
+                    ServerPlayer sender = ctx.get().getSender();
+                    if (sender != null) {
+                        SpiritInteractionManager.handleAction(sender, msg.spiritUuid(), msg.actionId());
+                    }
+                })
+                .add();
+
+        CHANNEL.messageBuilder(SpiritOfferingPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SpiritOfferingPayload::encode)
+                .decoder(SpiritOfferingPayload::decode)
+                .consumerMainThread((msg, ctx) -> {
+                    ServerPlayer sender = ctx.get().getSender();
+                    if (sender != null) {
+                        SpiritInteractionManager.handleOffering(sender, msg.spiritUuid(), msg.slotIndex());
+                    }
+                })
+                .add();
     }
 
     public static void sendStart(ServerPlayer player, StartRomanceRhythmPayload payload) {
@@ -469,6 +494,20 @@ public final class ModNetworking {
         CHANNEL.sendToServer(payload);
     }
 
+    public static void sendSpiritInteraction(SpiritInteractionPayload payload) {
+        if (!canSendToServer()) {
+            return;
+        }
+        CHANNEL.sendToServer(payload);
+    }
+
+    public static void sendSpiritOffering(SpiritOfferingPayload payload) {
+        if (!canSendToServer()) {
+            return;
+        }
+        CHANNEL.sendToServer(payload);
+    }
+
     private static boolean canSendToServer() {
         Boolean canSend = DistExecutor.safeCallWhenOn(
                 Dist.CLIENT,
@@ -503,7 +542,8 @@ public final class ModNetworking {
                             msg.playerUuid(),
                             msg.maidUuid(),
                             msg.hugging(),
-                            msg.childNameRequired()
+                            msg.childNameRequired(),
+                            msg.childLossGrief()
                     );
                 });
     }

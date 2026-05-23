@@ -668,7 +668,8 @@ public final class MaidHugManager {
                 player.getUUID(),
                 maid == null ? null : maid.getUUID(),
                 hugging,
-                requiresChildNameBeforeNormalInteraction(maid)
+                requiresChildNameBeforeNormalInteraction(maid),
+                MaidMoodManager.hasChildLossGrief(maid)
         ));
     }
 

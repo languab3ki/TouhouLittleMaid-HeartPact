@@ -2,6 +2,7 @@ package com.example.maidmarriage.client;
 
 import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +24,9 @@ public final class MaidChildScaleRenderHook {
     @SubscribeEvent
     public static void onRenderPre(RenderLivingEvent.Pre<?, ?> event) {
         if (!(event.getEntity() instanceof EntityMaid maid)) {
+            return;
+        }
+        if (maid instanceof MaidSpiritEntity) {
             return;
         }
         if (!MaidChildEntity.shouldStayChild(maid)) {

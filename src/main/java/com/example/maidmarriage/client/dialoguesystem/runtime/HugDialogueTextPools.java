@@ -77,6 +77,10 @@ public final class HugDialogueTextPools {
         return normalize(pick(path("longing_entry", key)));
     }
 
+    public static PickedLine pickChildLossGriefEntryCue() {
+        return normalize(pick(path("child_loss_grief_entry")));
+    }
+
     public static String pickChat(RelationStage stage, MaidMoodData.MoodState mood) {
         return pickChatCue(stage, mood).text();
     }
@@ -184,6 +188,53 @@ public final class HugDialogueTextPools {
         return normalize(pick(topicPath("topics", "weather_special", category, stageKey(stage))));
     }
 
+    public static PickedLine pickChildFamilyEntryCue(String timeOfDay) {
+        PickedLine timeEntry = normalize(pick(childTopicPath("entry_time", timeBucket(timeOfDay))));
+        if (!timeEntry.text().isBlank()) {
+            return timeEntry;
+        }
+        return normalize(pick(childPath("entry")));
+    }
+
+    public static PickedLine pickChildFamilyChatCue() {
+        return normalize(pick(childPath("chat")));
+    }
+
+    public static PickedLine pickChildFamilyPetCue() {
+        return normalize(pick(childPath("action", "pet")));
+    }
+
+    public static PickedLine pickChildFamilyHugCue() {
+        return normalize(pick(childPath("action", "hug")));
+    }
+
+    public static PickedLine pickChildFamilyComfortCue() {
+        return normalize(pick(childPath("action", "comfort")));
+    }
+
+    public static PickedLine pickChildInteractionEntryCue(String stageKey, boolean carriedByMother) {
+        if (carriedByMother) {
+            return normalize(pick(childPath("small_entry", "carried_by_mother")));
+        }
+        return normalize(pick(childPath("small_entry", normalizeChildStageKey(stageKey))));
+    }
+
+    public static PickedLine pickSpiritSootheCue(String longingTier) {
+        return normalize(pick(spiritPath("soothe", normalizeSpiritLongingTier(longingTier))));
+    }
+
+    public static PickedLine pickSpiritOfferingFlowerCue() {
+        return normalize(pick(spiritPath("offering", "flower")));
+    }
+
+    public static PickedLine pickSpiritOfferingSoulCue() {
+        return normalize(pick(spiritPath("offering", "soul")));
+    }
+
+    public static PickedLine pickSpiritOfferingLimitCue() {
+        return normalize(pick(spiritPath("offering", "limit")));
+    }
+
     private static LoadedPoolResource loadRoot() {
         return loadRoot(RESOURCE_PATH);
     }
@@ -244,6 +295,18 @@ public final class HugDialogueTextPools {
 
     private static PoolValues topicPath(String... segments) {
         return path(loadRoot(TOPIC_RESOURCE_PATH), segments);
+    }
+
+    private static PoolValues childPath(String... segments) {
+        return path(loadRoot("child_family_v1.json"), segments);
+    }
+
+    private static PoolValues childTopicPath(String... segments) {
+        return path(loadRoot("child_family_topics_v1.json"), segments);
+    }
+
+    private static PoolValues spiritPath(String... segments) {
+        return path(loadRoot("spirit_interaction_v1.json"), segments);
     }
 
     private static PoolValues path(LoadedPoolResource resource, String... segments) {
@@ -358,6 +421,29 @@ public final class HugDialogueTextPools {
             case "night", "midnight" -> "night";
             case "noon", "afternoon" -> "day";
             default -> "day";
+        };
+    }
+
+    private static String normalizeChildStageKey(String stageKey) {
+        if (stageKey == null || stageKey.isBlank()) {
+            return "child";
+        }
+        return switch (stageKey.toLowerCase(java.util.Locale.ROOT)) {
+            case "infant" -> "infant";
+            case "juvenile" -> "juvenile";
+            case "child" -> "child";
+            default -> "child";
+        };
+    }
+
+    private static String normalizeSpiritLongingTier(String tier) {
+        if (tier == null || tier.isBlank()) {
+            return "low";
+        }
+        return switch (tier.toLowerCase(java.util.Locale.ROOT)) {
+            case "high" -> "high";
+            case "mid", "middle" -> "mid";
+            default -> "low";
         };
     }
 

@@ -226,6 +226,10 @@ public final class HugDialogueRuntimeBridge {
         return controller.currentNodeId();
     }
 
+    public String currentNodeIdIfLoaded() {
+        return controller == null ? "" : controller.currentNodeId();
+    }
+
     /**
      * 取出剧情层发出的语义动作请求。
      *

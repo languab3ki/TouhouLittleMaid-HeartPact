@@ -102,6 +102,16 @@
           "events": []
         },
         {
+          "id": "child_loss_grief",
+          "title": "About Our Child",
+          "description": "She has not been able to ask it aloud, but every day she waits for that name to come home.",
+          "condition": "child_loss_grief",
+          "next": "child_loss_grief",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
           "id": "confession",
           "title": "Tell Her Your Feelings",
           "description": "Say the words you have been holding back.",
@@ -125,7 +135,7 @@
           "id": "action_menu",
           "title": "Actions",
           "description": "Kiss, hug, lap pillow, head pats, and other close actions.",
-          "next": "action_menu",
+          "next": "action_menu_router",
           "expression": "action_shy",
           "animation": "fade_in",
           "events": []
@@ -152,6 +162,137 @@
       "branches": [],
       "events": []
     },
+    "child_loss_grief": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "She looks at you, but it feels as if she is looking past you, searching for the tiny figure who will never run back through the door.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}... I made one extra sweet again today.",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "I did not forget. I really did not. My hands moved before I could stop them, and by the time I noticed, the plate was already there.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "There is a small empty place beside the table. No one sits there. No little feet swing back and forth.",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Do you think she is waiting somewhere we cannot see? If she is scared, does she call for Mom? Does she call for you?",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "I think about her too. All the time.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "Her shoulders tremble at those words, as if someone has finally admitted that the empty space is real.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "I never taught her so many things. I never heard her call my name properly. I never told her enough that coming to us was one of the happiest things in my life.",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "events": []
+        },
+        {
+          "speaker": "${player}",
+          "text": "We will remember her together. And if we can see her again, we will bring her home together.",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "gentle",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Then please... do not let me forget her alone. And do not make me remember her alone.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "action_menu_router": {
+      "_comment": "Unified intimate-action refusal: normal depressed mood or child-loss grief both route here.",
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "intimacy_refused && !hugging && !lap_pillow_active",
+          "next": "depressed_intimacy_refuse"
+        }
+      ],
+      "next": "action_menu",
+      "lines": [],
+      "choices": [],
+      "events": []
+    },
+    "depressed_intimacy_refuse": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "As you start to move closer, she quietly takes half a step back. She is not rejecting you; she simply has no strength left to receive closeness right now.",
+          "portrait": "maid",
+          "expression": "sad",
+          "emotion": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "${player_maid}... I'm sorry. Not right now, please. I don't hate you. It just hurts too much inside.",
+          "portrait": "maid",
+          "expression": "teary",
+          "emotion": "sad",
+          "events": []
+        }
+      ],
+      "next": "idle",
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
     "action_menu": {
       "_comment": "Secondary action menu. Generic close actions are kept here so the main interaction screen stays compact.",
       "type": "choice",
@@ -169,7 +310,7 @@
           "id": "kiss",
           "title": "Kiss",
           "description": "Kiss her softly, letting your feelings pass between your lips.",
-          "condition": "!maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
+          "condition": "!intimacy_refused && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked",
           "next": "kiss_intro",
           "action": "maidmarriage:interaction_kiss",
           "events": []
@@ -178,7 +319,7 @@
           "id": "hug",
           "title": "Hug",
           "description": "Hold her close, and feel the warmth between you.",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && favor_hug_unlocked",
           "next": "hug_intro",
           "action": "maidmarriage:hug_toggle",
           "events": []
@@ -187,7 +328,7 @@
           "id": "lap_pillow",
           "title": "Lap Pillow",
           "description": "Rest your head on her lap, and let her stay quietly by your side.",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && lap_pillow_mood_ok",
           "next": "lap_pillow_start",
           "action": "maidmarriage:lap_pillow_start",
           "expression": "action_touched",
@@ -198,7 +339,7 @@
           "id": "lap_pillow_refuse",
           "title": "Rest on Her Lap",
           "description": "She is not feeling well today. Maybe comfort her first.",
-          "condition": "!hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
+          "condition": "!intimacy_refused && !hugging && !maid_carrying_child && !lap_pillow_active && !bloodline_kiss_blocked && lap_pillow_unlocked && !lap_pillow_mood_ok",
           "next": "lap_pillow_refuse",
           "expression": "troubled",
           "animation": "fade_in",
@@ -208,7 +349,7 @@
           "id": "lap_pillow_pet_player_head",
           "title": "Ask for Comfort",
           "description": "Gently ask her to stroke your head.",
-          "condition": "lap_pillow_active",
+          "condition": "lap_pillow_active && !intimacy_refused",
           "next": "lap_pillow_pet",
           "action": "maidmarriage:lap_pillow_pet_player_head",
           "expression": "embarrassed_smile",
@@ -241,7 +382,7 @@
           "description": "Gently pat her head.",
           "next": "pet_intro",
           "action": "maidmarriage:pet_head",
-          "condition": "favor_pet_unlocked",
+          "condition": "favor_pet_unlocked && !intimacy_refused",
           "events": []
         },
         {

@@ -1,10 +1,13 @@
 package com.example.maidmarriage.client;
 
+import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 
 /**
@@ -17,129 +20,148 @@ public class MaidMarriageGuideScreen extends Screen {
     private static final int PANEL_WIDTH = 372;
     private static final int CONTENT_PADDING = 18;
     private static final List<GuideSection> SECTIONS = List.of(
-            new GuideSection("先从按键开始",
+            section("guide.maidmarriage.section.0.title",
                     List.of(
-                            "打开“选项 -> 控制 -> 心契同眠”，先看三个键：交互按键、摸头/举高高、节奏判定键。按键绑定以 Minecraft 原版控制设置为准，不在本页里改。",
-                            "KEY:交互按键:对成年女仆打开恋爱互动；对小女仆打开小女仆互动。",
-                            "KEY:摸头/举高高:对坐下的女仆摸头；对站着的小女仆举高高。已经举起时再按一次会放下。鞘翅滑翔时可以继续带着小女仆飞。",
-                            "KEY:节奏判定键:同眠剧情进入节奏玩法时使用。如果不想玩，可以在节奏游戏设置里开启跳过。",
-                            "KEY:唤起互动面板:膝枕或拥抱时点击隐藏按钮进入自由视角后，用这个键把互动 UI 再叫回来。",
-                            "KEY:退出膝枕:互动 UI 打开时，这个键也可以先隐藏 UI；已经隐藏 UI 且处于膝枕状态时，再按它会直接结束膝枕。",
-                            "交互面板里，Esc、唤起互动面板键、退出膝枕键都可以隐藏/关闭当前 UI；空格或回车推进台词；按住 Ctrl 是快进，但会自动限速，且快进期间不会连续播放一堆语音。",
-                            "右上角麦克风按钮：单击试听当前句语音，短时间内连续点击会被冷却；双击会尝试跳转到附属 Voice Manager 的对应台词。",
-                            "模组设置里可以调整举高高高度和拥抱距离：举高高高度偏移默认 0.10，可调 -0.20 到 1.50；拥抱锁定距离默认 0.80，可调 0.10 到 2.00。")),
-            new GuideSection("语音和 AstraTTS",
+                            p("guide.maidmarriage.section.0.p.0"),
+                            key("interaction", "guide.maidmarriage.section.0.p.1"),
+                            key("pet_head", "guide.maidmarriage.section.0.p.2"),
+                            key("rhythm_hit", "guide.maidmarriage.section.0.p.3"),
+                            key("restore_ui", "guide.maidmarriage.section.0.p.4"),
+                            key("lap_exit", "guide.maidmarriage.section.0.p.5"),
+                            p("guide.maidmarriage.section.0.p.6"),
+                            p("guide.maidmarriage.section.0.p.7"),
+                            p("guide.maidmarriage.section.0.p.8"))),
+            section("guide.maidmarriage.section.1.title",
                     List.of(
-                            "心契同眠本体只负责保存语音偏好和播放已经生成好的语音文件；批量生成、单句试听和重生成在附属模组 EasyTTSTouhouMaidAddon 里。",
-                            "安装附属后，打开“AstraTTS 配置 -> 心契同眠”，进入 Voice Manager。先确认服务地址、音色、女仆自称，然后点 Scan 扫描台本。",
-                            "Voice Manager 顶部的 Generate All 会生成全部缺失语音；Generate Group 只生成左侧选中的分组；Retry Failed 会重试失败项；生成中 Stop 会请求中止并保存进度。",
-                            "列表里每句前面会显示情绪和正文，S 列的 v/X 表示是否已经生成，T 是试听，R 是重生成这一句。情绪可以点击文本区域循环切换。",
-                            "语音台本名一般用 ja_jp、zh_cn、en_us。你可以游戏语言是中文、语音台本用日语；主模组会按配置读对应目录的预生成语音。",
-                            "TTS 变量要分清：{maid} 是女仆自己的自称；{child} 是孩子自称；{player} 是玩家显示/通用称呼；{player_maid} 是女仆在台词里叫玩家的称呼。后两个默认可以相同，但语义不同。",
-                            "生成进度保存在 config/easyttstlm/heart_pact_voice/<台本名>/progress.json；音频保存在同目录下。换音色或改台词后，建议对对应分组或单句重新生成。")),
-            new GuideSection("好感阶段和解锁",
+                            p("guide.maidmarriage.section.1.p.0"),
+                            p("guide.maidmarriage.section.1.p.1"),
+                            p("guide.maidmarriage.section.1.p.2"),
+                            p("guide.maidmarriage.section.1.p.3"),
+                            p("guide.maidmarriage.section.1.p.4"),
+                            p("guide.maidmarriage.section.1.p.5"),
+                            p("guide.maidmarriage.section.1.p.6"),
+                            p("guide.maidmarriage.section.1.p.7"),
+                            p("guide.maidmarriage.section.1.p.8"),
+                            p("guide.maidmarriage.section.1.p.9"),
+                            p("guide.maidmarriage.section.1.p.10"),
+                            p("guide.maidmarriage.section.1.p.11"))),
+            section("guide.maidmarriage.section.2.title",
                     List.of(
-                            "0-31：初始。先聊天、送礼、照顾她，亲密选项会比较少。",
-                            "32 起：熟络。摸头开始成为稳定互动，也会触发阶段进度。",
-                            "64 起：暧昧。拥抱解锁，关系会明显靠近。",
-                            "128 起：依恋。进入表白/交往门槛，亲吻与恋人相关剧情开始出现。",
-                            "192 起：相守。结婚门槛。准备好戒指后，可以在互动里交换誓约。",
-                            "未达到门槛的亲密行为不会显示，不是坏了，是她还没准备好。")),
-            new GuideSection("成年女仆互动",
+                            p("guide.maidmarriage.section.2.p.0"),
+                            p("guide.maidmarriage.section.2.p.1"),
+                            p("guide.maidmarriage.section.2.p.2"),
+                            p("guide.maidmarriage.section.2.p.3"),
+                            p("guide.maidmarriage.section.2.p.4"),
+                            p("guide.maidmarriage.section.2.p.5"))),
+            section("guide.maidmarriage.section.3.title",
                     List.of(
-                            "沟通：普通聊天、天气、生活、心事、休息、未来等话题。不同心情下回答会不一样。",
-                            "摸头：轻量亲密互动。她坐下时也可以用快捷键摸头。",
-                            "拥抱：64 好感后出现。进入拥抱姿态后，界面右侧会出现亲吻、继续拥抱、先松开等操作。",
-                            "亲吻：128 好感后出现。亲吻、过度亲近和冒犯选项都会受关系与心情影响。",
-                            "表白：进入交往门槛后出现。接受心意后进入恋人关系，并获得“心心相印”进度。",
-                            "结婚：192 好感后出现。需要主手和副手各准备一枚求婚戒指，并在剧情中为她戴上戒指。",
-                            "赠送礼物：打开礼物面板，从背包里挑物品送她。每天最多两次。")),
-            new GuideSection("膝枕",
+                            p("guide.maidmarriage.section.3.p.0"),
+                            p("guide.maidmarriage.section.3.p.1"),
+                            p("guide.maidmarriage.section.3.p.2"),
+                            p("guide.maidmarriage.section.3.p.3"),
+                            p("guide.maidmarriage.section.3.p.4"),
+                            p("guide.maidmarriage.section.3.p.5"),
+                            p("guide.maidmarriage.section.3.p.6"))),
+            section("guide.maidmarriage.section.4.title",
                     List.of(
-                            "快照版新增膝枕功能。达到恋人关系且她心情在普通以上时，可以在互动界面进入膝枕。",
-                            "膝枕的第三视角比较难同时适配所有模型，但第一人称效果很不错。建议切到第一人称体验。",
-                            "不同女仆模型的身高、坐姿和头部位置会影响镜头。如果视野被挡住，处于膝枕状态时点右下角铅笔按钮，调整膝枕 FOV 缩放和膝枕摄像机高度，直到画面舒服为止。",
-                            "点击像眼睛一样的隐藏按钮，可以隐藏互动 UI 并进入自由视角模式。默认按 H 唤起 UI，默认按 Y 退出膝枕。",
-                            "膝枕时可以选择“求安慰”，女仆会摸摸你的头。这个动作会尽量适配普通模型、GeckoLib 模型和 YSM 模型。",
-                            "膝枕现在带有每日恢复效果：恋人阶段每天最多恢复 10 颗心，并可净化负面效果 3 次。",
-                            "结婚后膝枕每天最多恢复 15 颗心，并可净化负面效果 3 次、获得抗性提升 3 次。抗性提升每次持续 50 秒。",
-                            "恢复、净化和抗性次数由服务端记录和结算，界面右上角只显示今日使用状态。")),
-            new GuideSection("亲吻角度校准",
+                            p("guide.maidmarriage.section.4.p.0"),
+                            p("guide.maidmarriage.section.4.p.1"),
+                            p("guide.maidmarriage.section.4.p.2"),
+                            p("guide.maidmarriage.section.4.p.3"),
+                            p("guide.maidmarriage.section.4.p.4"),
+                            p("guide.maidmarriage.section.4.p.5"),
+                            p("guide.maidmarriage.section.4.p.6"),
+                            p("guide.maidmarriage.section.4.p.7"))),
+            section("guide.maidmarriage.section.5.title",
                     List.of(
-                            "不同女仆模型的身高、头部骨骼和镜头位置可能不一样。如果拥抱或亲吻时画面对不到脸，可以在互动界面里校准镜头。",
-                            "对成年女仆打开互动界面，进入拥抱/亲吻相关界面后，看右下角退出按钮附近的铅笔按钮。点开它会出现镜头校准小面板。",
-                            "“缩放”用来调远近：画面太远就拉近，脸贴得太满就拉远一点。鼠标滚轮也可以临时调整缩放。",
-                            "“上下”用来调俯仰：女仆脸偏高就往上调，女仆脸偏低就往下调。建议切第一人称，一边看画面一边微调。",
-                            "调好后点保存。这个设置只保存在你自己的客户端 config/maidmarriage/hug-camera.json，不会影响服务器，也不会影响其他玩家。")),
-            new GuideSection("心情到底影响什么",
+                            p("guide.maidmarriage.section.5.p.0"),
+                            p("guide.maidmarriage.section.5.p.1"),
+                            p("guide.maidmarriage.section.5.p.2"),
+                            p("guide.maidmarriage.section.5.p.3"),
+                            p("guide.maidmarriage.section.5.p.4"))),
+            section("guide.maidmarriage.section.6.title",
                     List.of(
-                            "心情有五档：沮丧、一般、普通、开心、狗修金LOVE。数值范围大致是 0-25，普通是 15。",
-                            "好感收益倍率：沮丧/一般不吃正向好感，普通 x1，开心 x1.5，LOVE x2。",
-                            "聊天选择会按当前心情结算：心情好时正反馈更明显；心情差时，玩笑、冒犯、过度互动会直接扣好感。",
-                            "摸头、拥抱、亲吻、送礼、同眠等有效互动会刷新“最近互动”。恋人或妻子如果连续几天没有被好好陪伴，会进入忍耐/想被陪伴的状态。",
-                            "小女仆学习会消耗心情。心情低到 0 左右还继续学习，结算会扣好感，奖励品质也会明显变差。探险在太累时会停下。")),
-            new GuideSection("礼物怎么送",
+                            p("guide.maidmarriage.section.6.p.0"),
+                            p("guide.maidmarriage.section.6.p.1"),
+                            p("guide.maidmarriage.section.6.p.2"),
+                            p("guide.maidmarriage.section.6.p.3"),
+                            p("guide.maidmarriage.section.6.p.4"))),
+            section("guide.maidmarriage.section.7.title",
                     List.of(
-                            "礼物入口在互动界面的“讨好/赠送礼物”。送出成功会消耗物品，每个玩家每天最多送两次。",
-                            "花束：主要拉近关系。普通花和五彩花束都算花束，五彩花束可以重复送。",
-                            "甜食：曲奇、蛋糕、南瓜派、蜂蜜瓶、甜浆果、苹果、金苹果等，偏向安抚心情。她心情差时更有用。",
-                            "正餐：面包、牛奶、熟肉、熟鱼、炖菜、酱板鸭等，偏稳定恢复心情，恋人/婚后可能有少量好感。",
-                            "贵重物：钻石、绿宝石、金锭、铁锭、紫水晶、石英、青金石、下界合金碎片等。初期她会犹豫，关系近了更容易接受。",
-                            "奇怪/冒犯礼物：腐肉、蜘蛛眼、毒马铃薯、河豚、骨头等可能扣心情或好感。腐肉、发酵蛛眼、河豚、毒马铃薯属于很冒犯的礼物。",
-                            "心契同眠指南、求婚戒指、YES 枕头、发卡、调试工具、婚姻同意申请书不能当普通礼物送。")),
-            new GuideSection("物品和配方",
+                            p("guide.maidmarriage.section.7.p.0"),
+                            p("guide.maidmarriage.section.7.p.1"),
+                            p("guide.maidmarriage.section.7.p.2"),
+                            p("guide.maidmarriage.section.7.p.3"),
+                            p("guide.maidmarriage.section.7.p.4"),
+                            p("guide.maidmarriage.section.7.p.5"),
+                            p("guide.maidmarriage.section.7.p.6"))),
+            section("guide.maidmarriage.section.8.title",
                     List.of(
-                            "求婚戒指：钻石 + 铁粒合成。它可以放进女仆饰品栏；结婚时需要两枚，玩家主手和副手各一枚。",
-                            "誓约之环：结婚流程中由求婚戒指刻上双方名字生成，本质是刻过的女仆戒指饰品，不是普通合成物。绑定过誓约后不能再用于向别人求婚。",
-                            "YES 枕头：白羊毛和红羊毛合成，也会在结婚成功后交给女仆。婚后用于同眠相关流程。",
-                            "五彩花束：滨菊、虞美人、矢车菊、粉色郁金香、蒲公英无序合成。适合送礼。",
-                            "金蒲公英发卡：时钟 + 金锭 + 蒲公英无序合成。它是女仆饰品，放进小女仆饰品栏后会暂停成长，取下后恢复成长。",
-                            "酱板鸭：熟鸡肉被可可豆围一圈合成。喂小女仆可缩短成长时间；喂产后女仆可缩短恢复剩余时间。",
-                            "婚姻同意申请书：书 + 求婚戒指无序合成。用于成年子代女仆监护权移交，具体用法见下一节。",
-                            "族谱查看器：骨粉 + 书无序合成。手持后右键女仆，聊天框会显示本人、母系、父系、祖辈、配偶和直系子代。",
-                            "调试工具：成长、分娩、怀孕测试、怀孕结算、忍耐测试、花卉测试等工具主要用于测试和排查，普通生存流程不需要。")),
-            new GuideSection("族谱和婚姻申请书",
+                            p("guide.maidmarriage.section.8.p.0"),
+                            p("guide.maidmarriage.section.8.p.1"),
+                            p("guide.maidmarriage.section.8.p.2"),
+                            p("guide.maidmarriage.section.8.p.3"),
+                            p("guide.maidmarriage.section.8.p.4"),
+                            p("guide.maidmarriage.section.8.p.5"),
+                            p("guide.maidmarriage.section.8.p.6"),
+                            p("guide.maidmarriage.section.8.p.7"),
+                            p("guide.maidmarriage.section.8.p.8"))),
+            section("guide.maidmarriage.section.9.title",
                     List.of(
-                            "族谱查看器：手持族谱查看器右键任意女仆。它会把资料发到聊天框，包括本人、母亲、父亲、祖辈、配偶，以及最多 8 个直系子代。",
-                            "如果某个亲属不在当前世界或无法解析名字，会显示未知或 UUID 简写；这不影响关系记录本身。",
-                            "婚姻同意申请书用于成年子代女仆的监护权移交。它不是直接结婚道具，而是把这位成年子代女仆交给另一个玩家重新培养。",
-                            "使用步骤一：当前主人手持申请书，右键一位已经成年的子代女仆。申请书会绑定这位女仆，物品提示里会显示已绑定女仆。",
-                            "使用步骤二：继续手持同一份申请书，右键目标玩家。目标不能是你自己，也不能是这位女仆两代内直系血亲。",
-                            "移交成功后：女仆归目标玩家管理，婚姻数据清空，好感度重置为 0。目标玩家之后需要重新培养关系，才能继续表白或结婚。",
-                            "如果重新右键另一位成年子代女仆，申请书会改绑新女仆，并清掉旧目标绑定，避免串线。")),
-            new GuideSection("结婚、同眠和怀孕",
+                            p("guide.maidmarriage.section.9.p.0"),
+                            p("guide.maidmarriage.section.9.p.1"),
+                            p("guide.maidmarriage.section.9.p.2"),
+                            p("guide.maidmarriage.section.9.p.3"),
+                            p("guide.maidmarriage.section.9.p.4"),
+                            p("guide.maidmarriage.section.9.p.5"),
+                            p("guide.maidmarriage.section.9.p.6"))),
+            section("guide.maidmarriage.section.10.title",
                     List.of(
-                            "结婚前先确认：她是你的成年女仆，好感达到 192，背包有空间，玩家主手和副手各有一枚未绑定求婚戒指。",
-                            "结婚成功后，女仆会收下 YES 枕头。她睡在女仆床上，玩家在相邻原版床旁满足条件时，可以触发同眠剧情。",
-                            "普通同眠的怀孕概率不是每次固定值：第一次 20%，之后每次失败 +5%，最高 50%；如果连续失败 8 次，下一次必定怀孕。",
-                            "按这条普通曲线计算，平均大约 3.4 次同眠会怀孕；约 58% 的情况会在 3 次内成功，约 91% 的情况会在 6 次内成功。",
-                            "节奏玩法单独结算：按成绩从 0% 到 60% 换算怀孕率，不吃普通同眠的失败保底。跳过或超时按 0 分处理。",
-                            "怀孕成功后有 2% 概率是双胞胎；普通同眠触发连续失败保底时，会直接按双胞胎处理。",
-                            "分娩天数、孩子成长天数、产后恢复期由服务端 common 配置控制。多人服务器里请看服主设置。",
-                            "孩子出生后，默认名字是“小女仆”。如果她还是婴儿且名字没改过，可以给她取名，只能取一次。",
-                            "出生第一天不能把婴儿放地上。妈妈会抱着她，并给你对应反馈。")),
-            new GuideSection("小女仆互动和任务",
+                            p("guide.maidmarriage.section.10.p.0"),
+                            p("guide.maidmarriage.section.10.p.1"),
+                            p("guide.maidmarriage.section.10.p.2"),
+                            p("guide.maidmarriage.section.10.p.3"),
+                            p("guide.maidmarriage.section.10.p.4"),
+                            p("guide.maidmarriage.section.10.p.5"),
+                            p("guide.maidmarriage.section.10.p.6"),
+                            p("guide.maidmarriage.section.10.p.7"),
+                            p("guide.maidmarriage.section.10.p.8"))),
+            section("guide.maidmarriage.section.11.title",
                     List.of(
-                            "小女仆互动包括：摸摸头、举高高、让妈妈抱抱、陪她说话、送她礼物。",
-                            "让妈妈抱抱必须找到她的妈妈。成年妈妈抱着孩子时，普通拥抱选项会隐藏，避免动作冲突。",
-                            "儿童阶段可以安排工作任务。任务只在女仆 WORK 日程中推进；睡觉、坐下、休息时间会暂停。",
-                            "附魔学：主手或背包有书本。心情正常时给附魔相关奖励；太累时可能只有普通书或低级成果。",
-                            "药剂学：主手或背包有玻璃瓶或药水。太累时产出会退化成水瓶、粗制药水等低品质结果。",
-                            "战术学：主手或背包有武器，剑、斧、弓、弩、三叉戟都算。太累时只给低品质战斗物品。",
-                            "探险：主手或背包有木棍。好感越高，空手而归和受伤概率越低，奖励数量和稀有发现概率越高。心情低到 0 会停止探险。")),
-            new GuideSection("常见问题",
+                            p("guide.maidmarriage.section.11.p.0"),
+                            p("guide.maidmarriage.section.11.p.1"),
+                            p("guide.maidmarriage.section.11.p.2"),
+                            p("guide.maidmarriage.section.11.p.3"),
+                            p("guide.maidmarriage.section.11.p.4"),
+                            p("guide.maidmarriage.section.11.p.5"),
+                            p("guide.maidmarriage.section.11.p.6"))),
+            section("guide.maidmarriage.section.13.title",
                     List.of(
-                            "选项不显示：先看好感门槛、是否自己的女仆、是否成年/小女仆对象选错、是否坐下或睡觉、是否后宫模式限制。",
-                            "结婚流程走不下去：检查两枚戒指是否都是未绑定求婚戒指。绑定过的戒指会被拦截。",
-                            "小女仆任务不开始：她需要可用背包，需要处于 WORK 日程，不能坐下或睡觉，材料要在主手或背包里。",
-                            "送礼没反应：每天最多两次，部分特殊物品不能送。背包格子和手上物品变化以服务端同步为准。",
-                            "服务器和单人不一样：分娩天数、成长天数、产后恢复看服务端 common 配置；怀孕概率按本指南里的固定曲线结算；后宫模式是玩家本地设置同步到服务端。",
-                            "调试按钮和倒计时：调试页里的 F7/F8、倒计时和 UI 动作提示只用于测试或排查，正式游玩可以关掉。"))
+                            p("guide.maidmarriage.section.13.p.0"),
+                            p("guide.maidmarriage.section.13.p.1"),
+                            p("guide.maidmarriage.section.13.p.2"),
+                            p("guide.maidmarriage.section.13.p.3"),
+                            p("guide.maidmarriage.section.13.p.4"),
+                            p("guide.maidmarriage.section.13.p.5"),
+                            p("guide.maidmarriage.section.13.p.6"),
+                            p("guide.maidmarriage.section.13.p.7"),
+                            p("guide.maidmarriage.section.13.p.8"))),
+            section("guide.maidmarriage.section.12.title",
+                    List.of(
+                            p("guide.maidmarriage.section.12.p.0"),
+                            p("guide.maidmarriage.section.12.p.1"),
+                            p("guide.maidmarriage.section.12.p.2"),
+                            p("guide.maidmarriage.section.12.p.3"),
+                            p("guide.maidmarriage.section.12.p.4"),
+                            p("guide.maidmarriage.section.12.p.5")))
     );
 
     private final Screen parent;
     private int scroll;
     private int maxScroll;
+    private int cachedContentWidth = -1;
+    private String cachedLanguage = "";
+    private List<GuideRenderLine> cachedLines = List.of();
 
     public MaidMarriageGuideScreen(Screen parent) {
         super(Component.translatable("guide.maidmarriage.title"));
@@ -162,31 +184,29 @@ public class MaidMarriageGuideScreen extends Screen {
         int panelTop = 18;
         int panelBottom = this.height - 38;
         int contentWidth = PANEL_WIDTH - CONTENT_PADDING * 2;
+        rebuildLayoutIfNeeded(contentWidth);
 
         graphics.fill(panelLeft, panelTop, panelRight, panelBottom, 0xDD14121E);
         graphics.fill(panelLeft, panelTop, panelRight, panelTop + 22, 0xEE201A33);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, panelTop + 7, 0xFFFFE8B8);
 
         graphics.enableScissor(panelLeft + 8, panelTop + 28, panelRight - 8, panelBottom - 8);
-        int y = panelTop + 32 - scroll;
-        int contentStartY = y;
-        for (GuideSection section : SECTIONS) {
-            graphics.drawString(this.font, section.title(), panelLeft + CONTENT_PADDING, y, 0xFFFFD38B, false);
-            y += 14;
-            for (String paragraph : section.paragraphs()) {
-                if (paragraph.startsWith("KEY:")) {
-                    y = drawKeyParagraph(graphics, paragraph, panelLeft + CONTENT_PADDING, y, contentWidth);
-                    continue;
-                }
-                Component line = Component.literal(paragraph);
-                graphics.drawWordWrap(this.font, line, panelLeft + CONTENT_PADDING, y, contentWidth, 0xFFE7E0F5);
-                y += this.font.split(line, contentWidth).size() * this.font.lineHeight + 6;
+        int baseY = panelTop + 32 - scroll;
+        int visibleTop = panelTop + 28;
+        int visibleBottom = panelBottom - 8;
+        for (GuideRenderLine line : cachedLines) {
+            int y = baseY + line.y();
+            if (y + this.font.lineHeight < visibleTop || y > visibleBottom) {
+                continue;
             }
-            y += 8;
+            graphics.drawString(this.font, line.text(), panelLeft + CONTENT_PADDING + line.x(), y, line.color(), false);
         }
         graphics.disableScissor();
 
-        maxScroll = Math.max(0, y - contentStartY - (panelBottom - panelTop - 44));
+        int contentHeight = cachedLines.isEmpty()
+                ? 0
+                : cachedLines.get(cachedLines.size() - 1).y() + this.font.lineHeight + 8;
+        maxScroll = Math.max(0, contentHeight - (panelBottom - panelTop - 44));
         scroll = Mth.clamp(scroll, 0, maxScroll);
 
         if (maxScroll > 0) {
@@ -215,37 +235,84 @@ public class MaidMarriageGuideScreen extends Screen {
         }
     }
 
-    private int drawKeyParagraph(GuiGraphics graphics, String paragraph, int x, int y, int width) {
-        String[] parts = paragraph.split(":", 3);
-        if (parts.length < 3) {
-            Component line = Component.literal(paragraph);
-            graphics.drawWordWrap(this.font, line, x, y, width, 0xFFE7E0F5);
-            return y + this.font.split(line, width).size() * this.font.lineHeight + 6;
+    private void rebuildLayoutIfNeeded(int contentWidth) {
+        Minecraft minecraft = Minecraft.getInstance();
+        String language = minecraft.getLanguageManager().getSelected();
+        if (contentWidth == cachedContentWidth && language.equals(cachedLanguage)) {
+            return;
         }
-        String label = parts[1];
-        String key = keyName(label);
-        String prefix = label + "：";
-        graphics.drawString(this.font, prefix, x, y, 0xFFE7E0F5, false);
-        int keyX = x + this.font.width(prefix);
-        graphics.drawString(this.font, "[" + key + "]", keyX, y, 0xFFFFD38B, false);
-        int textX = keyX + this.font.width("[" + key + "] ");
-        Component body = Component.literal(parts[2]);
-        int bodyWidth = Math.max(40, width - (textX - x));
-        graphics.drawWordWrap(this.font, body, textX, y, bodyWidth, 0xFFE7E0F5);
-        return y + this.font.split(body, bodyWidth).size() * this.font.lineHeight + 6;
+        cachedContentWidth = contentWidth;
+        cachedLanguage = language;
+        cachedLines = buildLayout(contentWidth);
     }
 
-    private static String keyName(String label) {
-        return switch (label) {
-            case "交互按键" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.INTERACTION);
-            case "摸头/举高高" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.PET_HEAD);
-            case "节奏判定键" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RHYTHM_HIT);
-            case "唤起互动面板" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RESTORE_HUG_UI);
-            case "退出膝枕" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.LAP_PILLOW_EXIT);
+    private List<GuideRenderLine> buildLayout(int contentWidth) {
+        List<GuideRenderLine> lines = new ArrayList<>();
+        int y = 0;
+        for (GuideSection section : SECTIONS) {
+            lines.add(new GuideRenderLine(0, y, Component.translatable(section.titleKey()).getVisualOrderText(), 0xFFFFD38B));
+            y += 14;
+            for (GuideParagraph paragraph : section.paragraphs()) {
+                if (paragraph.keyId() != null) {
+                    y = appendKeyParagraph(lines, paragraph, y, contentWidth);
+                    continue;
+                }
+                y = appendWrapped(lines, Component.translatable(paragraph.textKey()), 0, y, contentWidth, 0xFFE7E0F5) + 6;
+            }
+            y += 8;
+        }
+        return List.copyOf(lines);
+    }
+
+    private int appendKeyParagraph(List<GuideRenderLine> lines, GuideParagraph paragraph, int y, int width) {
+        String keyId = paragraph.keyId();
+        String prefix = Component.translatable("guide.maidmarriage.key." + keyId + ".label").getString() + ": ";
+        String keyBadge = "[" + keyName(keyId) + "]";
+        lines.add(new GuideRenderLine(0, y, Component.literal(prefix).getVisualOrderText(), 0xFFE7E0F5));
+        int keyX = this.font.width(prefix);
+        lines.add(new GuideRenderLine(keyX, y, Component.literal(keyBadge).getVisualOrderText(), 0xFFFFD38B));
+        int textX = keyX + this.font.width(keyBadge + " ");
+        int bodyWidth = Math.max(40, width - textX);
+        return appendWrapped(lines, Component.translatable(paragraph.textKey()), textX, y, bodyWidth, 0xFFE7E0F5) + 6;
+    }
+
+    private int appendWrapped(List<GuideRenderLine> lines, Component text, int x, int y, int width, int color) {
+        for (FormattedCharSequence sequence : this.font.split(text, width)) {
+            lines.add(new GuideRenderLine(x, y, sequence, color));
+            y += this.font.lineHeight;
+        }
+        return y;
+    }
+
+    private static String keyName(String keyId) {
+        return switch (keyId) {
+            case "interaction" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.INTERACTION);
+            case "pet_head" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.PET_HEAD);
+            case "rhythm_hit" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RHYTHM_HIT);
+            case "restore_ui" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RESTORE_HUG_UI);
+            case "lap_exit" -> RhythmKeyMappings.boundKeyName(RhythmKeyMappings.LAP_PILLOW_EXIT);
             default -> "?";
         };
     }
 
-    private record GuideSection(String title, List<String> paragraphs) {
+    private static GuideSection section(String titleKey, List<GuideParagraph> paragraphs) {
+        return new GuideSection(titleKey, paragraphs);
+    }
+
+    private static GuideParagraph p(String textKey) {
+        return new GuideParagraph(textKey, null);
+    }
+
+    private static GuideParagraph key(String keyId, String textKey) {
+        return new GuideParagraph(textKey, keyId);
+    }
+
+    private record GuideSection(String titleKey, List<GuideParagraph> paragraphs) {
+    }
+
+    private record GuideParagraph(String textKey, String keyId) {
+    }
+
+    private record GuideRenderLine(int x, int y, FormattedCharSequence text, int color) {
     }
 }

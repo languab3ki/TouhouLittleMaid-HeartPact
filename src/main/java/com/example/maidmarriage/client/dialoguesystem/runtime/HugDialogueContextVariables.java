@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -53,9 +54,13 @@ public final class HugDialogueContextVariables {
         Player player = minecraft.player;
         String timeOfDay = resolveTimeOfDay(minecraft);
         String weather = resolveWeather(minecraft);
+        boolean playerParentOfTarget = targetEntity instanceof EntityMaid maid
+                && player != null
+                && MaidChildEntity.isParentOfMaid(maid, player.getUUID());
 
         dialogueRuntime.setVariable("player_maid", safeValue(playerMaidAddressing));
         dialogueRuntime.setVariable("player_child", safeValue(playerChildAddressing));
+        dialogueRuntime.setVariable("player_parent_of_maid", Boolean.toString(playerParentOfTarget));
         dialogueRuntime.setVariable("bloodline_kiss_blocked", Boolean.toString(isBloodlineKissBlocked(minecraft, targetEntity)));
         writeWorldVariables(dialogueRuntime, timeOfDay, weather);
         writeJokeVariables(dialogueRuntime, poolAnchor);
@@ -106,13 +111,16 @@ public final class HugDialogueContextVariables {
             dialogueRuntime.setVariable("lap_pillow_unlocked", "false");
             dialogueRuntime.setVariable("lap_pillow_active", "false");
             dialogueRuntime.setVariable("lap_pillow_mood_ok", "true");
+            dialogueRuntime.setVariable("child_loss_grief", "false");
+            dialogueRuntime.setVariable("intimacy_refused", "false");
             dialogueRuntime.setVariable("carried_child_infant", "false");
             dialogueRuntime.setVariable("carried_child_name_pending", "false");
             dialogueRuntime.setVariable("carried_child_default_named_infant", "false");
             dialogueRuntime.setVariable("child_carried_by_mother", "false");
             dialogueRuntime.setVariable("child_infant", "false");
             dialogueRuntime.setVariable("child_entry_speaker", "小女仆");
-            dialogueRuntime.setVariable("child_entry_text", pickChildEntryText(playerChildAddressing, false, MaidChildEntity.GrowthStage.CHILD));
+            setPickedVariable(dialogueRuntime, "child_entry_text",
+                    HugDialogueTextPools.pickChildInteractionEntryCue(MaidChildEntity.GrowthStage.CHILD.name(), false));
             writeFavorStageVariables(dialogueRuntime, RelationStage.INITIAL);
             writeMoodVariables(dialogueRuntime, MaidMoodData.MoodState.NORMAL);
             writeV4PoolVariables(dialogueRuntime,
@@ -120,6 +128,8 @@ public final class HugDialogueContextVariables {
                     MaidMoodData.MoodState.NORMAL,
                     poolAnchor,
                     timeOfDay,
+                    false,
+                    false,
                     false);
             return;
         }
@@ -136,12 +146,15 @@ public final class HugDialogueContextVariables {
         RelationStage relationStage = MaidRelationshipManager.resolveStage(maid);
         boolean confessionCompleted = MaidRelationshipManager.isConfessionCompleted(maid);
         boolean marriageCompleted = MaidRelationshipManager.isMarried(maid);
+        boolean parentChildRelation = player != null && MaidChildEntity.isParentOfMaid(maid, player.getUUID());
+        RelationStage dialogueStage = parentChildRelation ? RelationStage.WARM : relationStage;
         dialogueRuntime.setVariable("favorability", Integer.toString(favorability));
         dialogueRuntime.setVariable("favor_pet_unlocked", Boolean.toString(favorability >= RelationshipThresholds.PET_UNLOCK));
         dialogueRuntime.setVariable("favor_hug_unlocked", Boolean.toString(favorability >= RelationshipThresholds.HUG_UNLOCK));
-        boolean intimateUnlocked = relationStage == RelationStage.DATING || relationStage == RelationStage.MARRIAGE;
+        boolean intimateUnlocked = !parentChildRelation && (relationStage == RelationStage.DATING || relationStage == RelationStage.MARRIAGE);
         dialogueRuntime.setVariable("favor_kiss_unlocked", Boolean.toString(intimateUnlocked));
-        dialogueRuntime.setVariable("favor_marriage_unlocked", Boolean.toString(favorability >= MaidRelationshipManager.MARRIAGE_UNLOCK_FAVORABILITY));
+        dialogueRuntime.setVariable("favor_marriage_unlocked", Boolean.toString(!parentChildRelation
+                && favorability >= MaidRelationshipManager.MARRIAGE_UNLOCK_FAVORABILITY));
         dialogueRuntime.setVariable("confession_completed", Boolean.toString(confessionCompleted));
         dialogueRuntime.setVariable("marriage_completed", Boolean.toString(marriageCompleted));
         dialogueRuntime.setVariable("lap_pillow_unlocked", Boolean.toString(intimateUnlocked));
@@ -168,13 +181,20 @@ public final class HugDialogueContextVariables {
         dialogueRuntime.setVariable("carried_child_name_pending", Boolean.toString(childNamePending));
         dialogueRuntime.setVariable("carried_child_default_named_infant", Boolean.toString(hasCarriedDefaultNamedInfant(maid)));
         writeChildInteractionVariables(dialogueRuntime, maid, playerChildAddressing);
-        writeFavorStageVariables(dialogueRuntime, relationStage);
+        writeFavorStageVariables(dialogueRuntime, dialogueStage);
 
         MaidMoodData.MoodState moodState = MaidMoodManager.state(maid);
         writeMoodVariables(dialogueRuntime, moodState);
         dialogueRuntime.setVariable("lap_pillow_mood_ok", Boolean.toString(isNormalOrBetter(moodState)));
-        writeV4PoolVariables(dialogueRuntime, relationStage, moodState, poolAnchor, timeOfDay,
-                MaidMoodManager.isLongingForInteraction(maid));
+        boolean childLossGrief = com.example.maidmarriage.client.HugClientState.isLocalChildLossGrief()
+                || MaidMoodManager.hasChildLossGrief(maid);
+        dialogueRuntime.setVariable("child_loss_grief", Boolean.toString(childLossGrief));
+        boolean intimacyRefused = childLossGrief || moodState == MaidMoodData.MoodState.DEPRESSED;
+        dialogueRuntime.setVariable("intimacy_refused", Boolean.toString(intimacyRefused));
+        writeV4PoolVariables(dialogueRuntime, dialogueStage, moodState, poolAnchor, timeOfDay,
+                parentChildRelation,
+                MaidMoodManager.isLongingForInteraction(maid),
+                childLossGrief);
     }
 
     private static boolean isNormalOrBetter(MaidMoodData.MoodState moodState) {
@@ -190,7 +210,8 @@ public final class HugDialogueContextVariables {
             dialogueRuntime.setVariable("child_carried_by_mother", "false");
             dialogueRuntime.setVariable("child_infant", "false");
             dialogueRuntime.setVariable("child_entry_speaker", safeValue(maid.getDisplayName().getString()));
-            dialogueRuntime.setVariable("child_entry_text", pickChildEntryText(playerChildAddressing, false, MaidChildEntity.GrowthStage.ADULT));
+            setPickedVariable(dialogueRuntime, "child_entry_text",
+                    HugDialogueTextPools.pickChildFamilyEntryCue("day"));
             return;
         }
 
@@ -206,7 +227,8 @@ public final class HugDialogueContextVariables {
         dialogueRuntime.setVariable("child_carried_by_mother", Boolean.toString(carriedByMother));
         dialogueRuntime.setVariable("child_infant", Boolean.toString(stage == MaidChildEntity.GrowthStage.INFANT));
         dialogueRuntime.setVariable("child_entry_speaker", safeValue(maid.getDisplayName().getString()));
-        dialogueRuntime.setVariable("child_entry_text", pickChildEntryText(playerChildAddressing, false, stage));
+        setPickedVariable(dialogueRuntime, "child_entry_text",
+                HugDialogueTextPools.pickChildInteractionEntryCue(stage.name(), carriedByMother));
     }
 
     private static boolean hasCarriedUnnamedChild(EntityMaid maid) {
@@ -368,7 +390,9 @@ public final class HugDialogueContextVariables {
                                              MaidMoodData.MoodState moodState,
                                              String poolAnchor,
                                              String timeOfDay,
-                                             boolean longingForInteraction) {
+                                             boolean childFamilyPool,
+                                             boolean longingForInteraction,
+                                             boolean childLossGrief) {
         String anchor = safeValue(poolAnchor)
                 + "|"
                 + (relationStage == null ? "" : relationStage.key())
@@ -377,24 +401,38 @@ public final class HugDialogueContextVariables {
                 + "|"
                 + safeValue(timeOfDay)
                 + "|"
-                + longingForInteraction;
+                + childFamilyPool
+                + "|"
+                + longingForInteraction
+                + "|"
+                + childLossGrief;
         if (anchor.equals(dialogueRuntime.renderTemplate("${v4_pool_anchor}"))
                 && !dialogueRuntime.renderTemplate("${entry_text}").isBlank()) {
             return;
         }
         dialogueRuntime.setVariable("v4_pool_anchor", anchor);
-        HugDialogueTextPools.PickedLine entryText = longingForInteraction
+        HugDialogueTextPools.PickedLine entryText = childLossGrief
+                ? HugDialogueTextPools.pickChildLossGriefEntryCue()
+                : childFamilyPool
+                ? HugDialogueTextPools.pickChildFamilyEntryCue(timeOfDay)
+                : longingForInteraction
                 ? HugDialogueTextPools.pickLongingEntryCue(relationStage, moodState)
                 : HugDialogueTextPools.pickMixedEntryCue(relationStage, moodState, timeOfDay);
         setPickedVariable(dialogueRuntime, "entry_text", entryText);
-        setPickedVariable(dialogueRuntime, "chat_text", HugDialogueTextPools.pickChatCue(relationStage, moodState));
-        setPickedVariable(dialogueRuntime, "pet_intro_text", HugDialogueTextPools.pickPetCue(relationStage));
-        setPickedVariable(dialogueRuntime, "hug_intro_text", HugDialogueTextPools.pickHugCue(relationStage));
+        setPickedVariable(dialogueRuntime, "chat_text", childFamilyPool
+                ? HugDialogueTextPools.pickChildFamilyChatCue()
+                : HugDialogueTextPools.pickChatCue(relationStage, moodState));
+        setPickedVariable(dialogueRuntime, "pet_intro_text", childFamilyPool
+                ? HugDialogueTextPools.pickChildFamilyPetCue()
+                : HugDialogueTextPools.pickPetCue(relationStage));
+        setPickedVariable(dialogueRuntime, "hug_intro_text", childFamilyPool
+                ? HugDialogueTextPools.pickChildFamilyHugCue()
+                : HugDialogueTextPools.pickHugCue(relationStage));
         setPickedVariable(dialogueRuntime, "kiss_intro_text", HugDialogueTextPools.pickKissCue(relationStage));
-        dialogueRuntime.setVariable("lap_pillow_start_text", pickLapPillowStart());
-        dialogueRuntime.setVariable("lap_pillow_refuse_text", pickLapPillowRefuse());
-        dialogueRuntime.setVariable("lap_pillow_pet_text", pickLapPillowPet());
-        dialogueRuntime.setVariable("lap_pillow_exit_text", pickLapPillowExit());
+        dialogueRuntime.setVariable("lap_pillow_start_text", pickLocalizedLapPillowLine("start", 5));
+        dialogueRuntime.setVariable("lap_pillow_refuse_text", pickLocalizedLapPillowLine("refuse", 4));
+        dialogueRuntime.setVariable("lap_pillow_pet_text", pickLocalizedLapPillowLine("pet", 5));
+        dialogueRuntime.setVariable("lap_pillow_exit_text", pickLocalizedLapPillowLine("exit", 4));
         setPickedVariable(dialogueRuntime, "release_hug_text", HugDialogueTextPools.pickReleaseHugCue());
         setPickedVariable(dialogueRuntime, "low_comfort_text", HugDialogueTextPools.pickLowComfortCue());
         setPickedVariable(dialogueRuntime, "flatter_praise_text", HugDialogueTextPools.pickFlatterPraiseCue());
@@ -425,42 +463,12 @@ public final class HugDialogueContextVariables {
         dialogueRuntime.setVariable(key + "_source", safe.source());
     }
 
-    private static String pickLapPillowStart() {
-        return switch (ThreadLocalRandom.current().nextInt(5)) {
-            case 0 -> "她轻轻拍了拍自己的膝头，耳尖红了一点，却还是认真看着你：“累了的话……可以靠过来一会儿。”";
-            case 1 -> "你刚低下身，她就小心地扶住你的肩，像是怕你磕到一样，把声音也放得很轻。";
-            case 2 -> "她把裙摆整理好，低头看着你，眼神柔软得像午后的光：“就一会儿哦，不许睡太久。”";
-            case 3 -> "你靠上去的时候，她的手指停在半空，犹豫了一下，最后还是轻轻落在你的发间。";
-            default -> "她让你枕在膝上，低下头看你的时候，连呼吸都像怕把这点安静碰碎。";
-        };
-    }
-
-    private static String pickLapPillowRefuse() {
-        return switch (ThreadLocalRandom.current().nextInt(4)) {
-            case 0 -> "她轻轻避开你的视线：“今天先不要这样……我想先被你好好哄一会儿。”";
-            case 1 -> "她把手放在胸口，声音有些低：“不是讨厌你，只是今天心里有点乱。”";
-            case 2 -> "她抿了抿嘴：“等我心情好一点，再让你靠过来，好吗？”";
-            default -> "她没有生气，只是轻轻摇头。现在比起膝枕，她似乎更想听你慢慢陪她说话。";
-        };
-    }
-
-    private static String pickLapPillowPet() {
-        return switch (ThreadLocalRandom.current().nextInt(5)) {
-            case 0 -> "女仆：“怎么啦，今天很累吗？那就先别逞强了。”\n旁白：她低下身，手掌慢慢落到你的头顶，一下一下轻轻顺着你的头发。";
-            case 1 -> "女仆：“乖啦……我在这里呢。”\n旁白：她的指尖从额前轻轻滑过，动作很慢，像是怕惊扰到你这一点点安心。";
-            case 2 -> "女仆：“偶尔也可以依赖我一下哦。”\n旁白：她有些害羞，却还是认真俯下身，轻轻揉了揉你的发顶。";
-            case 3 -> "女仆：“已经做得很好啦，今天就先休息一会儿吧。”\n旁白：她的手停在你的头侧，温柔地安抚了好几下，声音也跟着放软。";
-            default -> "女仆：“平时总是你照顾我，今天换我哄哄你。”\n旁白：她慢慢伸出手，笨拙又认真地摸着你的头，像把所有心疼都藏进了掌心。";
-        };
-    }
-
-    private static String pickLapPillowExit() {
-        return switch (ThreadLocalRandom.current().nextInt(4)) {
-            case 0 -> "她扶着你慢慢坐起来，手还停在你肩上，像是有点舍不得这一小段安静。";
-            case 1 -> "你起身时，她下意识拉了你一下，又很快松开，脸红着移开目光。";
-            case 2 -> "“休息好了吗？”她轻声问你，眼神里还留着刚才的温柔。";
-            default -> "她替你理了理衣角，像什么都没发生一样，却悄悄弯起了嘴角。";
-        };
+    private static String pickLocalizedLapPillowLine(String group, int count) {
+        if (group == null || group.isBlank() || count <= 0) {
+            return "";
+        }
+        int index = ThreadLocalRandom.current().nextInt(count);
+        return I18n.get("dialogue.maidmarriage.lap_pillow." + group + "." + index);
     }
 
     private static String idleTextForMood(MaidMoodData.MoodState mood) {

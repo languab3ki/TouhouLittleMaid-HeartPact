@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class DialogueState {
     private String speaker = "";
     private String text = "";
+    private String narration = "";
     private String hint = "";
     private ResourceLocation portraitTexture;
 
@@ -20,6 +21,10 @@ public final class DialogueState {
 
     public String text() {
         return text;
+    }
+
+    public String narration() {
+        return narration;
     }
 
     public String hint() {
@@ -37,6 +42,11 @@ public final class DialogueState {
 
     public DialogueState setText(Component text) {
         this.text = text == null ? "" : text.getString();
+        return this;
+    }
+
+    public DialogueState setNarration(Component narration) {
+        this.narration = narration == null ? "" : narration.getString();
         return this;
     }
 

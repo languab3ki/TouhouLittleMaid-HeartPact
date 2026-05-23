@@ -57,6 +57,12 @@ public final class PetHeadManager {
             "dialogue.maidmarriage.pet_head.3",
             "dialogue.maidmarriage.pet_head.4"
     );
+    private static final List<String> CHILD_PET_HEAD_DIALOGUES = List.of(
+            "dialogue.maidmarriage.child_pet_head.1",
+            "dialogue.maidmarriage.child_pet_head.2",
+            "dialogue.maidmarriage.child_pet_head.3",
+            "dialogue.maidmarriage.child_pet_head.4"
+    );
 
     private PetHeadManager() {
     }
@@ -184,10 +190,13 @@ public final class PetHeadManager {
         if (overPetWarmStage) {
             MaidMoodManager.applyFavorabilityDeltaWithRefresh(maid, OVER_PET_FAVORABILITY_PENALTY, FAVORABILITY_CAP);
         }
+        boolean childMaid = MaidChildEntity.shouldStayChild(maid);
         String dialogue = overPetWarmStage
                 ? (level.getRandom().nextBoolean()
                 ? "dialogue.maidmarriage.pet_head.limit_warm.1"
                 : "dialogue.maidmarriage.pet_head.limit_warm.2")
+                : childMaid
+                ? CHILD_PET_HEAD_DIALOGUES.get(level.getRandom().nextInt(CHILD_PET_HEAD_DIALOGUES.size()))
                 : PET_HEAD_DIALOGUES.get(level.getRandom().nextInt(PET_HEAD_DIALOGUES.size()));
         /*
          * 摸头是一个很轻的交互动作，但用户希望不只在头顶气泡里看见反馈，

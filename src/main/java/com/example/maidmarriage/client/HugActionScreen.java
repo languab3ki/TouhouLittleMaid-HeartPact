@@ -99,6 +99,7 @@ public class HugActionScreen extends Screen {
     private static final ResourceLocation EXIT_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_exit_icon.png");
     private static final ResourceLocation VOICE_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon.png");
     private static final ResourceLocation VOICE_DISABLED_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon_disabled.png");
+    private static final ResourceLocation CAMERA_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_camera_icon.png");
 
     /**
      * 当剧情没有提供可解析的表情贴图时使用的兜底贴图。
@@ -135,6 +136,10 @@ public class HugActionScreen extends Screen {
             restoreFromCompactLookMode(minecraft);
         }
         lastRestoreUiKey = restoreUiKey;
+        while (RhythmKeyMappings.LAP_PILLOW_EXIT.consumeClick()) {
+            exitCurrentInteraction(minecraft);
+            compactMode = false;
+        }
     }
 
     public static void restoreFromCompactLookMode(Minecraft minecraft) {
@@ -176,6 +181,11 @@ public class HugActionScreen extends Screen {
      * 退出按钮组件。
      */
     private final DialogueIconButtonComponent exitButton = new DialogueIconButtonComponent();
+
+    /**
+     * 镜头微调按钮组件。
+     */
+    private final DialogueIconButtonComponent cameraAdjustButton = new DialogueIconButtonComponent();
 
     /**
      * 当前界面上实际可见的选项组件列表。
@@ -482,11 +492,7 @@ public class HugActionScreen extends Screen {
 
         // 点击退出按钮：结束整份交互会话，而不是只切换拥抱姿态。
         if (exitButton.contains(mouseX, mouseY, this.width, this.height)) {
-            if (childInteractionMode) {
-                PetHeadClientHandler.triggerChildInteraction(minecraft, fixedMaidUuid);
-            } else {
-                PetHeadClientHandler.triggerInteraction(minecraft);
-            }
+            exitCurrentInteraction(minecraft);
             onClose();
             return true;
         }
@@ -570,10 +576,18 @@ public class HugActionScreen extends Screen {
             showDebugMessage("镜头微调已恢复默认值");
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE
-                || RhythmKeyMappings.RESTORE_HUG_UI.matches(keyCode, scanCode)
-                || RhythmKeyMappings.LAP_PILLOW_EXIT.matches(keyCode, scanCode)) {
-            setCompactMode(!compactMode);
+        if (RhythmKeyMappings.LAP_PILLOW_EXIT.matches(keyCode, scanCode)) {
+            exitCurrentInteraction(minecraft);
+            onClose();
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            exitCurrentInteraction(minecraft);
+            onClose();
+            return true;
+        }
+        if (RhythmKeyMappings.RESTORE_HUG_UI.matches(keyCode, scanCode)) {
+            setCompactMode(true);
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_SPACE || keyCode == GLFW.GLFW_KEY_ENTER) {
@@ -610,8 +624,10 @@ public class HugActionScreen extends Screen {
             if (this.minecraft.player != null) {
                 String restoreKey = RhythmKeyMappings.boundKeyName(RhythmKeyMappings.RESTORE_HUG_UI);
                 String exitKey = RhythmKeyMappings.boundKeyName(RhythmKeyMappings.LAP_PILLOW_EXIT);
-                this.minecraft.player.displayClientMessage(Component.literal(
-                        "已隐藏互动面板。按 " + restoreKey + " 唤起面板，按 " + exitKey + " 退出膝枕。"
+                this.minecraft.player.displayClientMessage(Component.translatable(
+                        "message.maidmarriage.interaction.ui_hidden",
+                        restoreKey,
+                        exitKey
                 ), false);
             }
             this.minecraft.setScreen(null);
@@ -665,6 +681,7 @@ public class HugActionScreen extends Screen {
         hideButton.applyTheme(theme.controlIcon).setIconTexture(HIDE_ICON).setChromeEnabled(false);
         voiceReplayButton.applyTheme(theme.controlIcon).setIconTexture(VOICE_ICON).setChromeEnabled(false);
         exitButton.applyTheme(theme.controlIcon).setIconTexture(EXIT_ICON).setChromeEnabled(false);
+        cameraAdjustButton.applyTheme(theme.controlIcon).setIconTexture(CAMERA_ICON).setChromeEnabled(false);
         applyCornerButtonBounds();
 
         // 选项列表根据当前剧情帧动态生成，不再在这里写死。
@@ -692,24 +709,56 @@ public class HugActionScreen extends Screen {
 
     private void applyCornerButtonBounds() {
         float step = theme.controlIcon.width + theme.controlIcon.gapX;
-        hideButton.setBounds(
+        applySafeCornerButtonBounds(hideButton,
                 valueOr(theme.controlIcon.hideX, theme.controlIcon.x),
                 valueOr(theme.controlIcon.hideY, theme.controlIcon.y),
                 valueOr(theme.controlIcon.hideWidth, theme.controlIcon.width),
                 valueOr(theme.controlIcon.hideHeight, theme.controlIcon.height)
         );
-        voiceReplayButton.setBounds(
+        applySafeCornerButtonBounds(voiceReplayButton,
                 valueOr(theme.controlIcon.voiceX, theme.controlIcon.x + step),
                 valueOr(theme.controlIcon.voiceY, theme.controlIcon.y),
                 valueOr(theme.controlIcon.voiceWidth, theme.controlIcon.width),
                 valueOr(theme.controlIcon.voiceHeight, theme.controlIcon.height)
         );
-        exitButton.setBounds(
+        applySafeCornerButtonBounds(exitButton,
                 valueOr(theme.controlIcon.exitX, theme.controlIcon.x + step * 2.0F),
                 valueOr(theme.controlIcon.exitY, theme.controlIcon.y),
                 valueOr(theme.controlIcon.exitWidth, theme.controlIcon.width),
                 valueOr(theme.controlIcon.exitHeight, theme.controlIcon.height)
         );
+        applySafeCornerButtonBounds(cameraAdjustButton,
+                valueOr(theme.controlIcon.cameraX, theme.controlIcon.x + step * 3.0F),
+                valueOr(theme.controlIcon.cameraY, theme.controlIcon.y),
+                valueOr(theme.controlIcon.cameraWidth, theme.controlIcon.width),
+                valueOr(theme.controlIcon.cameraHeight, theme.controlIcon.height)
+        );
+    }
+
+    private void applySafeCornerButtonBounds(DialogueIconButtonComponent button, float x, float y, float width, float height) {
+        float safeWidth = safePercentSize(width, this.width, 12);
+        float safeHeight = safePercentSize(height, this.height, 12);
+        button.setBounds(
+                clampPercentPosition(x, safeWidth),
+                clampPercentPosition(y, safeHeight),
+                safeWidth,
+                safeHeight
+        );
+    }
+
+    private static float safePercentSize(float percent, int screenPixels, int minPixels) {
+        if (!Float.isFinite(percent) || percent <= 0.0F) {
+            percent = screenPixels > 0 ? minPixels * 100.0F / screenPixels : 4.0F;
+        }
+        float minPercent = screenPixels > 0 ? minPixels * 100.0F / screenPixels : 1.0F;
+        return Math.min(100.0F, Math.max(minPercent, percent));
+    }
+
+    private static float clampPercentPosition(float percent, float sizePercent) {
+        if (!Float.isFinite(percent)) {
+            percent = 0.0F;
+        }
+        return Math.max(0.0F, Math.min(100.0F - Math.max(0.0F, sizePercent), percent));
     }
 
     private static float valueOr(@Nullable Float value, float fallback) {
@@ -783,23 +832,7 @@ public class HugActionScreen extends Screen {
      * 它始终固定在右下角，尺寸也控制得比较小，只做临时调参入口。
      */
     private void renderCameraAdjustPanel(GuiGraphics graphics, int mouseX, int mouseY) {
-        int iconX = cameraPanelIconX();
-        int iconY = cameraPanelIconY();
-        int iconWidth = cameraPanelIconWidth();
-        int iconHeight = cameraPanelIconHeight();
-        boolean iconHovered = isInside(mouseX, mouseY, iconX, iconY, iconWidth, iconHeight);
-        float pencilScale = 0.78F;
-        int pencilColor = iconHovered || cameraAdjustPanelOpen ? 0xFFFFEEF8 : 0xFFD8C3D2;
-        DialogueUiRender.drawScaledText(
-                graphics,
-                this.font,
-                Component.literal("✎"),
-                iconX + 1,
-                iconY + 1,
-                pencilScale,
-                pencilColor,
-                false
-        );
+        cameraAdjustButton.render(graphics, this.width, this.height, mouseX, mouseY);
 
         if (!cameraAdjustPanelOpen) {
             return;
@@ -844,9 +877,7 @@ public class HugActionScreen extends Screen {
     }
 
     private boolean handleCameraAdjustMouseClick(double mouseX, double mouseY) {
-        int iconX = cameraPanelIconX();
-        int iconY = cameraPanelIconY();
-        if (isInside(mouseX, mouseY, iconX, iconY, cameraPanelIconWidth(), cameraPanelIconHeight())) {
+        if (cameraAdjustButton.contains(mouseX, mouseY, this.width, this.height)) {
             toggleCameraAdjustPanel();
             return true;
         }
@@ -947,31 +978,19 @@ public class HugActionScreen extends Screen {
     }
 
     private int cameraPanelIconX() {
-        if (theme.controlIcon.cameraX != null) {
-            return Math.round(this.width * (theme.controlIcon.cameraX / 100.0F));
-        }
-        return exitButton.x1(this.width) + exitButton.widthPx(this.width);
+        return cameraAdjustButton.x1(this.width);
     }
 
     private int cameraPanelIconY() {
-        if (theme.controlIcon.cameraY != null) {
-            return Math.round(this.height * (theme.controlIcon.cameraY / 100.0F));
-        }
-        return exitButton.y1(this.height) + Math.max(0, (exitButton.heightPx(this.height) - cameraPanelIconHeight()) / 2);
+        return cameraAdjustButton.y1(this.height);
     }
 
     private int cameraPanelIconWidth() {
-        if (theme.controlIcon.cameraWidth != null) {
-            return Math.round(this.width * (theme.controlIcon.cameraWidth / 100.0F));
-        }
-        return Math.max(10, Math.round(exitButton.widthPx(this.width) * 0.72F));
+        return cameraAdjustButton.widthPx(this.width);
     }
 
     private int cameraPanelIconHeight() {
-        if (theme.controlIcon.cameraHeight != null) {
-            return Math.round(this.height * (theme.controlIcon.cameraHeight / 100.0F));
-        }
-        return Math.max(10, Math.round(exitButton.heightPx(this.height) * 0.72F));
+        return cameraAdjustButton.heightPx(this.height);
     }
 
     private int controlButtonGapPx() {
@@ -1551,6 +1570,11 @@ public class HugActionScreen extends Screen {
     }
 
     private String moodLabel(@Nullable EntityMaid maid) {
+        if (!childInteractionMode
+                && (HugClientState.isLocalChildLossGrief()
+                || (maid != null && MaidMoodManager.hasChildLossGrief(maid)))) {
+            return text("ui.maidmarriage.hug_action.mood_state_child_loss_grief").getString();
+        }
         if (maid == null) {
             return moodLabelFromKey(dialogueRuntime.renderTemplate("${mood}"));
         }
@@ -2220,6 +2244,23 @@ public class HugActionScreen extends Screen {
 
     private static Component text(String key) {
         return DialogueScriptManager.component(key);
+    }
+
+    private static void exitCurrentInteraction(Minecraft minecraft) {
+        if (minecraft == null) {
+            return;
+        }
+        if (LapPillowClientState.isLocalPlayerActive()) {
+            PetHeadClientHandler.triggerLapPillowExit(minecraft);
+            return;
+        }
+        if (ChildInteractionClientState.isLocalPlayerInteracting()) {
+            PetHeadClientHandler.triggerChildInteraction(minecraft, ChildInteractionClientState.getLocalInteractionMaidUuid());
+            return;
+        }
+        if (HugClientState.isLocalPlayerInteracting()) {
+            PetHeadClientHandler.triggerInteraction(minecraft);
+        }
     }
 
     private void showGiftResultDialogue(String category, String reaction) {

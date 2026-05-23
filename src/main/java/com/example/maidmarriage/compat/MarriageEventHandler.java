@@ -39,6 +39,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
@@ -83,11 +84,15 @@ public final class MarriageEventHandler {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        CompoundTag data = player.getPersistentData();
-        if (data.getBoolean(TAG_GUIDE_GIVEN)) {
+        CompoundTag root = player.getPersistentData();
+        CompoundTag data = root.getCompound(Player.PERSISTED_NBT_TAG);
+        if (data.getBoolean(TAG_GUIDE_GIVEN) || root.getBoolean(TAG_GUIDE_GIVEN)) {
+            data.putBoolean(TAG_GUIDE_GIVEN, true);
+            root.put(Player.PERSISTED_NBT_TAG, data);
             return;
         }
         data.putBoolean(TAG_GUIDE_GIVEN, true);
+        root.put(Player.PERSISTED_NBT_TAG, data);
         ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ModItems.HEART_PACT_GUIDE.get()));
         player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.guide.given"));
     }
@@ -112,6 +117,12 @@ public final class MarriageEventHandler {
             return;
         }
         if (stack.is(ModItems.YES_PILLOW.get())) {
+            if (MaidMoodManager.state(event.getMaid()).ordinal() < com.example.maidmarriage.data.MaidMoodData.MoodState.NORMAL.ordinal()) {
+                event.getPlayer().sendSystemMessage(DialogueScriptManager.componentForPlayer(event.getPlayer(),
+                        "message.maidmarriage.yes_pillow.low_mood", event.getMaid().getDisplayName()));
+                event.setCanceled(true);
+                return;
+            }
             handleBreedingTest(event.getPlayer(), event.getMaid());
             event.setCanceled(true);
             return;
@@ -215,6 +226,13 @@ public final class MarriageEventHandler {
         }
 
         if (stack.is(ModItems.YES_PILLOW.get())) {
+            if (MaidMoodManager.state(maid).ordinal() < com.example.maidmarriage.data.MaidMoodData.MoodState.NORMAL.ordinal()) {
+                event.getEntity().sendSystemMessage(DialogueScriptManager.componentForPlayer(event.getEntity(),
+                        "message.maidmarriage.yes_pillow.low_mood", maid.getDisplayName()));
+                event.setCanceled(true);
+                event.setCancellationResult(InteractionResult.FAIL);
+                return;
+            }
             handleBreedingTest(event.getEntity(), maid);
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);

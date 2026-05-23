@@ -86,10 +86,10 @@
     "exitY": 94.8,
     "exitWidth": 5.0,
     "exitHeight": 4.5,
-    "cameraX": 94.3,
-    "cameraY": 95.3,
-    "cameraWidth": 2.9,
-    "cameraHeight": 4.2
+    "cameraX": 94.4,
+    "cameraY": 94.8,
+    "cameraWidth": 3.9,
+    "cameraHeight": 1.0
   },
   "zoomLabel": {
     "x": 67.5,

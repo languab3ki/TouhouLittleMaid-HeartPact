@@ -59,7 +59,9 @@ public final class MaidPanelStatusOverlay {
         int y = maidGui.getGuiTop() + 72;
         event.getGuiGraphics().drawString(font, marriageText, x, y, 0xFFF6C782, false);
         event.getGuiGraphics().drawString(font, physiologyText, x, y + 10, 0xFFF19FB6, false);
-        Component moodText = Component.translatable(
+        Component moodText = mood.childLossGrief()
+                ? Component.translatable("panel.maidmarriage.mood.child_loss_grief", mood.moodValue(), MaidMoodData.MAX_MOOD)
+                : Component.translatable(
                 "panel.maidmarriage.mood." + mood.state().key(),
                 mood.moodValue(),
                 MaidMoodData.MAX_MOOD);

@@ -10,16 +10,26 @@ public class HugStateSyncPayload {
     private final UUID maidUuid;
     private final boolean hugging;
     private final boolean childNameRequired;
+    private final boolean childLossGrief;
 
     public HugStateSyncPayload(UUID playerUuid, @Nullable UUID maidUuid, boolean hugging) {
-        this(playerUuid, maidUuid, hugging, false);
+        this(playerUuid, maidUuid, hugging, false, false);
     }
 
     public HugStateSyncPayload(UUID playerUuid, @Nullable UUID maidUuid, boolean hugging, boolean childNameRequired) {
+        this(playerUuid, maidUuid, hugging, childNameRequired, false);
+    }
+
+    public HugStateSyncPayload(UUID playerUuid,
+                               @Nullable UUID maidUuid,
+                               boolean hugging,
+                               boolean childNameRequired,
+                               boolean childLossGrief) {
         this.playerUuid = playerUuid;
         this.maidUuid = maidUuid;
         this.hugging = maidUuid != null && hugging;
         this.childNameRequired = maidUuid != null && childNameRequired;
+        this.childLossGrief = maidUuid != null && childLossGrief;
     }
 
     public UUID playerUuid() {
@@ -39,6 +49,10 @@ public class HugStateSyncPayload {
         return childNameRequired;
     }
 
+    public boolean childLossGrief() {
+        return childLossGrief;
+    }
+
     public static void encode(HugStateSyncPayload msg, FriendlyByteBuf buf) {
         buf.writeUUID(msg.playerUuid);
         buf.writeBoolean(msg.maidUuid != null);
@@ -47,6 +61,7 @@ public class HugStateSyncPayload {
         }
         buf.writeBoolean(msg.hugging);
         buf.writeBoolean(msg.childNameRequired);
+        buf.writeBoolean(msg.childLossGrief);
     }
 
     public static HugStateSyncPayload decode(FriendlyByteBuf buf) {
@@ -55,6 +70,7 @@ public class HugStateSyncPayload {
         UUID maidUuid = hasMaid ? buf.readUUID() : null;
         boolean hugging = buf.readBoolean();
         boolean childNameRequired = buf.readBoolean();
-        return new HugStateSyncPayload(playerUuid, maidUuid, hugging, childNameRequired);
+        boolean childLossGrief = buf.readBoolean();
+        return new HugStateSyncPayload(playerUuid, maidUuid, hugging, childNameRequired, childLossGrief);
     }
 }

@@ -29,6 +29,7 @@ public final class HugClientState {
     private static UUID localInteractionMaidUuid;
     private static boolean localHugging;
     private static boolean localChildNameRequired;
+    private static boolean localChildLossGrief;
     @Nullable
     private static UUID shyTurnMaidUuid;
     private static long clientTick;
@@ -73,7 +74,7 @@ public final class HugClientState {
      * 处理服务端同步过来的本地交互会话状态。
      */
     public static void handleSync(UUID playerUuid, @Nullable UUID maidUuid, boolean hugging) {
-        handleSync(playerUuid, maidUuid, hugging, false);
+        handleSync(playerUuid, maidUuid, hugging, false, false);
     }
 
     /**
@@ -83,6 +84,20 @@ public final class HugClientState {
      * 客户端实体/乘客/TaskData 可能尚未同步完整的入口剧情。
      */
     public static void handleSync(UUID playerUuid, @Nullable UUID maidUuid, boolean hugging, boolean childNameRequired) {
+        handleSync(playerUuid, maidUuid, hugging, childNameRequired, false);
+    }
+
+    /**
+     * 处理服务端同步过来的本地交互会话状态。
+     *
+     * <p>childLossGrief 也放进会话同步包，是为了避免普通 UI 刚打开时客户端还没拿到
+     * TaskData 导致丧子入口池漏判。这里认服务端权威状态，剧情条件不再赌实体 NBT 同步时机。</p>
+     */
+    public static void handleSync(UUID playerUuid,
+                                  @Nullable UUID maidUuid,
+                                  boolean hugging,
+                                  boolean childNameRequired,
+                                  boolean childLossGrief) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || !playerUuid.equals(minecraft.player.getUUID())) {
             return;
@@ -91,6 +106,7 @@ public final class HugClientState {
         localInteractionMaidUuid = maidUuid;
         localHugging = maidUuid != null && hugging;
         localChildNameRequired = maidUuid != null && childNameRequired;
+        localChildLossGrief = maidUuid != null && childLossGrief;
     }
 
     public static void tick(Minecraft minecraft) {
@@ -110,6 +126,7 @@ public final class HugClientState {
             localInteractionMaidUuid = null;
             localHugging = false;
             localChildNameRequired = false;
+            localChildLossGrief = false;
         }
         if (shyTurnMaidUuid != null && clientTick > shyTurnEndTick) {
             clearShyTurn();
@@ -130,6 +147,7 @@ public final class HugClientState {
         localInteractionMaidUuid = null;
         localHugging = false;
         localChildNameRequired = false;
+        localChildLossGrief = false;
         clearShyTurn();
         clearHeadCue();
         clearShyCoverFace();
@@ -147,6 +165,10 @@ public final class HugClientState {
 
     public static boolean isLocalChildNameRequired() {
         return isLocalPlayerInteracting() && localChildNameRequired;
+    }
+
+    public static boolean isLocalChildLossGrief() {
+        return isLocalPlayerInteracting() && localChildLossGrief;
     }
 
     @Nullable

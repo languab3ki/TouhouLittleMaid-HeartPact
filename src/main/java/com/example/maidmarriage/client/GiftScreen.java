@@ -1,8 +1,10 @@
 package com.example.maidmarriage.client;
 
 import com.example.maidmarriage.compat.GiftTable;
+import com.example.maidmarriage.compat.SpiritOfferingRules;
 import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.GiftSubmitPayload;
+import com.example.maidmarriage.network.payload.SpiritOfferingPayload;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ public final class GiftScreen extends Screen {
     private final Screen parent;
     @Nullable
     private final UUID maidUuid;
+    private final boolean spiritOfferingMode;
     private final List<GiftSlot> giftSlots = new ArrayList<>();
     private Button sendButton;
     private Button cancelButton;
@@ -39,14 +42,19 @@ public final class GiftScreen extends Screen {
     private Component statusLine = Component.empty();
     private int statusColor = 0xFFD8D0EB;
 
-    private GiftScreen(Screen parent, @Nullable UUID maidUuid) {
-        super(Component.translatable("ui.maidmarriage.gift_screen.title"));
+    private GiftScreen(Screen parent, @Nullable UUID maidUuid, boolean spiritOfferingMode) {
+        super(Component.translatable(spiritOfferingMode ? "ui.maidmarriage.spirit_offering.title" : "ui.maidmarriage.gift_screen.title"));
         this.parent = parent;
         this.maidUuid = maidUuid;
+        this.spiritOfferingMode = spiritOfferingMode;
     }
 
     public static GiftScreen open(Screen parent, @Nullable UUID maidUuid) {
-        return new GiftScreen(parent, maidUuid);
+        return new GiftScreen(parent, maidUuid, false);
+    }
+
+    public static GiftScreen openSpiritOffering(Screen parent, @Nullable UUID spiritUuid) {
+        return new GiftScreen(parent, spiritUuid, true);
     }
 
     @Override
@@ -92,7 +100,9 @@ public final class GiftScreen extends Screen {
 
         graphics.drawString(this.font, this.title, panelLeft + 10, panelTop + 7, 0xFFF3E9FF, false);
         graphics.drawString(this.font, Component.translatable("ui.maidmarriage.gift_screen.inventory"), panelLeft + 12, panelTop + 30, 0xFFD8D0EB, false);
-        graphics.drawString(this.font, Component.translatable("ui.maidmarriage.gift_screen.preview"), panelLeft + 186, panelTop + 30, 0xFFD8D0EB, false);
+        graphics.drawString(this.font, Component.translatable(spiritOfferingMode
+                ? "ui.maidmarriage.spirit_offering.preview"
+                : "ui.maidmarriage.gift_screen.preview"), panelLeft + 186, panelTop + 30, 0xFFD8D0EB, false);
 
         drawInventoryGrid(graphics, panelLeft + 12, panelTop + 42, mouseX, mouseY);
         drawPreview(graphics, panelLeft + 188, panelTop + 42);
@@ -157,7 +167,11 @@ public final class GiftScreen extends Screen {
             statusColor = 0xFFFF8E8E;
             return;
         }
-        ModNetworking.sendGiftSubmit(new GiftSubmitPayload(maidUuid, slot.slotIndex()));
+        if (spiritOfferingMode) {
+            ModNetworking.sendSpiritOffering(new SpiritOfferingPayload(maidUuid, slot.slotIndex()));
+        } else {
+            ModNetworking.sendGiftSubmit(new GiftSubmitPayload(maidUuid, slot.slotIndex()));
+        }
         onClose();
     }
 
@@ -184,7 +198,7 @@ public final class GiftScreen extends Screen {
                 && selectedIndex >= 0
                 && selectedIndex < giftSlots.size()
                 && !giftSlots.get(selectedIndex).stack().isEmpty()
-                && selectedPreview().allowed();
+                && selectedAllowed();
         sendButton.active = enabled;
     }
 
@@ -219,6 +233,10 @@ public final class GiftScreen extends Screen {
     }
 
     private void drawPreview(GuiGraphics graphics, int x, int y) {
+        if (spiritOfferingMode) {
+            drawSpiritOfferingPreview(graphics, x, y);
+            return;
+        }
         GiftTable.GiftPreview preview = selectedPreview();
         GraphicsText.draw(graphics, this.font, Component.translatable("ui.maidmarriage.gift_screen.category",
                 Component.translatable(categoryKey(preview.category()))), x, y, 0xFFF3E9FF);
@@ -226,6 +244,28 @@ public final class GiftScreen extends Screen {
                 Component.translatable(reactionKey(preview.reaction()))), x, y + 12, 0xFFD8D0EB);
         GraphicsText.drawWrapped(graphics, this.font, Component.translatable(preview.detailKey()), x, y + 32, 152, 0xFFFFE08A);
         GraphicsText.drawWrapped(graphics, this.font, Component.translatable("ui.maidmarriage.gift_screen.discovery_hint"), x, y + 96, 152, 0xFFCDBFE3);
+    }
+
+    private void drawSpiritOfferingPreview(GuiGraphics graphics, int x, int y) {
+        SpiritOfferingRules.OfferingCategory category = SpiritOfferingRules.classify(selectedStack());
+        GraphicsText.draw(graphics, this.font, Component.translatable("ui.maidmarriage.spirit_offering.category",
+                Component.translatable(spiritOfferingCategoryKey(category))), x, y, 0xFFF3E9FF);
+        GraphicsText.drawWrapped(graphics, this.font, Component.translatable(spiritOfferingDetailKey(category)), x, y + 24, 152, 0xFFFFE08A);
+        GraphicsText.drawWrapped(graphics, this.font, Component.translatable("ui.maidmarriage.spirit_offering.discovery_hint"), x, y + 92, 152, 0xFFCDBFE3);
+    }
+
+    private ItemStack selectedStack() {
+        if (selectedIndex < 0 || selectedIndex >= giftSlots.size()) {
+            return ItemStack.EMPTY;
+        }
+        return giftSlots.get(selectedIndex).stack();
+    }
+
+    private boolean selectedAllowed() {
+        if (spiritOfferingMode) {
+            return SpiritOfferingRules.isAllowed(selectedStack());
+        }
+        return selectedPreview().allowed();
     }
 
     private GiftTable.GiftPreview selectedPreview() {
@@ -268,6 +308,24 @@ public final class GiftScreen extends Screen {
             case DISLIKE -> "ui.maidmarriage.gift.reaction.dislike";
             case ANGRY -> "ui.maidmarriage.gift.reaction.angry";
             case BLOCKED -> "ui.maidmarriage.gift.reaction.blocked";
+        };
+    }
+
+    private static String spiritOfferingCategoryKey(SpiritOfferingRules.OfferingCategory category) {
+        return switch (category) {
+            case FLOWER -> "ui.maidmarriage.spirit_offering.category.flower";
+            case SOUL -> "ui.maidmarriage.spirit_offering.category.soul";
+            case EMPTY -> "ui.maidmarriage.gift.category.empty";
+            case BLOCKED -> "ui.maidmarriage.spirit_offering.category.blocked";
+        };
+    }
+
+    private static String spiritOfferingDetailKey(SpiritOfferingRules.OfferingCategory category) {
+        return switch (category) {
+            case FLOWER -> "ui.maidmarriage.spirit_offering.preview.flower";
+            case SOUL -> "ui.maidmarriage.spirit_offering.preview.soul";
+            case EMPTY -> "ui.maidmarriage.gift.preview.blocked";
+            case BLOCKED -> "ui.maidmarriage.spirit_offering.preview.blocked";
         };
     }
 

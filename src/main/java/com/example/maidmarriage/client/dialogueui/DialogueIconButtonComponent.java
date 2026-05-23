@@ -57,7 +57,11 @@ public final class DialogueIconButtonComponent extends DialogueUiComponent {
             graphics.fill(left, top, left + 1, top + heightPx, 0x40FFF2F8);
         }
         if (iconTexture != null) {
-            int size = Math.max(6, Math.min(iconSize, Math.min(widthPx - inset * 2, heightPx - inset * 2)));
+            int safeInset = Math.max(0, Math.min(inset, Math.max(0, Math.min(widthPx, heightPx) / 3)));
+            int innerWidth = Math.max(1, widthPx - safeInset * 2);
+            int innerHeight = Math.max(1, heightPx - safeInset * 2);
+            int size = Math.max(6, Math.min(iconSize, Math.min(innerWidth, innerHeight)));
+            size = Math.min(size, Math.max(1, Math.min(widthPx, heightPx)));
             int iconX = left + (widthPx - size) / 2;
             int iconY = top + (heightPx - size) / 2;
             DialogueUiRender.blitScaled(graphics, iconTexture, iconX, iconY, size, size, 1.0F);

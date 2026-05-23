@@ -117,6 +117,13 @@
       ]
     }
   },
+  "child_loss_grief_entry": [
+    "{player}... did you hear that? For a second, I thought I heard her little footsteps.\nShe lifts her head, hope flickering in her eyes, then fading when the door only creaks in the wind.",
+    "{maid} stares at the small empty space beside her, as if remembering who used to fall asleep there.\nShe does not cry. She simply cannot look away for a long time.",
+    "I know she is gone. But whenever I hear a sound outside the door, I still think... maybe she came home.\nHer fingers tighten around her sleeve until her knuckles turn pale.",
+    "She used to run over and tug at my skirt. Now the hem still moves, but there is no little hand holding it.\nShe presses the cloth down like she is pressing on a wound that will not bleed.",
+    "{player}, if she is somewhere far away, do you think she is cold? Do you think she still remembers the way home?\nHer voice is so quiet it sounds afraid of receiving an answer."
+  ],
   "longing_entry": {
     "dating": [
       "You finally came... {maid} thought she would have to wait alone until night again.\nHer tone is light, but her fingers have already caught her hem.",

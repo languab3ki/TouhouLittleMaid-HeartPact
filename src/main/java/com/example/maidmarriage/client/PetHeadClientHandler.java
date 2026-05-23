@@ -1,11 +1,13 @@
 package com.example.maidmarriage.client;
 
 import com.example.maidmarriage.MaidMarriageMod;
+import com.example.maidmarriage.client.interaction.InteractionTargetRegistry;
 import com.example.maidmarriage.compat.MaidCarryChildManager;
 import com.example.maidmarriage.compat.MaidLiftManager;
 import com.example.maidmarriage.compat.PetHeadManager;
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.CarryChildMaidPayload;
 import com.example.maidmarriage.network.payload.ChildInteractionPayload;
@@ -130,6 +132,12 @@ public final class PetHeadClientHandler {
      * 4. 其他情况默认进入成年女仆互动。
      */
     public static void triggerUnifiedInteraction(Minecraft mc) {
+        MaidSpiritEntity spirit = resolveCrosshairSpirit(mc);
+        if (spirit != null) {
+            InteractionTargetRegistry.openFor(mc, spirit);
+            return;
+        }
+
         if (ChildInteractionClientState.isLocalPlayerInteracting()) {
             triggerChildInteraction(mc, ChildInteractionClientState.getLocalInteractionMaidUuid());
             return;
@@ -275,7 +283,7 @@ public final class PetHeadClientHandler {
             return null;
         }
         for (Entity entity : mc.level.entitiesForRendering()) {
-            if (entity instanceof EntityMaid maid && maidUuid.equals(maid.getUUID())) {
+            if (entity instanceof EntityMaid maid && !(entity instanceof MaidSpiritEntity) && maidUuid.equals(maid.getUUID())) {
                 return maid;
             }
         }
@@ -288,8 +296,23 @@ public final class PetHeadClientHandler {
             return null;
         }
         HitResult hit = mc.hitResult;
-        if (hit instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof EntityMaid maid) {
+        if (hit instanceof EntityHitResult entityHitResult
+                && entityHitResult.getEntity() instanceof EntityMaid maid
+                && !(entityHitResult.getEntity() instanceof MaidSpiritEntity)) {
             return maid;
+        }
+        return null;
+    }
+
+    @Nullable
+    private static MaidSpiritEntity resolveCrosshairSpirit(Minecraft mc) {
+        if (mc == null) {
+            return null;
+        }
+        HitResult hit = mc.hitResult;
+        if (hit instanceof EntityHitResult entityHitResult
+                && entityHitResult.getEntity() instanceof MaidSpiritEntity spirit) {
+            return spirit;
         }
         return null;
     }

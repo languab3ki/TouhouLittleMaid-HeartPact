@@ -1,6 +1,7 @@
 package com.example.maidmarriage.client;
 
 import com.example.maidmarriage.MaidMarriageMod;
+import com.example.maidmarriage.client.interaction.GenericMaidInteractionScreen;
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.UpdateMaidAddressingPayload;
@@ -44,6 +45,7 @@ public final class ClientPlayerSyncEvents {
         HugClientState.tick(minecraft);
         ChildInteractionClientState.tick(minecraft);
         HugActionScreen.tickCompactLookHotkey(minecraft);
+        GenericMaidInteractionScreen.tickHiddenHotkeys(minecraft);
         HugClientState.ensureActionScreen(minecraft);
         ChildInteractionClientState.ensureActionScreen(minecraft);
     }

@@ -1,0 +1,44 @@
+{
+  "entry": [
+    "When she sees you, her eyes brighten at once, as if she has been saving all her little joys for you.",
+    "She trots over and stops in front of you, smoothing her skirt with a serious little face, clearly waiting to be praised.",
+    "She comes close and says she has so many things to tell you today."
+  ],
+  "chat": [
+    "She counts the flowers, clouds, and tiny animals she saw today on her fingers, then starts giggling before she finishes.",
+    "She asks whether you were afraid of the dark as a child too, and nods very seriously after hearing your answer.",
+    "She secretly shows you a small leaf she found today, calling it a very important treasure."
+  ],
+  "action": {
+    "pet": [
+      "You pat her head. She narrows her eyes happily and quietly nuzzles into your palm.",
+      "She stands still for the head pat, saying she is already grown up, though her happy voice gives her away."
+    ],
+    "hug": [
+      "She gently hugs you, leaning close like a tiny warm stove, and only lets go after a little while.",
+      "She rests her forehead against you and whispers that this makes her feel much safer."
+    ],
+    "comfort": [
+      "She listens carefully, nodding now and then as if trying to remember every word you say.",
+      "She tugs your sleeve and says you both need to eat well and rest properly today too."
+    ]
+  },
+  "small_entry": {
+    "infant": [
+      "Goo... She still cannot really speak, but she reaches her tiny hands toward you as hard as she can.",
+      "She sleeps peacefully in her mother's arms, tiny fingers curled around the edge of the sleeve."
+    ],
+    "juvenile": [
+      "She looks up at you and solemnly promises she will be good today too.",
+      "She runs over with her little treasure, wanting to show it to you before anyone else."
+    ],
+    "child": [
+      "${player_child}, will you play with me today too? I promise I will be good!",
+      "She hops in front of you, eyes bright, as if she has a whole day of stories hidden inside."
+    ],
+    "carried_by_mother": [
+      "Curled up in her mother's arms, she waves happily when she sees you.",
+      "When her mother holds her, she looks all warm and cozy, then quietly calls you over."
+    ]
+  }
+}

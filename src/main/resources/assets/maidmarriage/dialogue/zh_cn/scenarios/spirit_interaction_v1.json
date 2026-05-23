@@ -1,0 +1,745 @@
+{
+  "id": "maidmarriage:spirit_interaction_v1",
+  "theme": "maidmarriage:hug_default",
+  "start": "idle",
+  "animationLibrary": "maidmarriage:default",
+  "portraits": {
+    "maid": {
+      "texture": "maidmarriage:textures/gui/emotion/teary.png",
+      "defaultExpression": "teary",
+      "expressions": {
+        "teary": "maidmarriage:textures/gui/emotion/teary.png",
+        "soft_smile": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "sad": "maidmarriage:textures/gui/emotion/sad.png",
+        "surprised": "maidmarriage:textures/gui/emotion/surprised.png"
+      }
+    }
+  },
+  "nodes": {
+    "idle": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}.残响",
+        "text": "${maid}的灵体还停留在这里。她像是隔着很深很深的水听见你，却还不知道该怎样回应。",
+        "portrait": "maid",
+        "expression": "teary",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "soothe",
+          "title": "安抚",
+          "description": "轻声呼唤她。前五次安抚会让破碎的残响慢慢清晰。",
+          "condition": "!spirit_soothe_max",
+          "next": "soothe_branch",
+          "action": "maidmarriage:spirit_soothe",
+          "events": []
+        },
+        {
+          "id": "remember",
+          "title": "追忆",
+          "description": "陪她想起家、名字、妈妈，还有你。",
+          "condition": "spirit_soothe_max && !spirit_memory_max",
+          "next": "memory_branch",
+          "action": "maidmarriage:spirit_remember",
+          "events": []
+        },
+        {
+          "id": "reunion",
+          "title": "带她见妈妈",
+          "description": "她和妈妈都在十格以内。那句迟到的话，也许终于能说出口。",
+          "condition": "spirit_reunion_ready && spirit_recognized_father && !spirit_staying && !spirit_farewell",
+          "next": "mother_reunion",
+          "events": []
+        },
+        {
+          "id": "stay",
+          "title": "留下她的残响",
+          "description": "不说永别。让她以灵体的方式继续留在这个家里。",
+          "condition": "spirit_recognized_father && spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "stay_result",
+          "action": "maidmarriage:spirit_stay",
+          "events": []
+        },
+        {
+          "id": "stay_need_mother",
+          "title": "留下她的残响",
+          "description": "也许需要先把她带到妈妈面前，一起商量这件事。",
+          "condition": "spirit_recognized_father && !spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "stay_need_mother",
+          "events": []
+        },
+        {
+          "id": "farewell",
+          "title": "和她道别",
+          "description": "和妈妈一起，陪她走完最后一段路。",
+          "condition": "spirit_recognized_father && spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "farewell_result",
+          "events": []
+        },
+        {
+          "id": "daily_soothe",
+          "title": "安抚残响",
+          "description": "陪她说一会儿话，让这份牵挂慢慢安静下来。",
+          "condition": "spirit_staying && !spirit_farewell",
+          "next": "daily_soothe_branch",
+          "action": "maidmarriage:spirit_daily_soothe",
+          "events": []
+        },
+        {
+          "id": "offering",
+          "title": "献花",
+          "description": "为她献上一点温柔的东西。",
+          "condition": "spirit_staying && !spirit_farewell",
+          "next": "offering_intro",
+          "events": []
+        },
+        {
+          "id": "resurrection_ready",
+          "title": "她好像有话想对你们说",
+          "description": "她的轮廓比之前清晰了许多，正有些期待地看着你们。",
+          "condition": "spirit_resurrection_ready",
+          "next": "resurrection_ready",
+          "events": []
+        },
+        {
+          "id": "leave",
+          "title": "离开",
+          "description": "先让这里恢复安静。",
+          "next": "end",
+          "action": "maidmarriage:close_interaction",
+          "events": []
+        }
+      ],
+      "lines": [],
+      "branches": [],
+      "events": []
+    },
+    "soothe_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_soothe_0",
+          "next": "soothe_1"
+        },
+        {
+          "condition": "spirit_soothe_1",
+          "next": "soothe_2"
+        },
+        {
+          "condition": "spirit_soothe_2",
+          "next": "soothe_3"
+        },
+        {
+          "condition": "spirit_soothe_3",
+          "next": "soothe_4"
+        }
+      ],
+      "next": "soothe_5"
+    },
+    "soothe_1": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "■■……■■■……。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你轻声喊她的名字。回应你的只有断掉的音节，像被雨打湿后再也读不清的信纸。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_2": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "……、……？■■……！",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她像是想转过头来，却只让透明的手指穿过了自己的裙摆。那些乱码里，第一次混进了近似疑问的停顿。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_3": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "……不、要……走……？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "声音还是破碎的。可是你听见了。那不是诅咒，也不是怨恨，只是一个孩子在黑暗里摸索你的袖口。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_4": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "这里……好冷……我、是不是……睡过头了……？",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她断断续续地说着，眼睛没有焦点。你伸出手，却只碰到一点冰凉的微光。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_5": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "我……好像忘了很重要的事。有人一直在叫我，可我想不起来是谁。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她终于能完整说话了。可那双眼睛仍像蒙着雾，望着你，仿佛在看一个还没被想起的梦。"
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_memory_0",
+          "next": "memory_1"
+        },
+        {
+          "condition": "spirit_memory_1",
+          "next": "memory_2"
+        },
+        {
+          "condition": "spirit_memory_2",
+          "next": "memory_3"
+        },
+        {
+          "condition": "spirit_memory_3",
+          "next": "memory_4"
+        }
+      ],
+      "next": "memory_5"
+    },
+    "memory_1": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你告诉她，她曾经有一个名字。那个名字不是墓碑上的字，而是有人一遍遍练习、怕念错、又忍不住想早点叫出口的期待。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "名字……是会让人回头的东西吗？那为什么……我回头的时候，后面什么都没有呢？",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_2": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你说起她第一次被抱起来的样子。妈妈低着头，像捧着一盏怕被风吹灭的小灯，连呼吸都小心翼翼。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "妈妈……她的手，是不是很暖？我好像记得……有人一直把我护在怀里。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_3": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你说起她还没学会好好走路的时候，摔倒了也不哭，只是抬头看你，像在确认你有没有看见她很努力。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "我有努力过吗？如果我再努力一点……是不是就不会让你们这么难过了？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_4": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你没有说“不是你的错”。因为那句话太轻，轻得接不住这一天。你只是告诉她：能遇见她，本身就已经是你们生命里最温柔也最疼的一页。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "那我……有被好好喜欢过吗？不是因为我是孩子，不是因为应该喜欢我，而是真的……想要我留下来？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_5": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "我想起来了。你不是陌生人……你是一直叫我名字、一直等我回家的那个人。",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "爸爸……我可以这样叫你吗？如果声音会消失，那至少这一句，让我好好说完。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "mother_reunion": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你把她带到妈妈身边。十五格的距离明明那么短，却像跨过了一个再也没有早晨的季节。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "妈妈……我回来了。可是我抱不到你了。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "妈妈没有立刻回应。她只是站在那里，像终于听见了那句迟到太久的“我回来了”，于是连悲伤都不敢出声，怕把这点奇迹吓醒。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "对不起。我明明说过要长大，明明还想学会好多事，明明……还没有让你摸摸我的头说“今天也很乖”。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "风穿过她透明的肩。那一瞬间，你忽然明白，所谓离别不是某个人走远了，而是从今以后，每一个幸福的日子都会空出一个本该属于她的位置。"
+        }
+      ],
+      "next": "idle"
+    },
+    "stay_result": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "如果可以的话……我还想再多看一会儿这个家。哪怕只能站在灯光够不到的地方，也没关系。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你没有把这叫作执念。你只是把那盏小小的灯放低了一点，让她的影子也能落在回家的路上。"
+        }
+      ],
+      "next": "idle"
+    },
+    "stay_need_mother": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你看着她透明的轮廓，忽然觉得这不是一个人能替她决定的事。也许该先把她带到妈妈面前，让这个家一起听见她的回答。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "妈妈……也会听我说话吗？如果她在的话，我想先看看她。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "offering_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "${spirit_offering_flower_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "offering_action"
+    },
+    "resurrection_ready": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "爸爸，妈妈……我有一件很重要、很开心的事情想告诉你们。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "最近你们一直陪着我，叫我的名字，给我献花，还和我说好多家里的事情。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "我能感觉到，我已经不像一开始那样轻飘飘的了。风吹过来的时候，我也不会害怕自己突然不见。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "我好像……真的可以回到你们身边了。",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "回来……是说，可以重新让妈妈抱住你吗？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "嗯！我想重新踩在地上，想跑到你们面前，想被妈妈抱起来，也想牵住爸爸的手。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "还想吃甜甜的东西，想晒太阳，想晚上困了以后，被你们叫回家睡觉。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "当然可以。早上叫你起床，吃饭的时候叫你坐好，晚上再给你盖好被子。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "嘿嘿……那我可以装作没听见吗？",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "不可以。到时候妈妈会把你抱起来，轻轻捏一下你的脸。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "那我就逃到爸爸后面！爸爸会保护我的，对吧？",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "不过，我感觉还需要不死图腾。只要爸爸拿着不死图腾对我使用，我应该就能重新拥有身体了。",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "等我回来以后，第一件事就是抱住妈妈，然后抱住爸爸。一个都不能少！",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "现在对着小女仆使用不死图腾，也许可以让她重新回到你们身边。"
+        }
+      ],
+      "next": "idle"
+    },
+    "offering_action": {
+      "type": "action",
+      "action": "maidmarriage:open_spirit_offering",
+      "next": "idle",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "farewell_result": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${spirit_mother}",
+          "text": "等一下……让我再看她一眼。就一眼也好。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "妈妈伸出手，指尖穿过那道透明的轮廓。她明明什么都没有碰到，却还是像被烫到一样轻轻颤了一下。"
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "对不起……妈妈没能把你留住。可是能做你的妈妈，真的、真的很幸福。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "妈妈不要道歉。能被妈妈抱过，能被爸爸叫过名字，我已经不是迷路的孩子了。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "那……我要走了。不要在我看不见的地方哭太久，好吗？不然我会担心，担心到连下一场梦都进不去。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "嗯……去吧。下次如果还能相遇，一定要再让妈妈抱抱你。",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她把一封很轻很轻的信留在你手里。纸页没有重量，却像压住了整个黄昏。"
+        }
+      ],
+      "next": "farewell_action"
+    },
+    "end": {
+      "type": "end",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "daily_soothe_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_longing_high",
+          "next": "daily_soothe_high"
+        },
+        {
+          "condition": "spirit_longing_mid",
+          "next": "daily_soothe_mid"
+        }
+      ],
+      "next": "daily_soothe_low"
+    },
+    "daily_soothe_low": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你在她身边坐下，轻声说起今天发生的小事。她透明的指尖搭在膝上，像终于抓住了一点不会熄灭的灯光。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "如果我偶尔想不起很多东西了，也没关系吧？只要还能记得这里很温暖，就够了。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "daily_soothe_mid": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你陪她慢慢数着家里的声音：炉火、脚步、门轴轻轻响起的声音。她把这些都认真记下来，像在替自己重新拼出回家的形状。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "如果有一天我又变得很模糊，你还会像这样叫我的名字吗？我想把那句声音带在身边。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "daily_soothe_high": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.残响",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她的轮廓依旧透明，却不再像随时会被风吹散。你们并肩待了一会儿，谁都没有急着说再见。"
+        },
+        {
+          "speaker": "${maid}.残响",
+          "text": "谢谢你一直没有把我忘在昨天。今天的我，也有好好留在这里哦。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "farewell_action": {
+      "type": "action",
+      "action": "maidmarriage:spirit_farewell",
+      "next": "end",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    }
+  }
+}

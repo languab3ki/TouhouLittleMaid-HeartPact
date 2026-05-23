@@ -5,6 +5,7 @@ import com.example.maidmarriage.entity.LapPillowAnchorEntity;
 import com.example.maidmarriage.entity.LiftProxyEntity;
 import com.example.maidmarriage.entity.MaidCarryProxyEntity;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -56,6 +57,14 @@ public final class ModEntities {
                             .noSave()
                             .noSummon()
                             .build(new ResourceLocation(MaidMarriageMod.MOD_ID, "lap_pillow_anchor").toString()));
+
+    public static final RegistryObject<EntityType<MaidSpiritEntity>> MAID_SPIRIT =
+            ENTITY_TYPES.register("maid_spirit", () ->
+                    EntityType.Builder.<MaidSpiritEntity>of(MaidSpiritEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.4F)
+                            .clientTrackingRange(32)
+                            .updateInterval(1)
+                            .build(new ResourceLocation(MaidMarriageMod.MOD_ID, "maid_spirit").toString()));
 
     private ModEntities() {
     }

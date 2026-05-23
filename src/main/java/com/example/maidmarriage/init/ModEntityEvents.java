@@ -18,5 +18,6 @@ public final class ModEntityEvents {
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         event.put(ModEntities.MAID_CHILD.get(), EntityMaid.createAttributes().build());
+        event.put(ModEntities.MAID_SPIRIT.get(), EntityMaid.createAttributes().build());
     }
 }

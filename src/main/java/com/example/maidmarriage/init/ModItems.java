@@ -39,7 +39,8 @@ public final class ModItems {
                     "tooltip.maidmarriage.rainbow_bouquet"));
 
     public static final RegistryObject<Item> LONGING_TESTER = ITEMS.register("longing_tester",
-            () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+            () -> new DescriptionItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC),
+                    "tooltip.maidmarriage.longing_tester"));
 
     public static final RegistryObject<Item> FLOWER_TEST_KIT = ITEMS.register("flower_test_kit",
             () -> new FlowerTestKitItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE),

@@ -1,0 +1,745 @@
+{
+  "id": "maidmarriage:spirit_interaction_v1",
+  "theme": "maidmarriage:hug_default",
+  "start": "idle",
+  "animationLibrary": "maidmarriage:default",
+  "portraits": {
+    "maid": {
+      "texture": "maidmarriage:textures/gui/emotion/teary.png",
+      "defaultExpression": "teary",
+      "expressions": {
+        "teary": "maidmarriage:textures/gui/emotion/teary.png",
+        "soft_smile": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "sad": "maidmarriage:textures/gui/emotion/sad.png",
+        "surprised": "maidmarriage:textures/gui/emotion/surprised.png"
+      }
+    }
+  },
+  "nodes": {
+    "idle": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}.soul",
+        "text": "${maid}'s spirit is still lingering here. She seems to hear you from the far side of deep water, but she does not yet know how to answer.",
+        "portrait": "maid",
+        "expression": "teary",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "soothe",
+          "title": "Soothe",
+          "description": "Call to her gently. During the first five times, her broken echo slowly becomes clearer.",
+          "condition": "!spirit_soothe_max",
+          "next": "soothe_branch",
+          "action": "maidmarriage:spirit_soothe",
+          "events": []
+        },
+        {
+          "id": "remember",
+          "title": "Remember",
+          "description": "Help her remember home, her name, her mother, and you.",
+          "condition": "spirit_soothe_max && !spirit_memory_max",
+          "next": "memory_branch",
+          "action": "maidmarriage:spirit_remember",
+          "events": []
+        },
+        {
+          "id": "reunion",
+          "title": "Bring her to Mom",
+          "description": "She and her mother are within ten blocks. The words that came too late may finally reach her.",
+          "condition": "spirit_reunion_ready && spirit_recognized_father && !spirit_staying && !spirit_farewell",
+          "next": "mother_reunion",
+          "events": []
+        },
+        {
+          "id": "stay",
+          "title": "Keep Her Echo",
+          "description": "Do not call it goodbye. Let her remain in this home as a spirit.",
+          "condition": "spirit_recognized_father && spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "stay_result",
+          "action": "maidmarriage:spirit_stay",
+          "events": []
+        },
+        {
+          "id": "stay_need_mother",
+          "title": "Keep Her Echo",
+          "description": "Maybe you should bring her to Mom first, and decide together.",
+          "condition": "spirit_recognized_father && !spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "stay_need_mother",
+          "events": []
+        },
+        {
+          "id": "farewell",
+          "title": "Say Goodbye",
+          "description": "Stay with her and Mom through the final goodbye.",
+          "condition": "spirit_recognized_father && spirit_mother_nearby && !spirit_staying && !spirit_farewell",
+          "next": "farewell_result",
+          "events": []
+        },
+        {
+          "id": "daily_soothe",
+          "title": "Soothe Her Echo",
+          "description": "Stay beside her and let this lingering ache settle for a while.",
+          "condition": "spirit_staying && !spirit_farewell",
+          "next": "daily_soothe_branch",
+          "action": "maidmarriage:spirit_daily_soothe",
+          "events": []
+        },
+        {
+          "id": "offering",
+          "title": "Offer Flowers",
+          "description": "Leave something gentle for her.",
+          "condition": "spirit_staying && !spirit_farewell",
+          "next": "offering_intro",
+          "events": []
+        },
+        {
+          "id": "resurrection_ready",
+          "title": "She seems to have something to say",
+          "description": "Her outline is much clearer than before, and she is looking at you with quiet excitement.",
+          "condition": "spirit_resurrection_ready",
+          "next": "resurrection_ready",
+          "events": []
+        },
+        {
+          "id": "leave",
+          "title": "Leave",
+          "description": "Let this place become quiet for now.",
+          "next": "end",
+          "action": "maidmarriage:close_interaction",
+          "events": []
+        }
+      ],
+      "lines": [],
+      "branches": [],
+      "events": []
+    },
+    "soothe_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_soothe_0",
+          "next": "soothe_1"
+        },
+        {
+          "condition": "spirit_soothe_1",
+          "next": "soothe_2"
+        },
+        {
+          "condition": "spirit_soothe_2",
+          "next": "soothe_3"
+        },
+        {
+          "condition": "spirit_soothe_3",
+          "next": "soothe_4"
+        }
+      ],
+      "next": "soothe_5"
+    },
+    "soothe_1": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "■■……■■■……。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你轻声喊她的名字。回应你的只有断掉的音节，像被雨打湿后再也读不清的信纸。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_2": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "……、……？■■……！",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她像是想转过头来，却只让透明的手指穿过了自己的裙摆。那些乱码里，第一次混进了近似疑问的停顿。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_3": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "……不、要……走……？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "声音还是破碎的。可是你听见了。那不是诅咒，也不是怨恨，只是一个孩子在黑暗里摸索你的袖口。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_4": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "这里……好冷……我、是不是……睡过头了……？",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她断断续续地说着，眼睛没有焦点。你伸出手，却只碰到一点冰凉的微光。"
+        }
+      ],
+      "next": "idle"
+    },
+    "soothe_5": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "我……好像忘了很重要的事。有人一直在叫我，可我想不起来是谁。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她终于能完整说话了。可那双眼睛仍像蒙着雾，望着你，仿佛在看一个还没被想起的梦。"
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_memory_0",
+          "next": "memory_1"
+        },
+        {
+          "condition": "spirit_memory_1",
+          "next": "memory_2"
+        },
+        {
+          "condition": "spirit_memory_2",
+          "next": "memory_3"
+        },
+        {
+          "condition": "spirit_memory_3",
+          "next": "memory_4"
+        }
+      ],
+      "next": "memory_5"
+    },
+    "memory_1": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你告诉她，她曾经有一个名字。那个名字不是墓碑上的字，而是有人一遍遍练习、怕念错、又忍不住想早点叫出口的期待。"
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "名字……是会让人回头的东西吗？那为什么……我回头的时候，后面什么都没有呢？",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_2": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你说起她第一次被抱起来的样子。妈妈低着头，像捧着一盏怕被风吹灭的小灯，连呼吸都小心翼翼。"
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "妈妈……她的手，是不是很暖？我好像记得……有人一直把我护在怀里。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_3": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你说起她还没学会好好走路的时候，摔倒了也不哭，只是抬头看你，像在确认你有没有看见她很努力。"
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "我有努力过吗？如果我再努力一点……是不是就不会让你们这么难过了？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_4": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你没有说“不是你的错”。因为那句话太轻，轻得接不住这一天。你只是告诉她：能遇见她，本身就已经是你们生命里最温柔也最疼的一页。"
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "那我……有被好好喜欢过吗？不是因为我是孩子，不是因为应该喜欢我，而是真的……想要我留下来？",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "memory_5": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "我想起来了。你不是陌生人……你是一直叫我名字、一直等我回家的那个人。",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "爸爸……我可以这样叫你吗？如果声音会消失，那至少这一句，让我好好说完。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "mother_reunion": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "You bring her to her mother. Ten blocks should be nothing, yet it feels like crossing a season that will never have another morning."
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Mom... I'm home. But I can't hug you anymore.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "妈妈没有立刻回应。她只是站在那里，像终于听见了那句迟到太久的“我回来了”，于是连悲伤都不敢出声，怕把这点奇迹吓醒。"
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "对不起。我明明说过要长大，明明还想学会好多事，明明……还没有让你摸摸我的头说“今天也很乖”。",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "风穿过她透明的肩。那一瞬间，你忽然明白，所谓离别不是某个人走远了，而是从今以后，每一个幸福的日子都会空出一个本该属于她的位置。"
+        }
+      ],
+      "next": "idle"
+    },
+    "stay_result": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "如果可以的话……我还想再多看一会儿这个家。哪怕只能站在灯光够不到的地方，也没关系。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "你没有把这叫作执念。你只是把那盏小小的灯放低了一点，让她的影子也能落在回家的路上。"
+        }
+      ],
+      "next": "idle"
+    },
+    "stay_need_mother": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "You look at her transparent outline and realize this is not something one person should decide for her. Perhaps you should bring her to Mom first, and let this home hear her answer together."
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Will Mom... hear me too? If she is here, I want to see her first.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "offering_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "${spirit_offering_flower_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "offering_action"
+    },
+    "resurrection_ready": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "Dad, Mom... I have something really important, and really happy, to tell you.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "You kept staying with me, calling my name, bringing me flowers, and telling me about home.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "I can feel it now. I am not as light and blurry as I was at first. Even when the wind blows, I am not afraid I will suddenly disappear.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "I think... I can really come back to you.",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "Come back... you mean Mom could hold you again?",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Mm! I want to stand on the ground again, run up to you, get picked up by Mom, and hold Dad's hand.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "I want to eat sweet things, sit in the sun, and be called home to sleep when I get sleepy at night.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "Of course. I will wake you in the morning, tell you to sit properly at meals, and tuck you in at night.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Hehe... can I pretend I didn't hear you?",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "No. Then Mom will pick you up and gently pinch your cheek.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Then I will hide behind Dad! Dad will protect me, right?",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "But I think I still need a Totem of Undying. If Dad uses one on me, I should be able to have a body again.",
+          "portrait": "maid",
+          "expression": "surprised",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "When I come back, the first thing I will do is hug Mom, then hug Dad. No one gets left out!",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "Using a Totem of Undying on the little maid now may bring her back to your side."
+        }
+      ],
+      "next": "idle"
+    },
+    "offering_action": {
+      "type": "action",
+      "action": "maidmarriage:open_spirit_offering",
+      "next": "idle",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "farewell_result": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${spirit_mother}",
+          "text": "Wait... let me look at her one more time. Just one more time.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "Mom reaches out. Her fingertips pass through that transparent outline. She touches nothing, yet still trembles as if burned."
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "I'm sorry... Mom couldn't keep you here. But being your mother was truly, truly happiness.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Mom, don't say sorry. I was held by you, and Dad called my name. I'm not a lost child anymore.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Then... I have to go. Please don't cry too long where I can't see you, okay? I'll worry so much I won't be able to enter the next dream.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${spirit_mother}",
+          "text": "Okay... go on. If we ever meet again, let Mom hold you one more time.",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "",
+          "text": "",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "她把一封很轻很轻的信留在你手里。纸页没有重量，却像压住了整个黄昏。"
+        }
+      ],
+      "next": "farewell_action"
+    },
+    "end": {
+      "type": "end",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    },
+    "daily_soothe_branch": {
+      "type": "branch",
+      "branches": [
+        {
+          "condition": "spirit_longing_high",
+          "next": "daily_soothe_high"
+        },
+        {
+          "condition": "spirit_longing_mid",
+          "next": "daily_soothe_mid"
+        }
+      ],
+      "next": "daily_soothe_low"
+    },
+    "daily_soothe_low": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "You sit beside her and tell her about the small things that happened today. Her transparent fingers rest on her knees, as if holding a little light that will not go out."
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "If I forget a few things sometimes, that is all right, isn't it? As long as I can remember that this place is warm.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "daily_soothe_mid": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "You slowly name the sounds of home for her: the fire, footsteps, the quiet creak of a door. She remembers them carefully, as if rebuilding the shape of home from each small sound."
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "If I become blurry again someday, will you still call my name like this? I want to carry that voice with me.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "daily_soothe_high": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}.soul",
+          "text": "${spirit_soothe_text}",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": [],
+          "narration": "Her outline is still transparent, but no longer looks as if the wind could scatter it at any moment. You stay side by side for a while, and neither of you rushes to say goodbye."
+        },
+        {
+          "speaker": "${maid}.soul",
+          "text": "Thank you for never leaving me behind in yesterday. The me of today is still here too.",
+          "portrait": "maid",
+          "expression": "teary",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "idle"
+    },
+    "farewell_action": {
+      "type": "action",
+      "action": "maidmarriage:spirit_farewell",
+      "next": "end",
+      "lines": [],
+      "choices": [],
+      "branches": [],
+      "events": []
+    }
+  }
+}

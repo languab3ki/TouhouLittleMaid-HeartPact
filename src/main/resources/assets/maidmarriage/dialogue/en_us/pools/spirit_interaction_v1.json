@@ -1,0 +1,35 @@
+{
+  "soothe": {
+    "low": [
+      "I waited for you today too. Not in the lonely way... in the way where I knew you would come back.",
+      "When you call my name, I feel like I have not disappeared completely. It is still cold, but your voice reaches me like a little light.",
+      "Sometimes I forget why I am here. But when you come, I think maybe I can wait a little longer."
+    ],
+    "mid": [
+      "When you come here, it does not feel so cold anymore. I cannot touch your hand, but it still feels like you are holding it.",
+      "I can remember a few sounds now. The door opening, your footsteps, and the way you call my name.",
+      "If I become blurry again someday, will you still call my name like this? I want to carry that voice with me."
+    ],
+    "high": [
+      "I am not as scared now. Even if I am only an echo, I know I am still part of this home.",
+      "Thank you for never leaving me behind in yesterday. The me of today is still here too.",
+      "As long as someone here remembers me, I am not just a lonely shadow. Dad, thank you for coming to see me today too."
+    ]
+  },
+  "offering": {
+    "flower": [
+      "Is this for me? I cannot smell flowers anymore, but seeing it makes something in my heart light up.",
+      "Will this flower stay here? Then every time I wake, I will know you came to see me.",
+      "I will remember this color. Even if my fingers pass through it, I still want to say thank you properly."
+    ],
+    "soul": [
+      "This light... feels a little like a road that could lead me home. Thank you for not leaving me alone in the dark.",
+      "When something touched by souls comes near, I feel less weightless, as if I can stay a little longer.",
+      "I hear a lamp ringing somewhere far away. But for now, I want to stay beside you."
+    ],
+    "limit": [
+      "That is enough for today. Keep the rest of your feelings for tomorrow. I will wait for you.",
+      "If I receive too much at once, I might become greedy. Come again tomorrow, okay?"
+    ]
+  }
+}

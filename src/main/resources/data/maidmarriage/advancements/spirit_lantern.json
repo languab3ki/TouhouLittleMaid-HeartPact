@@ -1,0 +1,28 @@
+{
+  "parent": "maidmarriage:spirit_recognized",
+  "display": {
+    "icon": {
+      "item": "minecraft:soul_lantern"
+    },
+    "title": {
+      "translate": "advancements.maidmarriage.spirit_lantern.title"
+    },
+    "description": {
+      "translate": "advancements.maidmarriage.spirit_lantern.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ]
+}

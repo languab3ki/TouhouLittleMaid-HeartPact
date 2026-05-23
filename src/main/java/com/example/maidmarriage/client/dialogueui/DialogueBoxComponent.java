@@ -30,7 +30,7 @@ public final class DialogueBoxComponent extends DialogueUiComponent {
     private float hintYPercent = 72.0F;
     private float speakerScale = 1.0F;
     private float textScale = 1.0F;
-    private float hintScale = 0.8F;
+    private float hintScale = 0.56F;
     private int speakerColor = 0xFFFFFFFF;
     private int textColor = 0xFFFFFFFF;
     private int hintColor = 0xD9F6D7E6;
@@ -123,8 +123,8 @@ public final class DialogueBoxComponent extends DialogueUiComponent {
                 nameX, nameY, speakerScale, speakerColor, false);
         DialogueUiRender.drawWrappedScaledText(graphics, Minecraft.getInstance().font, Component.literal(shownText),
                 textX, textY, wrapWidth, textScale, textColor);
-        DialogueUiRender.drawWrappedScaledText(graphics, Minecraft.getInstance().font, Component.literal(hint),
-                hintX, hintY, wrapWidth, hintScale, hintColor);
+        DialogueUiRender.drawScaledText(graphics, Minecraft.getInstance().font, Component.literal(hint),
+                hintX, hintY, hintScale, hintColor, false);
     }
 
     private void renderHtmlSkin(GuiGraphics graphics, int left, int top, int widthPx, int heightPx) {
