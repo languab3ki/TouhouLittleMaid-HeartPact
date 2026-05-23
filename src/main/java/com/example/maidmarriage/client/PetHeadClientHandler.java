@@ -222,6 +222,19 @@ public final class PetHeadClientHandler {
                                                    int positiveMoodDelta,
                                                    int neutralMoodDelta,
                                                    int negativeMoodDelta) {
+        triggerDialogueChoiceResult(mc, maidUuid, positiveFavor, neutralFavor, negativeFavor,
+                positiveMoodDelta, neutralMoodDelta, negativeMoodDelta, "");
+    }
+
+    public static void triggerDialogueChoiceResult(Minecraft mc,
+                                                   @Nullable UUID maidUuid,
+                                                   int positiveFavor,
+                                                   int neutralFavor,
+                                                   int negativeFavor,
+                                                   int positiveMoodDelta,
+                                                   int neutralMoodDelta,
+                                                   int negativeMoodDelta,
+                                                   String resultKey) {
         UUID resolvedTarget = maidUuid != null ? maidUuid : resolveTargetMaidUuid(mc);
         ModNetworking.sendDialogueChoiceResult(new DialogueChoiceResultPayload(
                 resolvedTarget,
@@ -230,7 +243,8 @@ public final class PetHeadClientHandler {
                 negativeFavor,
                 positiveMoodDelta,
                 neutralMoodDelta,
-                negativeMoodDelta
+                negativeMoodDelta,
+                resultKey
         ));
     }
 

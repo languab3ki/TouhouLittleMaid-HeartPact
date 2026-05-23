@@ -30,18 +30,20 @@ public final class MaidDialogueInteractionManager {
                                                   int negativeFavor,
                                                   int positiveMoodDelta,
                                                   int neutralMoodDelta,
-                                                  int negativeMoodDelta) {
+                                                  int negativeMoodDelta,
+                                                  String resultKey) {
         EntityMaid maid = resolveCurrentInteractionMaid(player, maidUuid);
         if (maid == null || !maid.isOwnedBy(player)) {
             return;
         }
 
         MaidMoodManager.ensureDailyMood(maid);
+        int resolvedNegativeFavor = resolveProtectedNegativeFavor(maid, negativeFavor, resultKey);
         MaidMoodManager.applyDialogueFavorabilityResult(
                 maid,
                 positiveFavor,
                 neutralFavor,
-                negativeFavor,
+                resolvedNegativeFavor,
                 FAVORABILITY_CAP
         );
         MaidMoodManager.applyDialogueMoodResult(
@@ -51,6 +53,13 @@ public final class MaidDialogueInteractionManager {
                 negativeMoodDelta
         );
         MaidMoodManager.markMeaningfulInteraction(maid);
+    }
+
+    private static int resolveProtectedNegativeFavor(EntityMaid maid, int negativeFavor, String resultKey) {
+        if (!"joke".equals(resultKey) || negativeFavor >= 0) {
+            return negativeFavor;
+        }
+        return MaidRelationshipManager.isMarried(maid) || maid.getFavorability() >= 288 ? 0 : negativeFavor;
     }
 
     @Nullable

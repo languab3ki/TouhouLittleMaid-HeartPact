@@ -19,6 +19,7 @@ public class DialogueChoiceResultPayload {
     private final int positiveMoodDelta;
     private final int neutralMoodDelta;
     private final int negativeMoodDelta;
+    private final String resultKey;
 
     public DialogueChoiceResultPayload(@Nullable UUID maidUuid,
                                        int positiveFavor,
@@ -27,6 +28,18 @@ public class DialogueChoiceResultPayload {
                                        int positiveMoodDelta,
                                        int neutralMoodDelta,
                                        int negativeMoodDelta) {
+        this(maidUuid, positiveFavor, neutralFavor, negativeFavor,
+                positiveMoodDelta, neutralMoodDelta, negativeMoodDelta, "");
+    }
+
+    public DialogueChoiceResultPayload(@Nullable UUID maidUuid,
+                                       int positiveFavor,
+                                       int neutralFavor,
+                                       int negativeFavor,
+                                       int positiveMoodDelta,
+                                       int neutralMoodDelta,
+                                       int negativeMoodDelta,
+                                       String resultKey) {
         this.maidUuid = maidUuid;
         this.positiveFavor = positiveFavor;
         this.neutralFavor = neutralFavor;
@@ -34,6 +47,7 @@ public class DialogueChoiceResultPayload {
         this.positiveMoodDelta = positiveMoodDelta;
         this.neutralMoodDelta = neutralMoodDelta;
         this.negativeMoodDelta = negativeMoodDelta;
+        this.resultKey = resultKey == null ? "" : resultKey;
     }
 
     @Nullable
@@ -65,6 +79,10 @@ public class DialogueChoiceResultPayload {
         return negativeMoodDelta;
     }
 
+    public String resultKey() {
+        return resultKey;
+    }
+
     public static void encode(DialogueChoiceResultPayload msg, FriendlyByteBuf buf) {
         buf.writeBoolean(msg.maidUuid != null);
         if (msg.maidUuid != null) {
@@ -76,6 +94,7 @@ public class DialogueChoiceResultPayload {
         buf.writeVarInt(msg.positiveMoodDelta);
         buf.writeVarInt(msg.neutralMoodDelta);
         buf.writeVarInt(msg.negativeMoodDelta);
+        buf.writeUtf(msg.resultKey);
     }
 
     public static DialogueChoiceResultPayload decode(FriendlyByteBuf buf) {
@@ -86,7 +105,8 @@ public class DialogueChoiceResultPayload {
         int positiveMoodDelta = buf.readVarInt();
         int neutralMoodDelta = buf.readVarInt();
         int negativeMoodDelta = buf.readVarInt();
+        String resultKey = buf.readUtf();
         return new DialogueChoiceResultPayload(maidUuid, positiveFavor, neutralFavor, negativeFavor,
-                positiveMoodDelta, neutralMoodDelta, negativeMoodDelta);
+                positiveMoodDelta, neutralMoodDelta, negativeMoodDelta, resultKey);
     }
 }

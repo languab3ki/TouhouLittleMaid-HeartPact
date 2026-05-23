@@ -289,6 +289,7 @@ public final class DialogueSessionController {
             return;
         }
         currentNodeId = nodeId;
+        runtimeContext.setCurrentNodeId(currentNodeId);
         currentLineIndex = 0;
         ended = !scenario.nodes.containsKey(nodeId);
     }

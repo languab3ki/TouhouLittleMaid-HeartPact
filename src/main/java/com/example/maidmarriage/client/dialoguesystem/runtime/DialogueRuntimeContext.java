@@ -21,6 +21,7 @@ public final class DialogueRuntimeContext {
     private String currentExpression = "";
     private String currentAnimation = "";
     private String requestedJumpNode = "";
+    private String currentNodeId = "";
 
     public String getVariable(String key) {
         if (key == null || key.isBlank()) {
@@ -85,7 +86,13 @@ public final class DialogueRuntimeContext {
         if (actionId == null || actionId.isBlank()) {
             return;
         }
-        pendingActions.addLast(new DialogueActionRequest(actionId, params));
+        Map<String, String> safeParams = params == null ? Map.of() : params;
+        if (!currentNodeId.isBlank() && !safeParams.containsKey("nodeId")) {
+            Map<String, String> enrichedParams = new LinkedHashMap<>(safeParams);
+            enrichedParams.put("nodeId", currentNodeId);
+            safeParams = enrichedParams;
+        }
+        pendingActions.addLast(new DialogueActionRequest(actionId, safeParams));
     }
 
     public Deque<DialogueActionRequest> pendingActions() {
@@ -104,6 +111,10 @@ public final class DialogueRuntimeContext {
         String jumpTarget = requestedJumpNode;
         requestedJumpNode = "";
         return jumpTarget;
+    }
+
+    public void setCurrentNodeId(String nodeId) {
+        currentNodeId = nodeId == null ? "" : nodeId;
     }
 
     public void clearTransientPresentation() {

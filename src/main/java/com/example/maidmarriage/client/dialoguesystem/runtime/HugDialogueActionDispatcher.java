@@ -216,6 +216,11 @@ public final class HugDialogueActionDispatcher {
 
     private static void executeDialogueResult(Minecraft minecraft, @Nullable UUID targetMaidUuid, Map<String, String> params) {
         int sharedMoodDelta = parseIntParam(params, "moodDelta", 0);
+        String resultKey = params.getOrDefault("resultKey", "");
+        String nodeId = params.getOrDefault("nodeId", "");
+        if (resultKey.isBlank() && isJokeResultNode(nodeId)) {
+            resultKey = "joke";
+        }
         PetHeadClientHandler.triggerDialogueChoiceResult(
                 minecraft,
                 targetMaidUuid,
@@ -224,8 +229,17 @@ public final class HugDialogueActionDispatcher {
                 parseIntParam(params, "negativeFavor", -1),
                 parseIntParam(params, "positiveMoodDelta", sharedMoodDelta),
                 parseIntParam(params, "neutralMoodDelta", sharedMoodDelta),
-                parseIntParam(params, "negativeMoodDelta", sharedMoodDelta)
+                parseIntParam(params, "negativeMoodDelta", sharedMoodDelta),
+                resultKey
         );
+    }
+
+    private static boolean isJokeResultNode(String nodeId) {
+        if (nodeId == null || nodeId.isBlank()) {
+            return false;
+        }
+        String normalized = nodeId.trim().toLowerCase();
+        return normalized.startsWith("joke_") || "chat_low_joke_result".equals(normalized);
     }
 
     private static void executeShyCoverFace(@Nullable UUID targetMaidUuid, Map<String, String> params) {

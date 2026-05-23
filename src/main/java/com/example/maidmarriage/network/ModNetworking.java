@@ -194,7 +194,8 @@ public final class ModNetworking {
                                 msg.negativeFavor(),
                                 msg.positiveMoodDelta(),
                                 msg.neutralMoodDelta(),
-                                msg.negativeMoodDelta()
+                                msg.negativeMoodDelta(),
+                                msg.resultKey()
                         );
                     }
                 })
