@@ -48,11 +48,18 @@ public final class LapPillowManager {
     private static final float DEFAULT_SLEEP_YAW_OFFSET = -90.0F;
     private static final String TAG_DAILY_DAY = "maidmarriage_lap_pillow_day";
     private static final String TAG_DAILY_HEAL_USED = "maidmarriage_lap_pillow_heal_used";
+    private static final String TAG_DAILY_LAST_HEAL = "maidmarriage_lap_pillow_last_heal";
     private static final String TAG_DAILY_CLEANSE_USED = "maidmarriage_lap_pillow_cleanse_used";
     private static final String TAG_DAILY_RESISTANCE_USED = "maidmarriage_lap_pillow_resistance_used";
     private static final int RESTORE_CHECK_INTERVAL_TICKS = 40;
-    private static final int DATING_HEAL_LIMIT_HP = 20;
-    private static final int MARRIAGE_HEAL_LIMIT_HP = 30;
+    private static final double HEAL_PER_CHECK_RATIO = 0.02D;
+    private static final int HEAL_PER_CHECK_MAX_HP = 20;
+    private static final int DATING_HEAL_LIMIT_MIN_HP = 20;
+    private static final double DATING_HEAL_LIMIT_RATIO = 0.40D;
+    private static final int DATING_HEAL_LIMIT_MAX_HP = 200;
+    private static final int MARRIAGE_HEAL_LIMIT_MIN_HP = 30;
+    private static final double MARRIAGE_HEAL_LIMIT_RATIO = 0.60D;
+    private static final int MARRIAGE_HEAL_LIMIT_MAX_HP = 300;
     private static final int DAILY_CLEANSE_LIMIT = 3;
     private static final int DAILY_RESISTANCE_LIMIT = 3;
     private static final int RESISTANCE_DURATION_TICKS = 50 * 20;
@@ -416,7 +423,7 @@ public final class LapPillowManager {
         boolean changed = resetDailyCountersIfNeeded(player);
 
         RelationStage stage = MaidRelationshipManager.resolveStage(maid);
-        int healLimit = healLimitHp(stage);
+        int healLimit = healLimitHp(player, stage);
         if (healLimit > 0) {
             changed |= tryHealPlayer(player, healLimit);
             changed |= tryCleansePlayer(player);
@@ -435,9 +442,14 @@ public final class LapPillowManager {
         if (used >= healLimitHp || player.getHealth() >= player.getMaxHealth()) {
             return false;
         }
-        int healAmount = Math.min(1, healLimitHp - used);
+        int healAmount = Math.min(healAmountPerCheckHp(player), healLimitHp - used);
+        healAmount = Math.min(healAmount, Mth.ceil(player.getMaxHealth() - player.getHealth()));
+        if (healAmount <= 0) {
+            return false;
+        }
         player.heal(healAmount);
         tag.putInt(TAG_DAILY_HEAL_USED, used + healAmount);
+        tag.putInt(TAG_DAILY_LAST_HEAL, healAmount);
         return true;
     }
 
@@ -477,7 +489,8 @@ public final class LapPillowManager {
         RelationStage stage = maid == null ? RelationStage.INITIAL : MaidRelationshipManager.resolveStage(maid);
         return new LapPillowStateSyncPayload.RecoveryStatus(
                 player.getPersistentData().getInt(TAG_DAILY_HEAL_USED),
-                healLimitHp(stage),
+                healLimitHp(player, stage),
+                player.getPersistentData().getInt(TAG_DAILY_LAST_HEAL),
                 player.getPersistentData().getInt(TAG_DAILY_CLEANSE_USED),
                 stage == RelationStage.INITIAL ? 0 : DAILY_CLEANSE_LIMIT,
                 player.getPersistentData().getInt(TAG_DAILY_RESISTANCE_USED),
@@ -485,12 +498,22 @@ public final class LapPillowManager {
         );
     }
 
-    private static int healLimitHp(RelationStage stage) {
+    private static int healAmountPerCheckHp(ServerPlayer player) {
+        int scaled = Mth.ceil(player.getMaxHealth() * HEAL_PER_CHECK_RATIO);
+        return Mth.clamp(Math.max(1, scaled), 1, HEAL_PER_CHECK_MAX_HP);
+    }
+
+    private static int healLimitHp(ServerPlayer player, RelationStage stage) {
+        int scaled;
         if (stage == RelationStage.MARRIAGE) {
-            return MARRIAGE_HEAL_LIMIT_HP;
+            scaled = Mth.ceil(player.getMaxHealth() * MARRIAGE_HEAL_LIMIT_RATIO);
+            return Mth.clamp(Math.max(MARRIAGE_HEAL_LIMIT_MIN_HP, scaled),
+                    MARRIAGE_HEAL_LIMIT_MIN_HP, MARRIAGE_HEAL_LIMIT_MAX_HP);
         }
         if (stage == RelationStage.DATING) {
-            return DATING_HEAL_LIMIT_HP;
+            scaled = Mth.ceil(player.getMaxHealth() * DATING_HEAL_LIMIT_RATIO);
+            return Mth.clamp(Math.max(DATING_HEAL_LIMIT_MIN_HP, scaled),
+                    DATING_HEAL_LIMIT_MIN_HP, DATING_HEAL_LIMIT_MAX_HP);
         }
         return 0;
     }
@@ -503,6 +526,7 @@ public final class LapPillowManager {
         }
         tag.putLong(TAG_DAILY_DAY, day);
         tag.putInt(TAG_DAILY_HEAL_USED, 0);
+        tag.putInt(TAG_DAILY_LAST_HEAL, 0);
         tag.putInt(TAG_DAILY_CLEANSE_USED, 0);
         tag.putInt(TAG_DAILY_RESISTANCE_USED, 0);
         return true;

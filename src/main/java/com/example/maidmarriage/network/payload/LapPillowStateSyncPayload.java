@@ -95,15 +95,17 @@ public class LapPillowStateSyncPayload {
      */
     public record RecoveryStatus(int healUsedHp,
                                  int healLimitHp,
+                                 int lastHealHp,
                                  int cleanseUsed,
                                  int cleanseLimit,
                                  int resistanceUsed,
                                  int resistanceLimit) {
-        public static final RecoveryStatus EMPTY = new RecoveryStatus(0, 0, 0, 0, 0, 0);
+        public static final RecoveryStatus EMPTY = new RecoveryStatus(0, 0, 0, 0, 0, 0, 0);
 
         private void encode(FriendlyByteBuf buf) {
             buf.writeVarInt(healUsedHp);
             buf.writeVarInt(healLimitHp);
+            buf.writeVarInt(lastHealHp);
             buf.writeVarInt(cleanseUsed);
             buf.writeVarInt(cleanseLimit);
             buf.writeVarInt(resistanceUsed);
@@ -112,6 +114,7 @@ public class LapPillowStateSyncPayload {
 
         private static RecoveryStatus decode(FriendlyByteBuf buf) {
             return new RecoveryStatus(
+                    buf.readVarInt(),
                     buf.readVarInt(),
                     buf.readVarInt(),
                     buf.readVarInt(),

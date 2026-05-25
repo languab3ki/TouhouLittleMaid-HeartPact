@@ -802,27 +802,22 @@ public class HugActionScreen extends Screen {
                 LapPillowClientState.getLocalRecoveryStatus();
         int y = top;
         if (status.healLimitHp() > 0) {
-            Component healLine = Component.literal("膝枕恢复：" + hpToHeartText(status.healUsedHp())
-                    + " / " + hpToHeartText(status.healLimitHp()) + "颗心");
+            Component healLine = Component.translatable("ui.maidmarriage.lap_pillow.recovery.heal",
+                    status.healUsedHp(), status.healLimitHp(), status.lastHealHp());
             graphics.drawString(this.font, healLine, right - this.font.width(healLine), y, 0xFFE8FFF0, true);
             y += this.font.lineHeight + 2;
         }
         if (status.cleanseLimit() > 0) {
-            Component cleanseLine = Component.literal("负面净化：" + status.cleanseUsed() + " / " + status.cleanseLimit());
+            Component cleanseLine = Component.translatable("ui.maidmarriage.lap_pillow.recovery.cleanse",
+                    status.cleanseUsed(), status.cleanseLimit());
             graphics.drawString(this.font, cleanseLine, right - this.font.width(cleanseLine), y, 0xFFE8F4FF, true);
             y += this.font.lineHeight + 2;
         }
         if (status.resistanceLimit() > 0) {
-            Component resistanceLine = Component.literal("抗性守护：" + status.resistanceUsed() + " / " + status.resistanceLimit());
+            Component resistanceLine = Component.translatable("ui.maidmarriage.lap_pillow.recovery.resistance",
+                    status.resistanceUsed(), status.resistanceLimit());
             graphics.drawString(this.font, resistanceLine, right - this.font.width(resistanceLine), y, 0xFFFFF4D6, true);
         }
-    }
-
-    private String hpToHeartText(int hp) {
-        if ((hp & 1) == 0) {
-            return Integer.toString(hp / 2);
-        }
-        return String.format(java.util.Locale.ROOT, "%.1f", hp / 2.0F);
     }
 
     /**
