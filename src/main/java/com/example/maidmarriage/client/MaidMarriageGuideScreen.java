@@ -30,7 +30,8 @@ public class MaidMarriageGuideScreen extends Screen {
                             key("lap_exit", "guide.maidmarriage.section.0.p.5"),
                             p("guide.maidmarriage.section.0.p.6"),
                             p("guide.maidmarriage.section.0.p.7"),
-                            p("guide.maidmarriage.section.0.p.8"))),
+                            p("guide.maidmarriage.section.0.p.8"),
+                            p("guide.maidmarriage.section.0.p.9"))),
             section("guide.maidmarriage.section.1.title",
                     List.of(
                             p("guide.maidmarriage.section.1.p.0"),
@@ -105,7 +106,8 @@ public class MaidMarriageGuideScreen extends Screen {
                             p("guide.maidmarriage.section.8.p.5"),
                             p("guide.maidmarriage.section.8.p.6"),
                             p("guide.maidmarriage.section.8.p.7"),
-                            p("guide.maidmarriage.section.8.p.8"))),
+                            p("guide.maidmarriage.section.8.p.8"),
+                            p("guide.maidmarriage.section.8.p.9"))),
             section("guide.maidmarriage.section.9.title",
                     List.of(
                             p("guide.maidmarriage.section.9.p.0"),

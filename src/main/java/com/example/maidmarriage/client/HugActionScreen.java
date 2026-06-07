@@ -24,7 +24,9 @@ import com.example.maidmarriage.compat.MaidMoodManager;
 import com.example.maidmarriage.compat.MaidRelationshipManager;
 import com.example.maidmarriage.compat.RelationStage;
 import com.example.maidmarriage.config.DialogueScriptManager;
+import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.GiftResultPayload;
+import com.example.maidmarriage.network.payload.UpdatePlayerSettingsPayload;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -87,6 +89,7 @@ public class HugActionScreen extends Screen {
      */
     private static final ResourceLocation HUG_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "hug_menu_v2");
     private static final ResourceLocation CHILD_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "child_interaction_v1");
+    private static final ResourceLocation TUTORIAL_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "tutorial_v1");
 
     /**
      * 旧界面右上角的“隐藏 UI”按钮图标。
@@ -152,7 +155,7 @@ public class HugActionScreen extends Screen {
     }
 
     private static final int CAMERA_PANEL_WIDTH = 142;
-    private static final int CAMERA_PANEL_HEIGHT = 114;
+    private static final int CAMERA_PANEL_HEIGHT = 133;
     private static final int CAMERA_PANEL_MARGIN = 8;
     private static final int CAMERA_SLIDER_WIDTH = 74;
     private static final int CAMERA_SLIDER_HEIGHT = 5;
@@ -261,6 +264,7 @@ public class HugActionScreen extends Screen {
     private float cameraPanelSnapshotPitchOffset;
     private double cameraPanelSnapshotLapPillowFovScale;
     private double cameraPanelSnapshotLapPillowHeightOffset;
+    private double cameraPanelSnapshotHugDistance;
 
     /**
      * 屏幕左上角短提示文案。
@@ -291,6 +295,18 @@ public class HugActionScreen extends Screen {
 
     public HugActionScreen() {
         this(HUG_SCENARIO_ID, null, false, text("ui.maidmarriage.hug_action.title"));
+    }
+
+    public static HugActionScreen interaction(ResourceLocation scenarioId) {
+        ResourceLocation resolvedScenario = scenarioId == null ? HUG_SCENARIO_ID : scenarioId;
+        return new HugActionScreen(
+                resolvedScenario,
+                null,
+                false,
+                TUTORIAL_SCENARIO_ID.equals(resolvedScenario)
+                        ? text("ui.maidmarriage.tutorial.title")
+                        : text("ui.maidmarriage.hug_action.title")
+        );
     }
 
     public static HugActionScreen childInteraction(UUID maidUuid) {
@@ -639,6 +655,7 @@ public class HugActionScreen extends Screen {
 
     @Override
     public void onClose() {
+        HugClientState.clearTransientRenderState();
         if (compactMode) {
             setCompactMode(false);
         }
@@ -646,6 +663,12 @@ public class HugActionScreen extends Screen {
         if (this.minecraft != null && this.minecraft.screen == this) {
             this.minecraft.setScreen(null);
         }
+    }
+
+    @Override
+    public void removed() {
+        HugClientState.clearTransientRenderState();
+        super.removed();
     }
 
     /**
@@ -848,6 +871,8 @@ public class HugActionScreen extends Screen {
                 LapPillowPoseDebug.MIN_CAMERA_FOV_SCALE, LapPillowPoseDebug.MAX_CAMERA_FOV_SCALE, LapPillowPoseDebug.cameraFovLabel());
         renderCameraSlider(graphics, panelX + 8, panelY + 80, "膝枕高度", LapPillowPoseDebug.cameraHeightOffset(),
                 LapPillowPoseDebug.MIN_CAMERA_HEIGHT_OFFSET, LapPillowPoseDebug.MAX_CAMERA_HEIGHT_OFFSET, LapPillowPoseDebug.cameraHeightLabel());
+        renderCameraSlider(graphics, panelX + 8, panelY + 99, "拥抱距离", ModConfigs.hugDistance(),
+                0.10D, 2.00D, String.format(Locale.ROOT, "%.2f", ModConfigs.hugDistance()));
 
         int saveX = cameraPanelSaveX();
         int saveY = cameraPanelSaveY();
@@ -882,6 +907,7 @@ public class HugActionScreen extends Screen {
 
         if (isInside(mouseX, mouseY, cameraPanelSaveX(), cameraPanelSaveY(), 34, 13)) {
             boolean saved = HugCameraZoom.savePersistentSettings();
+            ModConfigs.SPEC.save();
             cameraAdjustPanelOpen = false;
             cameraSliderDragTarget = CameraSliderDragTarget.NONE;
             showDebugMessage(saved
@@ -914,6 +940,12 @@ public class HugActionScreen extends Screen {
             updateCameraSliderValue(mouseX);
             return true;
         }
+        if (isInside(mouseX, mouseY, cameraSliderTrackX(), cameraSliderHugDistanceTrackY() - 4,
+                CAMERA_SLIDER_WIDTH, CAMERA_SLIDER_HEIGHT + 8)) {
+            cameraSliderDragTarget = CameraSliderDragTarget.HUG_DISTANCE;
+            updateCameraSliderValue(mouseX);
+            return true;
+        }
 
         return isInside(mouseX, mouseY, cameraPanelX(), cameraPanelY(), CAMERA_PANEL_WIDTH, CAMERA_PANEL_HEIGHT);
     }
@@ -928,6 +960,7 @@ public class HugActionScreen extends Screen {
         cameraPanelSnapshotPitchOffset = HugCameraZoom.currentCameraPitchOffsetDegrees();
         cameraPanelSnapshotLapPillowFovScale = LapPillowPoseDebug.cameraFovScale();
         cameraPanelSnapshotLapPillowHeightOffset = LapPillowPoseDebug.cameraHeightOffset();
+        cameraPanelSnapshotHugDistance = ModConfigs.hugDistance();
         cameraSliderDragTarget = CameraSliderDragTarget.NONE;
         cameraAdjustPanelOpen = true;
     }
@@ -940,6 +973,8 @@ public class HugActionScreen extends Screen {
         HugCameraZoom.setCameraPitchOffsetDegrees(cameraPanelSnapshotPitchOffset);
         LapPillowPoseDebug.setCameraFovScale(cameraPanelSnapshotLapPillowFovScale);
         LapPillowPoseDebug.setCameraHeightOffset(cameraPanelSnapshotLapPillowHeightOffset);
+        ModConfigs.setHugDistance(cameraPanelSnapshotHugDistance);
+        syncPlayerSettingsToServer();
         cameraSliderDragTarget = CameraSliderDragTarget.NONE;
         cameraAdjustPanelOpen = false;
     }
@@ -969,7 +1004,22 @@ public class HugActionScreen extends Screen {
             double min = LapPillowPoseDebug.MIN_CAMERA_HEIGHT_OFFSET;
             double max = LapPillowPoseDebug.MAX_CAMERA_HEIGHT_OFFSET;
             LapPillowPoseDebug.setCameraHeightOffset(min + (max - min) * progress);
+            return;
         }
+        if (cameraSliderDragTarget == CameraSliderDragTarget.HUG_DISTANCE) {
+            double min = 0.10D;
+            double max = 2.00D;
+            ModConfigs.setHugDistance(min + (max - min) * progress);
+            syncPlayerSettingsToServer();
+        }
+    }
+
+    private void syncPlayerSettingsToServer() {
+        ModNetworking.sendUpdatePlayerSettings(new UpdatePlayerSettingsPayload(
+                ModConfigs.liftHeight(),
+                ModConfigs.hugDistance(),
+                ModConfigs.haremMode()
+        ));
     }
 
     private int cameraPanelIconX() {
@@ -1018,6 +1068,10 @@ public class HugActionScreen extends Screen {
 
     private int cameraSliderLapHeightTrackY() {
         return cameraPanelY() + 80 + 2;
+    }
+
+    private int cameraSliderHugDistanceTrackY() {
+        return cameraPanelY() + 99 + 2;
     }
 
     private int cameraPanelSaveX() {
@@ -2343,6 +2397,7 @@ public class HugActionScreen extends Screen {
         ZOOM,
         PITCH,
         LAP_PILLOW_FOV,
-        LAP_PILLOW_HEIGHT
+        LAP_PILLOW_HEIGHT,
+        HUG_DISTANCE
     }
 }

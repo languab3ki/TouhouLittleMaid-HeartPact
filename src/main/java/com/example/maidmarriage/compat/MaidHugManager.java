@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -54,6 +55,8 @@ public final class MaidHugManager {
     private static final double MAID_POSITION_EPSILON_SQR = 0.0025D;
     private static final int HUG_FAVORABILITY_GAIN = 1;
     private static final int FAVORABILITY_CAP = RelationshipThresholds.FAVORABILITY_MAX;
+    private static final ResourceLocation HUG_SCENARIO_ID = new ResourceLocation(com.example.maidmarriage.MaidMarriageMod.MOD_ID, "hug_menu_v2");
+    private static final ResourceLocation TUTORIAL_SCENARIO_ID = new ResourceLocation(com.example.maidmarriage.MaidMarriageMod.MOD_ID, "tutorial_v1");
 
     /**
      * 服务端：一个玩家当前最多只维护一份亲密交互会话。
@@ -172,7 +175,47 @@ public final class MaidHugManager {
             return;
         }
 
-        startInteraction(player, maid);
+        startInteraction(player, maid, HUG_SCENARIO_ID);
+    }
+
+    public static boolean startTutorialInteraction(ServerPlayer player, EntityMaid maid) {
+        if (player == null || maid == null || !maid.isAlive()) {
+            return false;
+        }
+        if (!maid.isOwnedBy(player)) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.need_owner", maid.getDisplayName()));
+            return false;
+        }
+        if (MaidChildEntity.shouldStayChild(maid)) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.need_adult", maid.getDisplayName()));
+            return false;
+        }
+        if (maid.isMaidInSittingPose()) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.need_standing", maid.getDisplayName()));
+            return false;
+        }
+        if (maid.isPassenger()) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.riding_blocked", maid.getDisplayName()));
+            return false;
+        }
+
+        InteractionSession existing = PLAYER_TO_SESSION.get(player.getUUID());
+        if (existing != null) {
+            stopInteraction(player, findMaidByUuid(player.serverLevel(), existing.maidUuid()), false);
+        }
+
+        UUID busyPlayer = MAID_TO_PLAYER.get(maid.getUUID());
+        if (busyPlayer != null && !busyPlayer.equals(player.getUUID())) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.already_busy", maid.getDisplayName()));
+            return false;
+        }
+        if (maid.distanceToSqr(player) > START_DISTANCE_SQR) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.interaction.no_target"));
+            return false;
+        }
+
+        startInteraction(player, maid, TUTORIAL_SCENARIO_ID);
+        return true;
     }
 
     /**
@@ -455,9 +498,9 @@ public final class MaidHugManager {
      * <p>注意这里故意不再发送“拥抱开始成功”的那套提示，
      * 因为此时我们只是进入站立锁定，不应该把站立交互误报成已经拥抱。
      */
-    private static void startInteraction(ServerPlayer player, EntityMaid maid) {
+    private static void startInteraction(ServerPlayer player, EntityMaid maid, ResourceLocation scenarioId) {
         MaidMoodManager.ensureDailyMood(maid);
-        InteractionSession session = createSession(player, maid, false);
+        InteractionSession session = createSession(player, maid, false, scenarioId);
         PLAYER_TO_SESSION.put(player.getUUID(), session);
         MAID_TO_PLAYER.put(maid.getUUID(), player.getUUID());
         maintainInteractionPose(player, maid, session);
@@ -539,7 +582,7 @@ public final class MaidHugManager {
         syncInteractionState(player, maid, hugging);
     }
 
-    private static InteractionSession createSession(ServerPlayer player, EntityMaid maid, boolean hugging) {
+    private static InteractionSession createSession(ServerPlayer player, EntityMaid maid, boolean hugging, ResourceLocation scenarioId) {
         float playerYaw = player.getYRot();
         Vec3 lockedPlayerPos = player.position();
         Vec3 lockedMaidPos = resolveGroundedMaidPosition(
@@ -547,7 +590,8 @@ public final class MaidHugManager {
                 computeLockedMaidPos(lockedPlayerPos, playerYaw, resolveHugDistance(player))
         );
         float maidYaw = computeYawTowards(lockedMaidPos, lockedPlayerPos);
-        return new InteractionSession(player.getUUID(), maid.getUUID(), lockedPlayerPos, playerYaw, lockedMaidPos, maidYaw, hugging);
+        return new InteractionSession(player.getUUID(), maid.getUUID(), lockedPlayerPos, playerYaw, lockedMaidPos, maidYaw, hugging,
+                scenarioId == null ? HUG_SCENARIO_ID : scenarioId);
     }
 
     /**
@@ -669,8 +713,14 @@ public final class MaidHugManager {
                 maid == null ? null : maid.getUUID(),
                 hugging,
                 requiresChildNameBeforeNormalInteraction(maid),
-                MaidMoodManager.hasChildLossGrief(maid)
+                MaidMoodManager.hasChildLossGrief(maid),
+                scenarioFor(player)
         ));
+    }
+
+    private static ResourceLocation scenarioFor(ServerPlayer player) {
+        InteractionSession session = PLAYER_TO_SESSION.get(player.getUUID());
+        return session == null ? HUG_SCENARIO_ID : session.scenarioId();
     }
 
     /**
@@ -774,14 +824,15 @@ public final class MaidHugManager {
             float lockedPlayerYaw,
             Vec3 lockedMaidPos,
             float lockedMaidYaw,
-            boolean hugging
+            boolean hugging,
+            ResourceLocation scenarioId
     ) {
         private InteractionSession withGroundedMaidPos(Vec3 groundedPos) {
-            return new InteractionSession(playerUuid, maidUuid, lockedPlayerPos, lockedPlayerYaw, groundedPos, lockedMaidYaw, hugging);
+            return new InteractionSession(playerUuid, maidUuid, lockedPlayerPos, lockedPlayerYaw, groundedPos, lockedMaidYaw, hugging, scenarioId);
         }
 
         private InteractionSession withHugging(boolean newHugging) {
-            return new InteractionSession(playerUuid, maidUuid, lockedPlayerPos, lockedPlayerYaw, lockedMaidPos, lockedMaidYaw, newHugging);
+            return new InteractionSession(playerUuid, maidUuid, lockedPlayerPos, lockedPlayerYaw, lockedMaidPos, lockedMaidYaw, newHugging, scenarioId);
         }
     }
 }

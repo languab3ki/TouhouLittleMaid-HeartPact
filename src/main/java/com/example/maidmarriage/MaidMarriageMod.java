@@ -2,10 +2,13 @@ package com.example.maidmarriage;
 
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.client.ClientOnlyBootstrap;
+import com.example.maidmarriage.compat.ModBrewingRecipes;
 import com.example.maidmarriage.debug.ModDebugCommands;
 import com.example.maidmarriage.init.ModCreativeTabs;
+import com.example.maidmarriage.init.ModEffects;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.init.ModItems;
+import com.example.maidmarriage.init.ModPotions;
 import com.example.maidmarriage.network.ModNetworking;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.common.MinecraftForge;
@@ -27,8 +30,11 @@ public final class MaidMarriageMod {
     public MaidMarriageMod() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         ModItems.ITEMS.register(modBus);
+        ModEffects.MOB_EFFECTS.register(modBus);
+        ModPotions.POTIONS.register(modBus);
         ModCreativeTabs.CREATIVE_TABS.register(modBus);
         ModEntities.ENTITY_TYPES.register(modBus);
+        modBus.addListener(ModBrewingRecipes::register);
         ModNetworking.register();
         MinecraftForge.EVENT_BUS.register(ModDebugCommands.class);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);

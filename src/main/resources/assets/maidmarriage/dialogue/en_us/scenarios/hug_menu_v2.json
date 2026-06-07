@@ -903,8 +903,8 @@
           "speaker": "",
           "text": "${chat_topic_heart_text}",
           "portrait": "maid",
-          "expression": "embarrassed_smile",
-          "emotion": "shy",
+          "expression": "soft_smile",
+          "emotion": "gentle",
           "animation": "fade_in",
           "events": []
         }

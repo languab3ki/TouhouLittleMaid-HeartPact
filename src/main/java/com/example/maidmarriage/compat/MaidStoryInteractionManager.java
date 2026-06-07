@@ -178,6 +178,20 @@ public final class MaidStoryInteractionManager {
         if (matchesTarget(childMaid, maidUuid)) {
             return childMaid;
         }
+        /*
+         * 关键剧情动作来自客户端 Gal UI。极少数情况下，剧情仍在播放，
+         * 但服务端的“当前拥抱/互动女仆”状态已经被同步、切换或关闭提前清掉。
+         * 如果只依赖交互状态，玩家会看到表白剧情完整播完，但 confessionCompleted 没落盘。
+         *
+         * payload 已经带了目标 UUID，因此这里在交互状态失效时用服务端实体做一次兜底解析。
+         * 后续 handleStoryAction 仍会检查 owned/亲子关系/好感条件，不能借这个绕过权限。
+         */
+        if (maidUuid != null && player.level() instanceof ServerLevel level) {
+            net.minecraft.world.entity.Entity entity = level.getEntity(maidUuid);
+            if (entity instanceof EntityMaid maid) {
+                return maid;
+            }
+        }
         return null;
     }
 

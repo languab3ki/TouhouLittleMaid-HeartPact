@@ -2,10 +2,10 @@ package com.example.maidmarriage.compat;
 
 import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.config.DialogueScriptManager;
-import com.example.maidmarriage.entity.MaidChildEntity;
-import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTombstoneEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Optional;
@@ -38,7 +38,7 @@ public final class MaidDeathBridge {
         if (!(event.getEntity() instanceof EntityMaid maid) || !(maid.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!isFamilyMaid(maid)) {
+        if (!isChildSpiritEligible(maid)) {
             return;
         }
 
@@ -78,18 +78,15 @@ public final class MaidDeathBridge {
         }
     }
 
-    private static boolean isFamilyMaid(EntityMaid maid) {
-        if (MaidChildEntity.shouldStayChild(maid) || maid.getTags().contains(MaidChildEntity.BORN_MAID_TAG)) {
-            return true;
-        }
-        ChildLineageData lineage = maid.getData(ModTaskData.CHILD_LINEAGE_DATA);
-        if (lineage != null && lineage.bornMaid()) {
-            return true;
-        }
-        CompoundTag persistent = maid.getPersistentData();
-        return persistent.hasUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY)
-                || persistent.hasUUID(MaidChildEntity.PERSISTENT_FATHER_UUID_KEY)
-                || persistent.hasUUID(MaidChildEntity.PERSISTENT_GRAND_PARENT_UUID_KEY);
+    private static boolean isChildSpiritEligible(EntityMaid maid) {
+        /*
+         * 灵体机制只属于“仍处于小女仆成长阶段”的孩子。
+         *
+         * 出生女仆成年后会继续保留 BORN_MAID_TAG、父母 UUID、家谱 TaskData 等长期身份，
+         * 这些数据用于家谱/亲子关系/结婚限制，不能拿来判断是否生成灵体。
+         * 否则成年后的子代，甚至带有血统数据的大女仆死亡时也会被错误转成灵体。
+         */
+        return MaidChildEntity.shouldStayChild(maid);
     }
 
     private static Optional<UUID> findMotherUuid(EntityMaid maid) {

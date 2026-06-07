@@ -1,0 +1,792 @@
+{
+  "id": "maidmarriage:tutorial_v1",
+  "theme": "maidmarriage:hug_default",
+  "start": "start",
+  "animationLibrary": "maidmarriage:default",
+  "portraits": {
+    "maid": {
+      "texture": "maidmarriage:textures/gui/emotion/soft_smile.png",
+      "defaultExpression": "soft_smile",
+      "expressions": {
+        "soft_smile": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "happy": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "shy": "maidmarriage:textures/gui/emotion/shy.png",
+        "embarrassed_smile": "maidmarriage:textures/gui/emotion/embarrassed_smile.png",
+        "serious": "maidmarriage:textures/gui/emotion/serious.png",
+        "tired": "maidmarriage:textures/gui/emotion/tired.png",
+        "sad": "maidmarriage:textures/gui/emotion/sad.png",
+        "action_shy": "maidmarriage:textures/gui/action/action_shy.png",
+        "action_touched": "maidmarriage:textures/gui/action/action_touched.png",
+        "action_flustered": "maidmarriage:textures/gui/action/action_flustered.png"
+      }
+    }
+  },
+  "nodes": {
+    "start": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "",
+        "text": "你拿着《心契同眠指南》轻轻碰了碰${maid}。",
+        "narration": "检测到你正在使用指南进入教程剧情。是否让女仆陪你完成一次心契同眠的新手引导？",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "enter",
+          "title": "进入教程",
+          "description": "让女仆用剧情方式带你确认按键、镜头和主要玩法。",
+          "next": "intro"
+        },
+        {
+          "id": "menu",
+          "title": "只看目录",
+          "description": "直接选择想确认的教程章节。",
+          "next": "menu"
+        },
+        {
+          "id": "later",
+          "title": "稍后再说",
+          "description": "退出教程互动。",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "嗯，主人想从头确认一遍的话，就交给我吧。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "虽然说是教程，但我不会像说明书那样硬邦邦地念给你听。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "我们慢慢来。先确认按键，再试一下镜头和动作，最后我再告诉主人心情值、关系阶段，还有平时该怎么游玩。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "key_check": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "第一步是按键检查。主人先打开 Minecraft 的按键设置，看看心契同眠相关按键有没有和别的模组冲突，好吗？",
+        "narration": "需要确认：互动键、摸头/举高高键、快进键、隐藏/恢复界面键、膝枕退出键等。确认无冲突后再继续。",
+        "portrait": "maid",
+        "expression": "serious",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys_ok",
+          "title": "我确认好了",
+          "description": "继续镜头和动作测试。",
+          "next": "camera_intro"
+        },
+        {
+          "id": "key_help",
+          "title": "按键分别做什么？",
+          "description": "让女仆再解释一次各个按键的用途。",
+          "next": "key_help"
+        },
+        {
+          "id": "button_help",
+          "title": "右下角按钮是什么？",
+          "description": "说明隐藏、语音、退出和相机四个按钮。",
+          "next": "button_help"
+        },
+        {
+          "id": "menu",
+          "title": "返回教程目录",
+          "description": "先去看其他章节。",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "key_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "互动键用来打开或关闭和我的主交互界面。以后想找我聊天、拥抱，或者进入行动选项，一般都从这里开始。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "摸头/举高高键有两个用途：对坐下的成年女仆可以快速摸摸头；对站着的小女仆可以举高高，再按一次会放下她。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "隐藏界面键是为了让主人看清动作和截图用的；膝枕退出键也可以用来直接离开当前互动界面。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "快进键可以加快台词，但不要一直猛按啦。语音和动作都需要一点点时间跟上主人。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "button_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "主人看右下角那四个小按钮。隐藏按钮可以暂时收起界面，想看动作或者截图的时候很好用。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "麦克风按钮是语音按钮：可以重播当前台词的预生成语音，双击还能跳到语音管理页对应条目。不过它需要安装心契同眠的语音合成附属模组才可以使用哦。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "退出按钮会直接结束当前互动；相机按钮会打开镜头微调面板，缩放、上下视角、膝枕镜头，还有拥抱距离都可以在那里调。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "camera_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "接下来是镜头和距离。这个很重要哦。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "拥抱、摸头、亲吻、膝枕，每个动作适合的镜头都不太一样。太近会挡住表情，太远又会少一点气氛。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "主人可以一个一个试。觉得不舒服的话，点右下角的相机按钮就能微调缩放、上下视角、膝枕镜头和拥抱距离，然后再回来找我确认。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "camera_menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "主人想先测试哪个动作？",
+        "narration": "测试时请观察女仆位置、镜头角度、对话框遮挡和退出键是否顺手。",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "hug",
+          "title": "测试拥抱",
+          "description": "确认拥抱距离、镜头和 UI 遮挡。",
+          "next": "test_hug"
+        },
+        {
+          "id": "pet",
+          "title": "测试摸头",
+          "description": "确认手部动作和表情是否看得清。",
+          "next": "test_pet"
+        },
+        {
+          "id": "kiss",
+          "title": "测试亲吻",
+          "description": "确认亲吻镜头距离和表情是否自然。",
+          "next": "test_kiss"
+        },
+        {
+          "id": "lap",
+          "title": "测试膝枕",
+          "description": "确认躺下视角、女仆位置和退出键。",
+          "next": "test_lap"
+        },
+        {
+          "id": "done",
+          "title": "我已经确认好了",
+          "description": "继续心情值与关系阶段说明。",
+          "next": "mood_intro"
+        },
+        {
+          "id": "menu",
+          "title": "返回教程目录",
+          "description": "稍后再测试镜头。",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "test_hug": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "那、那先从拥抱开始吧。主人注意看距离和对话框有没有挡住我。",
+          "portrait": "maid",
+          "expression": "action_shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:hug_toggle"
+            }
+          ]
+        }
+      ],
+      "next": "test_hug_result",
+      "events": []
+    },
+    "test_hug_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "这样可以吗？如果太近或者太远，之后可以在配置里调整拥抱距离和镜头参数。",
+        "portrait": "maid",
+        "expression": "embarrassed_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "很合适",
+          "description": "返回动作测试目录。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "再测试一次",
+          "description": "重新触发拥抱测试。",
+          "next": "test_hug"
+        },
+        {
+          "id": "hint",
+          "title": "感觉不舒服",
+          "description": "查看该调哪里。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_pet": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "摸头的话，最好能看到我的表情。不然主人只看到头顶的话……我会有点不好意思的。",
+          "portrait": "maid",
+          "expression": "shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:pet_head"
+            }
+          ]
+        }
+      ],
+      "next": "test_pet_result",
+      "events": []
+    },
+    "test_pet_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "嗯……主人看得清我的表情吗？",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "看得清",
+          "description": "返回动作测试目录。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "再测试一次",
+          "description": "重新触发摸头测试。",
+          "next": "test_pet"
+        },
+        {
+          "id": "hint",
+          "title": "表情被挡住了",
+          "description": "查看该调哪里。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_kiss": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "亲、亲吻也要测试吗……咳，只是确认镜头，不是别的意思哦。",
+          "portrait": "maid",
+          "expression": "action_flustered",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:interaction_kiss"
+            }
+          ]
+        }
+      ],
+      "next": "test_kiss_result",
+      "events": []
+    },
+    "test_kiss_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "……主人，刚刚那个角度还好吗？太近会看不清表情，太远又会少一点气氛。",
+        "portrait": "maid",
+        "expression": "shy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "刚刚好",
+          "description": "返回动作测试目录。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "再测试一次",
+          "description": "重新触发亲吻测试。",
+          "next": "test_kiss"
+        },
+        {
+          "id": "hint",
+          "title": "看不清表情",
+          "description": "查看该调哪里。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_lap": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "最后是膝枕。这个动作的镜头比较特殊，主人要确认躺下视角、女仆位置，还有退出键能不能正常用。",
+          "portrait": "maid",
+          "expression": "action_touched",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:lap_pillow_start"
+            }
+          ]
+        }
+      ],
+      "next": "test_lap_result",
+      "events": []
+    },
+    "test_lap_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "主人觉得这个视角舒服吗？膝枕的时候如果镜头太晃、太近，或者退出键冲突，体验会很差。",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "很舒服",
+          "description": "退出膝枕并返回动作测试目录。",
+          "next": "exit_lap_then_camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "再测试一次",
+          "description": "先退出膝枕，再重新测试。",
+          "next": "exit_lap_then_test_lap"
+        },
+        {
+          "id": "hint",
+          "title": "退出键或视角有问题",
+          "description": "退出膝枕并查看该调哪里。",
+          "next": "exit_lap_then_hint"
+        }
+      ],
+      "events": []
+    },
+    "exit_lap_then_camera_menu": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_menu",
+      "events": []
+    },
+    "exit_lap_then_test_lap": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "test_lap",
+      "events": []
+    },
+    "exit_lap_then_hint": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_adjust_hint",
+      "events": []
+    },
+    "camera_adjust_hint": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "那主人可以点右下角的相机按钮，调整对应动作的镜头参数、缩放值，或者拥抱距离。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "我建议一次只改一点点，然后回来再测试。这样比较容易找到舒服的位置。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "mood_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "然后是心情值和关系阶段。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "心情值不是单纯的数字。开心、普通、低落、悲伤，都会影响我愿不愿意回应某些亲密互动。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "比如我难过的时候，可能就没办法立刻接受拥抱和亲吻。那不是讨厌主人，只是我真的需要一点时间。",
+          "portrait": "maid",
+          "expression": "sad",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "关系阶段也一样。从熟悉、亲近，到表白、恋人、结婚，每一步都要慢慢来。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "我希望主人不是为了数值才靠近我，而是真的一点点了解我。",
+          "portrait": "maid",
+          "expression": "shy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "systems_intro",
+      "events": []
+    },
+    "systems_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "心契同眠里有很多玩法，但主人不用一次全部记住。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "先从日常互动开始就好：聊天、摸头、拥抱。关系更进一步之后，再慢慢体验表白、结婚、同眠、孩子和家庭。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "结婚后，如果我睡在女仆床上，主人也在附近合适的床边，就有机会进入同眠流程。怀孕、分娩天数、孩子成长天数这些，都会按服务器配置来结算。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "孩子刚出生时还很小，第一天不能直接放到地上，妈妈会先抱着她。之后主人可以给还没改名的孩子取一次名字，也可以让妈妈抱抱她。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "小女仆长大前可以安排任务，比如附魔学、药剂学、战术学和探险。她会在 WORK 日程里推进任务，睡觉、坐下、休息的时候不会硬撑。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "不过小孩子也会累哦。学习和任务会消耗心情，太累时奖励会变差，探险甚至会停下；如果心情低到快撑不住还继续学习，可能会扣好感。",
+          "portrait": "maid",
+          "expression": "tired",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "膝枕可以让主人休息，也能根据最大生命值恢复 HP，不过每天有恢复上限。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "如果安装了心契同眠的语音合成附属模组，麦克风按钮就可以播放预生成语音。没有安装时，那个按钮会提示需要附属模组。目前 TTS 主要在中文社区测试，之后会继续完善教程。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "finish",
+      "events": []
+    },
+    "item_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "道具的话，主人先记住最常用的几个就好。求婚戒指是结婚流程的核心道具，正式求婚时主手和副手都要准备一枚未绑定的戒指。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "酱板鸭可以喂给小女仆缩短成长时间，也可以喂给产后恢复中的女仆，让恢复期快一点过去。不要拿它当普通礼物记混了哦。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "族谱查看器用来确认血缘和家庭关系；婚姻同意申请书则是给成年子代女仆做监护移交用的，不是直接结婚道具。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "YES 枕头主要用于婚后同眠相关流程。避孕药水则是粗制药水加矢车菊或兰花酿造，安全效果持续 5 分钟；主人或我其中一方有安全效果时，就不会怀孕。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "更详细的配方和用途，都写在这本《心契同眠指南》的物品章节里。主人如果忘了，就先右键打开指南看一眼吧。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "menu",
+      "events": []
+    },
+    "menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "主人想确认哪一部分？我可以再陪你讲一遍。",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys",
+          "title": "按键检查",
+          "description": "确认交互键、隐藏键、快进键和膝枕退出键。",
+          "next": "key_check"
+        },
+        {
+          "id": "buttons",
+          "title": "右下角按钮",
+          "description": "说明隐藏、语音、退出和相机按钮。",
+          "next": "button_help"
+        },
+        {
+          "id": "camera",
+          "title": "镜头和动作测试",
+          "description": "测试拥抱、摸头、亲吻和膝枕。",
+          "next": "camera_intro"
+        },
+        {
+          "id": "mood",
+          "title": "心情与关系",
+          "description": "说明心情值、关系阶段和亲密互动限制。",
+          "next": "mood_intro"
+        },
+        {
+          "id": "systems",
+          "title": "玩法机制",
+          "description": "说明膝枕、家庭、孩子和语音系统。",
+          "next": "systems_intro"
+        },
+        {
+          "id": "items",
+          "title": "道具说明",
+          "description": "说明戒指、酱板鸭、族谱、申请书和避孕药水。",
+          "next": "item_help"
+        },
+        {
+          "id": "finish",
+          "title": "结束教程",
+          "description": "退出教程互动。",
+          "next": "finish"
+        }
+      ],
+      "events": []
+    },
+    "finish": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "差不多就是这些啦。如果主人之后忘了，就再拿指南来找我。",
+        "narration": "你可以随时拿着心契同眠指南对自己的女仆使用，再次进入教程。",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "menu",
+          "title": "回到教程目录",
+          "description": "再确认一个章节。",
+          "next": "menu"
+        },
+        {
+          "id": "end",
+          "title": "完成教程",
+          "description": "退出教程互动。",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "end": {
+      "type": "end",
+      "events": [
+        {
+          "when": "enter",
+          "type": "emit_action",
+          "value": "maidmarriage:close_tutorial_interaction"
+        }
+      ]
+    }
+  }
+}

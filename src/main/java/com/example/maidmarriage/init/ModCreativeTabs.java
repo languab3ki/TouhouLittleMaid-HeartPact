@@ -5,6 +5,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
@@ -30,6 +32,9 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SAUCE_DUCK.get());
                         output.accept(ModItems.FAMILY_TREE_TOOL.get());
                         output.accept(ModItems.MARRIAGE_CONSENT_FORM.get());
+                        output.accept(potion(Items.POTION));
+                        output.accept(potion(Items.SPLASH_POTION));
+                        output.accept(potion(Items.LINGERING_POTION));
 
                         output.accept(ModItems.LONGING_TESTER.get());
                         output.accept(ModItems.FLOWER_TEST_KIT.get());
@@ -41,5 +46,11 @@ public final class ModCreativeTabs {
                     .build());
 
     private ModCreativeTabs() {
+    }
+
+    private static ItemStack potion(net.minecraft.world.item.Item item) {
+        ItemStack stack = new ItemStack(item);
+        PotionUtils.setPotion(stack, ModPotions.SAFETY.get());
+        return stack;
     }
 }

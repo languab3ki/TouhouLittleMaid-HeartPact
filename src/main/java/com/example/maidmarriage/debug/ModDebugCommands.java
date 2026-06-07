@@ -1,9 +1,11 @@
 package com.example.maidmarriage.debug;
 
 import com.example.maidmarriage.config.DialogueScriptManager;
+import com.example.maidmarriage.compat.SpiritInteractionManager;
 import com.example.maidmarriage.data.MarriageData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.data.PregnancyData;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.init.ModItems;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -42,6 +44,19 @@ public final class ModDebugCommands {
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.argument("maid", EntityArgument.entity())
                         .executes(ModDebugCommands::runDivorce)));
+        registerSpiritCommand(dispatcher, "maidmarriage_spirit");
+        registerSpiritCommand(dispatcher, "mm_spirit");
+    }
+
+    private static void registerSpiritCommand(CommandDispatcher<CommandSourceStack> dispatcher, String name) {
+        dispatcher.register(Commands.literal(name)
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("clear")
+                        .then(Commands.argument("spirit", EntityArgument.entity())
+                                .executes(ModDebugCommands::runClearSpirit)))
+                .then(Commands.literal("revive")
+                        .then(Commands.argument("spirit", EntityArgument.entity())
+                                .executes(ModDebugCommands::runReviveSpirit))));
     }
 
     private static int runSelfTest(CommandContext<CommandSourceStack> context) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
@@ -83,6 +98,38 @@ public final class ModDebugCommands {
         maid.setAndSyncData(ModTaskData.MARRIAGE_DATA, MarriageData.EMPTY);
         maid.setAndSyncData(ModTaskData.PREGNANCY_DATA, PregnancyData.EMPTY);
         context.getSource().sendSuccess(() -> DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.divorce.success", maid.getDisplayName()), true);
+        return 1;
+    }
+
+    private static int runClearSpirit(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        Entity target = EntityArgument.getEntity(context, "spirit");
+        if (!(target instanceof MaidSpiritEntity spirit)) {
+            context.getSource().sendFailure(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.not_spirit"));
+            return 0;
+        }
+        Component spiritName = spirit.getDisplayName();
+        if (!SpiritInteractionManager.forceClearSpirit(player, spirit)) {
+            context.getSource().sendFailure(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.clear.failed"));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.clear.success", spiritName), true);
+        return 1;
+    }
+
+    private static int runReviveSpirit(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        Entity target = EntityArgument.getEntity(context, "spirit");
+        if (!(target instanceof MaidSpiritEntity spirit)) {
+            context.getSource().sendFailure(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.not_spirit"));
+            return 0;
+        }
+        Component spiritName = spirit.getDisplayName();
+        if (!SpiritInteractionManager.forceReviveSpirit(player, spirit)) {
+            context.getSource().sendFailure(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.revive.failed"));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.command.spirit.revive.success", spiritName), true);
         return 1;
     }
 

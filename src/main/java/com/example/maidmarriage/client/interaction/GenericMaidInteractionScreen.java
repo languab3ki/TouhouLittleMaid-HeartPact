@@ -1,6 +1,7 @@
 package com.example.maidmarriage.client.interaction;
 
 import com.example.maidmarriage.MaidMarriageMod;
+import com.example.maidmarriage.client.HugClientState;
 import com.example.maidmarriage.client.RhythmKeyMappings;
 import com.example.maidmarriage.client.dialoguesystem.runtime.DialogueChoiceView;
 import com.example.maidmarriage.client.dialoguesystem.runtime.DialogueFrameView;
@@ -223,6 +224,7 @@ public class GenericMaidInteractionScreen extends Screen {
 
     @Override
     public void onClose() {
+        HugClientState.clearTransientRenderState();
         compactMode = false;
         if (hiddenScreen == this) {
             hiddenScreen = null;
@@ -230,6 +232,12 @@ public class GenericMaidInteractionScreen extends Screen {
         if (this.minecraft != null && this.minecraft.screen == this) {
             this.minecraft.setScreen(null);
         }
+    }
+
+    @Override
+    public void removed() {
+        HugClientState.clearTransientRenderState();
+        super.removed();
     }
 
     private boolean shouldHideVanillaHud() {

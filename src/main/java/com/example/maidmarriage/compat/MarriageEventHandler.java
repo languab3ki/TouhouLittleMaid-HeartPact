@@ -116,6 +116,13 @@ public final class MarriageEventHandler {
             event.setCanceled(true);
             return;
         }
+        if (stack.is(ModItems.HEART_PACT_GUIDE.get())) {
+            if (event.getPlayer() instanceof ServerPlayer player
+                    && MaidHugManager.startTutorialInteraction(player, event.getMaid())) {
+                event.setCanceled(true);
+            }
+            return;
+        }
         if (stack.is(ModItems.YES_PILLOW.get())) {
             if (MaidMoodManager.state(event.getMaid()).ordinal() < com.example.maidmarriage.data.MaidMoodData.MoodState.NORMAL.ordinal()) {
                 event.getPlayer().sendSystemMessage(DialogueScriptManager.componentForPlayer(event.getPlayer(),
@@ -210,6 +217,14 @@ public final class MarriageEventHandler {
             return;
         }
         if (!(event.getTarget() instanceof EntityMaid maid)) {
+            return;
+        }
+
+        if (stack.is(ModItems.HEART_PACT_GUIDE.get())) {
+            if (event.getEntity() instanceof ServerPlayer player && MaidHugManager.startTutorialInteraction(player, maid)) {
+                event.setCanceled(true);
+                event.setCancellationResult(InteractionResult.SUCCESS);
+            }
             return;
         }
 
@@ -347,9 +362,7 @@ public final class MarriageEventHandler {
 
         consumeMainHandProposalRing(player, stack, interactionHand);
         giveMarriagePillows(player, maid);
-        if (!RomanceSleepManager.resolveHaremMode(player)) {
-            player.getPersistentData().putUUID(TAG_PLAYER_PRIMARY_MAID, maid.getUUID());
-        }
+        markPrimaryMaidIfNeeded(player, maid);
 
         if (maid.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.HEART, maid.getX(), maid.getY(1), maid.getZ(),
@@ -484,9 +497,7 @@ public final class MarriageEventHandler {
         maid.tame(proposer);
         maid.setAndSyncData(ModTaskData.MARRIAGE_DATA, currentData.marry(proposer.getUUID(), level.getGameTime()));
         maid.getPersistentData().remove(TAG_CONSENT_APPROVED_PLAYER);
-        if (!RomanceSleepManager.resolveHaremMode(proposer)) {
-            proposer.getPersistentData().putUUID(TAG_PLAYER_PRIMARY_MAID, maid.getUUID());
-        }
+        markPrimaryMaidIfNeeded(proposer, maid);
         if (owner.getPersistentData().hasUUID(TAG_PLAYER_PRIMARY_MAID)
                 && owner.getPersistentData().getUUID(TAG_PLAYER_PRIMARY_MAID).equals(maid.getUUID())) {
             owner.getPersistentData().remove(TAG_PLAYER_PRIMARY_MAID);
@@ -836,9 +847,7 @@ public final class MarriageEventHandler {
         clearExpiredTransfer(maid);
         PENDING_TRANSFERS.remove(maid.getUUID());
 
-        if (!RomanceSleepManager.resolveHaremMode(targetPlayer)) {
-            targetPlayer.getPersistentData().putUUID(TAG_PLAYER_PRIMARY_MAID, maid.getUUID());
-        }
+        markPrimaryMaidIfNeeded(targetPlayer, maid);
         if (owner.getPersistentData().hasUUID(TAG_PLAYER_PRIMARY_MAID)
                 && owner.getPersistentData().getUUID(TAG_PLAYER_PRIMARY_MAID).equals(maid.getUUID())) {
             owner.getPersistentData().remove(TAG_PLAYER_PRIMARY_MAID);
@@ -1162,7 +1171,8 @@ public final class MarriageEventHandler {
     }
 
     static void markPrimaryMaidIfNeeded(net.minecraft.world.entity.player.Player player, EntityMaid maid) {
-        if (!RomanceSleepManager.resolveHaremMode(player)) {
+        if (!RomanceSleepManager.resolveHaremMode(player)
+                || !player.getPersistentData().hasUUID(TAG_PLAYER_PRIMARY_MAID)) {
             player.getPersistentData().putUUID(TAG_PLAYER_PRIMARY_MAID, maid.getUUID());
         }
     }

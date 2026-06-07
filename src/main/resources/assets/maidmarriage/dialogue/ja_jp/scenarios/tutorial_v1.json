@@ -1,0 +1,711 @@
+{
+  "id": "maidmarriage:tutorial_v1",
+  "theme": "maidmarriage:hug_default",
+  "start": "start",
+  "animationLibrary": "maidmarriage:default",
+  "portraits": {
+    "maid": {
+      "texture": "maidmarriage:textures/gui/emotion/soft_smile.png",
+      "defaultExpression": "soft_smile",
+      "expressions": {
+        "soft_smile": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "happy": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "shy": "maidmarriage:textures/gui/emotion/shy.png",
+        "embarrassed_smile": "maidmarriage:textures/gui/emotion/embarrassed_smile.png",
+        "serious": "maidmarriage:textures/gui/emotion/serious.png",
+        "sad": "maidmarriage:textures/gui/emotion/sad.png",
+        "action_shy": "maidmarriage:textures/gui/action/action_shy.png",
+        "action_touched": "maidmarriage:textures/gui/action/action_touched.png",
+        "action_flustered": "maidmarriage:textures/gui/action/action_flustered.png"
+      }
+    }
+  },
+  "nodes": {
+    "start": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "",
+        "text": "あなたは『心契同眠ガイド』で${maid}にそっと触れました。",
+        "narration": "チュートリアルを開始しますか？",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "enter",
+          "title": "チュートリアル開始",
+          "description": "キー、カメラ、アクション、気分、関係段階を確認します。",
+          "next": "intro"
+        },
+        {
+          "id": "menu",
+          "title": "目次を見る",
+          "description": "確認したい章を選びます。",
+          "next": "menu"
+        },
+        {
+          "id": "later",
+          "title": "また今度",
+          "description": "チュートリアルを終了します。",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "任せてください、${player}。説明書みたいに固くならないように、私がゆっくり案内しますね。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "まずキー設定を確認して、それからカメラと距離、最後に気分値や関係段階を見ていきましょう。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "key_check": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "まずは Minecraft のキー設定を開いて、心契同眠のキーが他の Mod と衝突していないか確認してください。",
+        "narration": "確認するキー：交流、なでる/高い高い、早送り、UI非表示/復帰、膝枕終了など。",
+        "portrait": "maid",
+        "expression": "serious",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys_ok",
+          "title": "確認しました",
+          "description": "カメラとアクションテストへ進みます。",
+          "next": "camera_intro"
+        },
+        {
+          "id": "key_help",
+          "title": "キーの説明",
+          "description": "各キーの用途を聞きます。",
+          "next": "key_help"
+        },
+        {
+          "id": "button_help",
+          "title": "右下ボタン",
+          "description": "非表示、音声、終了、カメラのボタンを確認します。",
+          "next": "button_help"
+        },
+        {
+          "id": "menu",
+          "title": "目次へ戻る",
+          "description": "別の章を確認します。",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "key_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "交流キーはメインの交流画面を開いたり閉じたりするためのキーです。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "なでる/高い高いキーには二つの用途があります。座っている大人メイドには頭なで、立っている小さなメイドには高い高いです。高い高い中にもう一度押すと降ろせます。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "早送りは便利ですが、押しすぎると音声や動作が追いつきにくいので、少しだけ優しくお願いしますね。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "button_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "右下の四つのボタンは、交流中にすぐ使える小さな操作です。非表示ボタンはUIを隠して、動きやスクリーンショットを見やすくします。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "マイクボタンは現在の台詞の音声を再生します。ダブルクリックで対応する音声項目へ移動できますが、心契同眠の音声/TTSアドオンが必要です。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "終了ボタンは現在の交流を終わらせます。カメラボタンではズーム、上下視点、膝枕カメラ、抱擁距離を調整できます。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "camera_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "次はカメラと距離です。抱擁、なでる、キス、膝枕では見え方が少しずつ違います。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "近すぎたり遠すぎたりしたら、右下のカメラボタンからズーム、上下視点、膝枕カメラ、抱擁距離を少しずつ調整してください。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "camera_menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "どのアクションから試しますか？",
+        "narration": "距離、カメラ角度、UIの被り、終了キーを確認してください。",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "hug",
+          "title": "抱擁テスト",
+          "description": "抱擁距離とUIの被りを確認します。",
+          "next": "test_hug"
+        },
+        {
+          "id": "pet",
+          "title": "なでるテスト",
+          "description": "手の動きと表情を確認します。",
+          "next": "test_pet"
+        },
+        {
+          "id": "kiss",
+          "title": "キステスト",
+          "description": "キスのカメラと表情を確認します。",
+          "next": "test_kiss"
+        },
+        {
+          "id": "lap",
+          "title": "膝枕テスト",
+          "description": "横になる視点と終了キーを確認します。",
+          "next": "test_lap"
+        },
+        {
+          "id": "done",
+          "title": "確認しました",
+          "description": "気分と関係段階へ進みます。",
+          "next": "mood_intro"
+        },
+        {
+          "id": "menu",
+          "title": "目次へ戻る",
+          "description": "目次へ戻ります。",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "test_hug": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "まずは抱擁からです。距離と、会話欄が私を隠していないか見てください。",
+          "portrait": "maid",
+          "expression": "action_shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:hug_toggle"
+            }
+          ]
+        }
+      ],
+      "next": "test_hug_result",
+      "events": []
+    },
+    "test_hug_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "この距離はどうですか？",
+        "portrait": "maid",
+        "expression": "embarrassed_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "ちょうどいい",
+          "description": "テスト目次へ戻ります。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "もう一度",
+          "description": "抱擁をもう一度試します。",
+          "next": "test_hug"
+        },
+        {
+          "id": "hint",
+          "title": "違和感がある",
+          "description": "調整のヒントを見ます。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_pet": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "なでる時は、私の表情が見えるか確認してくださいね。",
+          "portrait": "maid",
+          "expression": "shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:pet_head"
+            }
+          ]
+        }
+      ],
+      "next": "test_pet_result",
+      "events": []
+    },
+    "test_pet_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "表情はちゃんと見えていますか？",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "見えています",
+          "description": "テスト目次へ戻ります。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "もう一度",
+          "description": "なでる動作をもう一度試します。",
+          "next": "test_pet"
+        },
+        {
+          "id": "hint",
+          "title": "見えにくい",
+          "description": "調整のヒントを見ます。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_kiss": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "キスもテストするんですか……こほん。カメラ確認だけですからね。",
+          "portrait": "maid",
+          "expression": "action_flustered",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:interaction_kiss"
+            }
+          ]
+        }
+      ],
+      "next": "test_kiss_result",
+      "events": []
+    },
+    "test_kiss_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "今の角度は大丈夫でしたか？",
+        "portrait": "maid",
+        "expression": "shy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "ちょうどいい",
+          "description": "テスト目次へ戻ります。",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "もう一度",
+          "description": "キスをもう一度試します。",
+          "next": "test_kiss"
+        },
+        {
+          "id": "hint",
+          "title": "見えにくい",
+          "description": "調整のヒントを見ます。",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_lap": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "最後は膝枕です。横になる視点、私の位置、終了キーを確認してください。",
+          "portrait": "maid",
+          "expression": "action_touched",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:lap_pillow_start"
+            }
+          ]
+        }
+      ],
+      "next": "test_lap_result",
+      "events": []
+    },
+    "test_lap_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "この視点は落ち着きますか？",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "大丈夫",
+          "description": "膝枕を終了して戻ります。",
+          "next": "exit_lap_then_camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "もう一度",
+          "description": "終了してもう一度試します。",
+          "next": "exit_lap_then_test_lap"
+        },
+        {
+          "id": "hint",
+          "title": "問題がある",
+          "description": "終了して調整ヒントを見ます。",
+          "next": "exit_lap_then_hint"
+        }
+      ],
+      "events": []
+    },
+    "exit_lap_then_camera_menu": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_menu",
+      "events": []
+    },
+    "exit_lap_then_test_lap": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "test_lap",
+      "events": []
+    },
+    "exit_lap_then_hint": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_adjust_hint",
+      "events": []
+    },
+    "camera_adjust_hint": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "右下のカメラボタンからカメラ、ズーム、抱擁距離を少しずつ調整して、また私と一緒に確認しましょう。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "mood_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "気分値はただの数字ではありません。嬉しい時、普通の時、悲しい時で、私の反応も変わります。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "関係段階も大切です。日常、告白、恋人、結婚まで、ゆっくり進めてくださいね。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "systems_intro",
+      "events": []
+    },
+    "systems_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "まずは会話、なでる、抱擁から始めましょう。あとで告白、結婚、同眠、子ども、膝枕回復、音声にも触れられます。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "結婚後、私がメイドベッドで眠り、主人が近くの合うベッドのそばにいると、同眠シナリオが起こることがあります。妊娠、出産日数、子どもの成長日数、産後回復はサーバー設定に従います。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "生まれたばかりの小さなメイドはとても小さいので、初日は地面に置けません。まずはお母さんが抱きます。まだ名前を付けていないなら、一度だけ名前を付けられます。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "成長する前の小さなメイドには、エンチャント学、薬剤学、戦術学、探検などの任務を任せられます。任務は WORK 日程中に進み、睡眠中、座っている時、休憩中は止まります。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "でも、子どもも疲れます。学習や任務は気分を消耗します。疲れすぎると報酬が悪くなり、探検は止まることもあります。気分がとても低いまま無理をさせると、好感度が下がる場合もあります。",
+          "portrait": "maid",
+          "expression": "tired",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "音声再生には心契同眠の音声/TTSアドオンが必要です。TTS は現在主に中国語コミュニティでテスト中です。詳しい説明は今後追加されます。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "finish",
+      "events": []
+    },
+    "item_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "道具は、まずよく使うものから覚えましょう。求婚指輪は結婚に使う大切な道具で、求婚時は両手に未绑定の指輪を一つずつ持ちます。",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "醤板鴨は小さなメイドの成長時間を短くしたり、産後回復中のメイドの回復期間を短くしたりできます。",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "族譜查看器は家族関係の確認用です。婚姻同意申請書は成年した子代メイドの監護権を移す道具で、直接結婚する道具ではありません。",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "YES 枕は結婚後の同眠に使います。避妊のポーションは粗製のポーションにヤグルマギクまたはヒスイランを入れて作り、安全効果が 5 分続きます。あなたか私のどちらかに安全があれば、妊娠しません。",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "menu",
+      "events": []
+    },
+    "menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "どこを確認しますか？",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys",
+          "title": "キー確認",
+          "description": "キー設定を確認します。",
+          "next": "key_check"
+        },
+        {
+          "id": "buttons",
+          "title": "右下ボタン",
+          "description": "非表示、音声、終了、カメラを確認します。",
+          "next": "button_help"
+        },
+        {
+          "id": "camera",
+          "title": "カメラテスト",
+          "description": "抱擁、なでる、キス、膝枕を試します。",
+          "next": "camera_intro"
+        },
+        {
+          "id": "mood",
+          "title": "気分と関係",
+          "description": "気分値と関係段階を確認します。",
+          "next": "mood_intro"
+        },
+        {
+          "id": "systems",
+          "title": "遊び方",
+          "description": "主なシステムを確認します。",
+          "next": "systems_intro"
+        },
+        {
+          "id": "items",
+          "title": "道具説明",
+          "description": "指輪、醤板鴨、本、避妊ポーションを確認します。",
+          "next": "item_help"
+        },
+        {
+          "id": "finish",
+          "title": "終了",
+          "description": "チュートリアルを終了します。",
+          "next": "finish"
+        }
+      ],
+      "events": []
+    },
+    "finish": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "今日はここまでです。忘れた時は、またガイドを持って私に話しかけてください。",
+        "narration": "このチュートリアルはいつでも再開できます。",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "menu",
+          "title": "目次へ戻る",
+          "description": "別の章を確認します。",
+          "next": "menu"
+        },
+        {
+          "id": "end",
+          "title": "終了する",
+          "description": "チュートリアルを終了します。",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "end": {
+      "type": "end",
+      "events": [
+        {
+          "when": "enter",
+          "type": "emit_action",
+          "value": "maidmarriage:close_tutorial_interaction"
+        }
+      ]
+    }
+  }
+}

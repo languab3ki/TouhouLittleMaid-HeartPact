@@ -388,6 +388,27 @@ public class MaidSpiritEntity extends EntityMaid {
                 : null;
     }
 
+    public boolean remapMotherUuid(UUID oldMotherUuid, UUID newMotherUuid) {
+        if (oldMotherUuid == null || newMotherUuid == null || !oldMotherUuid.equals(getMotherUuid())) {
+            return false;
+        }
+        this.motherUuid = newMotherUuid;
+        this.entityData.set(DATA_MOTHER_UUID, Optional.of(newMotherUuid));
+        getPersistentData().putUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY, newMotherUuid);
+
+        ChildLineageData lineage = getData(ModTaskData.CHILD_LINEAGE_DATA);
+        if (lineage != null && lineage.bornMaid()) {
+            setData(ModTaskData.CHILD_LINEAGE_DATA, new ChildLineageData(
+                    true,
+                    Optional.of(newMotherUuid),
+                    lineage.father(),
+                    lineage.grandParent(),
+                    lineage.customNameJson()
+            ));
+        }
+        return true;
+    }
+
     @Nullable
     public UUID getFatherUuid() {
         if (this.fatherUuid != null) {

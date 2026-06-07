@@ -30,6 +30,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class HugDialogueContextVariables {
     private static final String TAG_RING_USED = "maidmarriage_ring_used";
+    private static final String TAG_PLAYER_HAREM_MODE = "maidmarriage_player_harem_mode";
+    private static final String TAG_PLAYER_PRIMARY_MAID = "maidmarriage_primary_maid";
 
     private HugDialogueContextVariables() {
     }
@@ -161,8 +163,9 @@ public final class HugDialogueContextVariables {
         dialogueRuntime.setVariable("lap_pillow_active", Boolean.toString(
                 com.example.maidmarriage.client.LapPillowClientState.isLocalPlayerActiveWith(maid.getUUID())));
         boolean blockedByClientMonogamy = hasOtherLoadedMarriageOnClient(player, maid);
+        boolean hiddenByPrimaryPartner = shouldHideConfessionForOtherPrimaryPartner(player, maid);
         dialogueRuntime.setVariable("can_show_confession", Boolean.toString(
-                MaidRelationshipManager.canShowConfession(player, maid) && !blockedByClientMonogamy));
+                MaidRelationshipManager.canShowConfession(player, maid) && !blockedByClientMonogamy && !hiddenByPrimaryPartner));
         dialogueRuntime.setVariable("can_show_marriage", Boolean.toString(
                 MaidRelationshipManager.canShowMarriage(player, maid) && !blockedByClientMonogamy));
         writeMarriageRingVariables(dialogueRuntime, player, maid);
@@ -532,6 +535,20 @@ public final class HugDialogueContextVariables {
             }
         }
         return false;
+    }
+
+    private static boolean shouldHideConfessionForOtherPrimaryPartner(@Nullable Player player, EntityMaid currentMaid) {
+        if (player == null || currentMaid == null || !player.getPersistentData().hasUUID(TAG_PLAYER_PRIMARY_MAID)) {
+            return false;
+        }
+        boolean haremMode = ModConfigs.haremMode();
+        if (player.getPersistentData().contains(TAG_PLAYER_HAREM_MODE)) {
+            haremMode = player.getPersistentData().getBoolean(TAG_PLAYER_HAREM_MODE);
+        }
+        if (haremMode) {
+            return false;
+        }
+        return !player.getPersistentData().getUUID(TAG_PLAYER_PRIMARY_MAID).equals(currentMaid.getUUID());
     }
 
     private static String resolveTimeOfDay(Minecraft minecraft) {

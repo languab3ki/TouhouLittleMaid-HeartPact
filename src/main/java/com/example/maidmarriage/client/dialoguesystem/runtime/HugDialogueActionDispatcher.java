@@ -179,6 +179,12 @@ public final class HugDialogueActionDispatcher {
                 }
                 debug(debugSink, "已执行剧情动作: open_child_name_screen");
             }
+            case "maidmarriage:close_tutorial_interaction" -> {
+                PetHeadClientHandler.triggerInteraction(minecraft);
+                if (closeScreen != null) {
+                    closeScreen.run();
+                }
+            }
             case "maidmarriage:close_child_interaction" -> {
                 if (childInteractionMode) {
                     PetHeadClientHandler.triggerChildInteraction(minecraft, fixedMaidUuid);

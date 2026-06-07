@@ -1,16 +1,21 @@
 package com.example.maidmarriage.network.payload;
 
+import com.example.maidmarriage.MaidMarriageMod;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
 public class HugStateSyncPayload {
+    private static final ResourceLocation DEFAULT_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "hug_menu_v2");
+
     private final UUID playerUuid;
     @Nullable
     private final UUID maidUuid;
     private final boolean hugging;
     private final boolean childNameRequired;
     private final boolean childLossGrief;
+    private final ResourceLocation scenarioId;
 
     public HugStateSyncPayload(UUID playerUuid, @Nullable UUID maidUuid, boolean hugging) {
         this(playerUuid, maidUuid, hugging, false, false);
@@ -25,11 +30,21 @@ public class HugStateSyncPayload {
                                boolean hugging,
                                boolean childNameRequired,
                                boolean childLossGrief) {
+        this(playerUuid, maidUuid, hugging, childNameRequired, childLossGrief, DEFAULT_SCENARIO_ID);
+    }
+
+    public HugStateSyncPayload(UUID playerUuid,
+                               @Nullable UUID maidUuid,
+                               boolean hugging,
+                               boolean childNameRequired,
+                               boolean childLossGrief,
+                               ResourceLocation scenarioId) {
         this.playerUuid = playerUuid;
         this.maidUuid = maidUuid;
         this.hugging = maidUuid != null && hugging;
         this.childNameRequired = maidUuid != null && childNameRequired;
         this.childLossGrief = maidUuid != null && childLossGrief;
+        this.scenarioId = maidUuid == null || scenarioId == null ? DEFAULT_SCENARIO_ID : scenarioId;
     }
 
     public UUID playerUuid() {
@@ -53,6 +68,10 @@ public class HugStateSyncPayload {
         return childLossGrief;
     }
 
+    public ResourceLocation scenarioId() {
+        return scenarioId;
+    }
+
     public static void encode(HugStateSyncPayload msg, FriendlyByteBuf buf) {
         buf.writeUUID(msg.playerUuid);
         buf.writeBoolean(msg.maidUuid != null);
@@ -62,6 +81,7 @@ public class HugStateSyncPayload {
         buf.writeBoolean(msg.hugging);
         buf.writeBoolean(msg.childNameRequired);
         buf.writeBoolean(msg.childLossGrief);
+        buf.writeResourceLocation(msg.scenarioId);
     }
 
     public static HugStateSyncPayload decode(FriendlyByteBuf buf) {
@@ -71,6 +91,7 @@ public class HugStateSyncPayload {
         boolean hugging = buf.readBoolean();
         boolean childNameRequired = buf.readBoolean();
         boolean childLossGrief = buf.readBoolean();
-        return new HugStateSyncPayload(playerUuid, maidUuid, hugging, childNameRequired, childLossGrief);
+        ResourceLocation scenarioId = buf.readResourceLocation();
+        return new HugStateSyncPayload(playerUuid, maidUuid, hugging, childNameRequired, childLossGrief, scenarioId);
     }
 }

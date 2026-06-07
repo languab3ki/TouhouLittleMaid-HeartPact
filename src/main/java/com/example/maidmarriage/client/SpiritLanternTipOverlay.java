@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,7 +28,9 @@ public final class SpiritLanternTipOverlay {
         if (minecraft.player == null || minecraft.options.hideGui || minecraft.screen != null) {
             return;
         }
-        if (!minecraft.player.getMainHandItem().is(Items.SOUL_LANTERN)) {
+        boolean holdingLantern = minecraft.player.getMainHandItem().is(Items.SOUL_LANTERN);
+        boolean holdingTorch = minecraft.player.getMainHandItem().is(Items.SOUL_TORCH);
+        if (!holdingLantern && !holdingTorch) {
             return;
         }
         if (!(minecraft.hitResult instanceof EntityHitResult hitResult)
@@ -37,7 +38,7 @@ public final class SpiritLanternTipOverlay {
             return;
         }
 
-        Component text = Component.translatable(resolveTipKey(spirit), spirit.getDisplayName());
+        Component text = Component.translatable(holdingTorch ? "overlay.maidmarriage.spirit_torch.ready" : resolveLanternTipKey(spirit), spirit.getDisplayName());
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
         int textWidth = minecraft.font.width(text);
@@ -46,7 +47,7 @@ public final class SpiritLanternTipOverlay {
         event.getGuiGraphics().drawString(minecraft.font, text, x, y, 0xFFE8FFF6, true);
     }
 
-    private static String resolveTipKey(MaidSpiritEntity spirit) {
+    private static String resolveLanternTipKey(MaidSpiritEntity spirit) {
         if (spirit.isFarewell()) {
             return "overlay.maidmarriage.spirit_lantern.farewell";
         }
