@@ -11,6 +11,7 @@ import com.example.maidmarriage.data.MaidMoodData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.init.ModItems;
+import com.example.maidmarriage.util.ItemStackDataUtil;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
@@ -340,8 +341,7 @@ public final class HugDialogueContextVariables {
 
     private static boolean isRingUsed(ItemStack stack) {
         return stack != null
-                && stack.getTag() != null
-                && stack.getTag().getBoolean(TAG_RING_USED);
+                && ItemStackDataUtil.copyCustomData(stack).getBoolean(TAG_RING_USED);
     }
 
     /**

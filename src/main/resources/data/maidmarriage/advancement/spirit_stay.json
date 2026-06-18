@@ -1,0 +1,28 @@
+﻿{
+  "parent": "maidmarriage:spirit_lantern",
+  "display": {
+    "icon": {
+      "id": "minecraft:blue_orchid"
+    },
+    "title": {
+      "translate": "advancements.maidmarriage.spirit_stay.title"
+    },
+    "description": {
+      "translate": "advancements.maidmarriage.spirit_stay.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ]
+}

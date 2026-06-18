@@ -27,11 +27,14 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 膝枕状态管理器。
@@ -40,7 +43,7 @@ import net.minecraftforge.fml.common.Mod;
  * 这里不使用玩家骑乘锚点的方案，而是用锚点实体记录姿态中心，再每 tick 将玩家锁到锚点位置。
  * 这样可以继续保留互动面板，不会因为骑乘链和亲密交互会话互相抢控制权。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public final class LapPillowManager {
     private static final double START_DISTANCE_SQR = 2.75D * 2.75D;
     private static final int PET_PLAYER_HEAD_TICKS = 96;
@@ -48,11 +51,18 @@ public final class LapPillowManager {
     private static final float DEFAULT_SLEEP_YAW_OFFSET = -90.0F;
     private static final String TAG_DAILY_DAY = "maidmarriage_lap_pillow_day";
     private static final String TAG_DAILY_HEAL_USED = "maidmarriage_lap_pillow_heal_used";
+    private static final String TAG_LAST_HEAL_HP = "maidmarriage_lap_pillow_last_heal_hp";
     private static final String TAG_DAILY_CLEANSE_USED = "maidmarriage_lap_pillow_cleanse_used";
     private static final String TAG_DAILY_RESISTANCE_USED = "maidmarriage_lap_pillow_resistance_used";
     private static final int RESTORE_CHECK_INTERVAL_TICKS = 40;
     private static final int DATING_HEAL_LIMIT_HP = 20;
     private static final int MARRIAGE_HEAL_LIMIT_HP = 30;
+    private static final double LAP_PILLOW_HEAL_PER_TICK_MAX_HEALTH_RATIO = 0.02D;
+    private static final int LAP_PILLOW_HEAL_PER_TICK_CAP_HP = 20;
+    private static final double DATING_HEAL_LIMIT_MAX_HEALTH_RATIO = 0.40D;
+    private static final double MARRIAGE_HEAL_LIMIT_MAX_HEALTH_RATIO = 0.60D;
+    private static final int DATING_HEAL_LIMIT_CAP_HP = 200;
+    private static final int MARRIAGE_HEAL_LIMIT_CAP_HP = 300;
     private static final int DAILY_CLEANSE_LIMIT = 3;
     private static final int DAILY_RESISTANCE_LIMIT = 3;
     private static final int RESISTANCE_DURATION_TICKS = 50 * 20;
@@ -157,11 +167,11 @@ public final class LapPillowManager {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (!(event.player instanceof ServerPlayer player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
@@ -416,7 +426,7 @@ public final class LapPillowManager {
         boolean changed = resetDailyCountersIfNeeded(player);
 
         RelationStage stage = MaidRelationshipManager.resolveStage(maid);
-        int healLimit = healLimitHp(stage);
+        int healLimit = healLimitHp(player, stage);
         if (healLimit > 0) {
             changed |= tryHealPlayer(player, healLimit);
             changed |= tryCleansePlayer(player);
@@ -435,10 +445,25 @@ public final class LapPillowManager {
         if (used >= healLimitHp || player.getHealth() >= player.getMaxHealth()) {
             return false;
         }
-        int healAmount = Math.min(1, healLimitHp - used);
+        int healAmount = Math.min(resolveSingleHealHp(player), healLimitHp - used);
         player.heal(healAmount);
         tag.putInt(TAG_DAILY_HEAL_USED, used + healAmount);
+        tag.putInt(TAG_LAST_HEAL_HP, healAmount);
         return true;
+    }
+
+    /**
+     * 单次膝枕治疗量。
+     *
+     * <p>旧版固定 1HP，在高血量整合包里几乎没有存在感。
+     * 现在按最大生命值给 2% 的比例恢复，同时保留 1HP 保底和 20HP 单次封顶：
+     * - 原版 20HP 玩家仍然是 1HP，体验不变；
+     * - 高血量玩家能明显感到恢复；
+     * - 极端血量不会因为百分比恢复变成战斗中无敌奶。
+     */
+    private static int resolveSingleHealHp(ServerPlayer player) {
+        int scaled = Mth.ceil(player.getMaxHealth() * LAP_PILLOW_HEAL_PER_TICK_MAX_HEALTH_RATIO);
+        return Mth.clamp(Math.max(1, scaled), 1, LAP_PILLOW_HEAL_PER_TICK_CAP_HP);
     }
 
     private static boolean tryCleansePlayer(ServerPlayer player) {
@@ -449,7 +474,7 @@ public final class LapPillowManager {
         }
         boolean removed = false;
         for (MobEffectInstance effect : new ArrayList<>(player.getActiveEffects())) {
-            if (!effect.getEffect().isBeneficial()) {
+            if (!effect.getEffect().value().isBeneficial()) {
                 player.removeEffect(effect.getEffect());
                 removed = true;
             }
@@ -477,7 +502,8 @@ public final class LapPillowManager {
         RelationStage stage = maid == null ? RelationStage.INITIAL : MaidRelationshipManager.resolveStage(maid);
         return new LapPillowStateSyncPayload.RecoveryStatus(
                 player.getPersistentData().getInt(TAG_DAILY_HEAL_USED),
-                healLimitHp(stage),
+                healLimitHp(player, stage),
+                player.getPersistentData().getInt(TAG_LAST_HEAL_HP),
                 player.getPersistentData().getInt(TAG_DAILY_CLEANSE_USED),
                 stage == RelationStage.INITIAL ? 0 : DAILY_CLEANSE_LIMIT,
                 player.getPersistentData().getInt(TAG_DAILY_RESISTANCE_USED),
@@ -485,12 +511,20 @@ public final class LapPillowManager {
         );
     }
 
-    private static int healLimitHp(RelationStage stage) {
+    /**
+     * 每日膝枕恢复额度。
+     *
+     * <p>额度同样随玩家最大生命值缩放，避免高血量整合包里“每日 10 颗心”太弱。
+     * 但保留阶段保底和硬封顶，保证原版数值不变，也避免极端最大生命值把恢复做爆。
+     */
+    private static int healLimitHp(ServerPlayer player, RelationStage stage) {
         if (stage == RelationStage.MARRIAGE) {
-            return MARRIAGE_HEAL_LIMIT_HP;
+            int scaled = Mth.ceil(player.getMaxHealth() * MARRIAGE_HEAL_LIMIT_MAX_HEALTH_RATIO);
+            return Mth.clamp(Math.max(MARRIAGE_HEAL_LIMIT_HP, scaled), MARRIAGE_HEAL_LIMIT_HP, MARRIAGE_HEAL_LIMIT_CAP_HP);
         }
         if (stage == RelationStage.DATING) {
-            return DATING_HEAL_LIMIT_HP;
+            int scaled = Mth.ceil(player.getMaxHealth() * DATING_HEAL_LIMIT_MAX_HEALTH_RATIO);
+            return Mth.clamp(Math.max(DATING_HEAL_LIMIT_HP, scaled), DATING_HEAL_LIMIT_HP, DATING_HEAL_LIMIT_CAP_HP);
         }
         return 0;
     }
@@ -503,6 +537,7 @@ public final class LapPillowManager {
         }
         tag.putLong(TAG_DAILY_DAY, day);
         tag.putInt(TAG_DAILY_HEAL_USED, 0);
+        tag.putInt(TAG_LAST_HEAL_HP, 0);
         tag.putInt(TAG_DAILY_CLEANSE_USED, 0);
         tag.putInt(TAG_DAILY_RESISTANCE_USED, 0);
         return true;

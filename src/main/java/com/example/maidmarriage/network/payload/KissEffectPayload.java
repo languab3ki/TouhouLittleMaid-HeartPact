@@ -1,5 +1,11 @@
 package com.example.maidmarriage.network.payload;
 
+import org.jetbrains.annotations.NotNull;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import com.example.maidmarriage.MaidMarriageMod;
 import java.util.UUID;
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -10,7 +16,10 @@ import net.minecraft.network.FriendlyByteBuf;
  * 服务端只同步女仆 UUID 和表现参数，客户端再按当前渲染实体应用姿态。
  * 这样不会把客户端镜头、模型骨骼或临时动画状态写回服务端数据。
  */
-public class KissEffectPayload {
+public class KissEffectPayload implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<KissEffectPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "KissEffect".replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT)));
+    public static final StreamCodec<RegistryFriendlyByteBuf, KissEffectPayload> STREAM_CODEC = StreamCodec.ofMember(KissEffectPayload::encode, KissEffectPayload::decode);
+
     private final UUID maidUuid;
     private final int shyDelayTicks;
     private final int shyDurationTicks;
@@ -71,4 +80,10 @@ public class KissEffectPayload {
     public int shyDirectionSign() {
         return shyDirectionSign;
     }
+
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
 }

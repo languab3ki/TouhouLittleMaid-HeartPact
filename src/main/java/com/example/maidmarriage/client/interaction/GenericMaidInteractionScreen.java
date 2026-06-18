@@ -2,6 +2,7 @@ package com.example.maidmarriage.client.interaction;
 
 import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.client.RhythmKeyMappings;
+import com.example.maidmarriage.client.ScreenBackgrounds;
 import com.example.maidmarriage.client.dialoguesystem.runtime.DialogueChoiceView;
 import com.example.maidmarriage.client.dialoguesystem.runtime.DialogueFrameView;
 import com.example.maidmarriage.client.dialoguesystem.runtime.HugDialogueRuntimeBridge;
@@ -23,11 +24,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import com.example.maidmarriage.entity.MaidSpiritEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -36,12 +38,12 @@ import org.lwjgl.glfw.GLFW;
  * <p>This intentionally does not replace {@code HugActionScreen} yet. It reuses the good UI pieces
  * from the hug UI and lets new target types prove the generic framework first.
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class GenericMaidInteractionScreen extends Screen {
-    private static final ResourceLocation DEFAULT_THEME_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "hug_default");
-    private static final ResourceLocation HIDE_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_hide_icon.png");
-    private static final ResourceLocation EXIT_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_exit_icon.png");
-    private static final ResourceLocation SOFT_SMILE = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
+    private static final ResourceLocation DEFAULT_THEME_ID = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "hug_default");
+    private static final ResourceLocation HIDE_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_hide_icon.png");
+    private static final ResourceLocation EXIT_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_exit_icon.png");
+    private static final ResourceLocation SOFT_SMILE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
     @Nullable
     private static GenericMaidInteractionScreen hiddenScreen;
     private static boolean lastRestoreUiKey;
@@ -70,7 +72,7 @@ public class GenericMaidInteractionScreen extends Screen {
         this.session = session;
         this.adapter = adapter;
         this.runtime = new HugDialogueRuntimeBridge(
-                session == null ? new ResourceLocation(MaidMarriageMod.MOD_ID, "missing") : session.scenarioId(),
+                session == null ? ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "missing") : session.scenarioId(),
                 this::safeTargetName,
                 this::resolvePlayerName
         );
@@ -133,6 +135,26 @@ public class GenericMaidInteractionScreen extends Screen {
         exitButton.render(graphics, this.width, this.height, mouseX, mouseY);
         renderSpiritStatus(graphics);
         renderDebugMessage(graphics);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
     }
 
     @Override
@@ -210,13 +232,13 @@ public class GenericMaidInteractionScreen extends Screen {
     }
 
     @SubscribeEvent
-    public static void hideVanillaHudWhenGenericInteractionActive(RenderGuiOverlayEvent.Pre event) {
+    public static void hideVanillaHudWhenGenericInteractionActive(RenderGuiLayerEvent.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!(minecraft.screen instanceof GenericMaidInteractionScreen screen) || !screen.shouldHideVanillaHud()) {
             return;
         }
-        if (event.getOverlay().id().equals(VanillaGuiOverlay.HOTBAR.id())
-                || event.getOverlay().id().equals(VanillaGuiOverlay.CHAT_PANEL.id())) {
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR)
+                || event.getName().equals(VanillaGuiLayers.CHAT)) {
             event.setCanceled(true);
         }
     }

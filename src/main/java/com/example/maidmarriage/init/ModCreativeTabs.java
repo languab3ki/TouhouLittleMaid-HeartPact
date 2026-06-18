@@ -5,8 +5,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * 心契同眠专属创造模式分类。
@@ -17,7 +17,7 @@ public final class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MaidMarriageMod.MOD_ID);
 
-    public static final RegistryObject<CreativeModeTab> HEART_PACT = CREATIVE_TABS.register("heart_pact",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> HEART_PACT = CREATIVE_TABS.register("heart_pact",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.maidmarriage.heart_pact"))
                     .icon(() -> new ItemStack(ModItems.HEART_PACT_GUIDE.get()))

@@ -24,7 +24,7 @@ import net.minecraft.resources.ResourceLocation;
  * 这样剧情作者不能绕过白名单直接调用 Java 方法，也不会把 Screen 继续写成巨大 switch。
  */
 public final class HugDialogueActionDispatcher {
-    private static final ResourceLocation HUG_SCENARIO_ID = new ResourceLocation("maidmarriage", "hug_menu_v2");
+    private static final ResourceLocation HUG_SCENARIO_ID = ResourceLocation.fromNamespaceAndPath("maidmarriage", "hug_menu_v2");
 
     private HugDialogueActionDispatcher() {
     }

@@ -8,13 +8,13 @@ import com.example.maidmarriage.network.payload.SpiritInteractionPayload;
 import net.minecraft.resources.ResourceLocation;
 
 public final class BuiltinInteractionActions {
-    public static final ResourceLocation SPIRIT_SOOTHE = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_soothe");
-    public static final ResourceLocation SPIRIT_REMEMBER = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_remember");
-    public static final ResourceLocation SPIRIT_STAY = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_stay");
-    public static final ResourceLocation SPIRIT_FAREWELL = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_farewell");
-    public static final ResourceLocation SPIRIT_DAILY_SOOTHE = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_daily_soothe");
-    public static final ResourceLocation OPEN_SPIRIT_OFFERING = new ResourceLocation(MaidMarriageMod.MOD_ID, "open_spirit_offering");
-    public static final ResourceLocation CLOSE_INTERACTION = new ResourceLocation(MaidMarriageMod.MOD_ID, "close_interaction");
+    public static final ResourceLocation SPIRIT_SOOTHE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_soothe");
+    public static final ResourceLocation SPIRIT_REMEMBER = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_remember");
+    public static final ResourceLocation SPIRIT_STAY = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_stay");
+    public static final ResourceLocation SPIRIT_FAREWELL = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_farewell");
+    public static final ResourceLocation SPIRIT_DAILY_SOOTHE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_daily_soothe");
+    public static final ResourceLocation OPEN_SPIRIT_OFFERING = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "open_spirit_offering");
+    public static final ResourceLocation CLOSE_INTERACTION = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "close_interaction");
 
     private BuiltinInteractionActions() {
     }

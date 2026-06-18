@@ -4,6 +4,7 @@ import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ChildStateData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,11 +13,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
@@ -25,7 +28,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * Phase-one spirit left behind by a born/child maid.
@@ -131,25 +133,25 @@ public class MaidSpiritEntity extends EntityMaid {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_ORIGINAL_MAID_UUID, Optional.empty());
-        this.entityData.define(DATA_OWNER_UUID, Optional.empty());
-        this.entityData.define(DATA_MOTHER_UUID, Optional.empty());
-        this.entityData.define(DATA_FATHER_UUID, Optional.empty());
-        this.entityData.define(DATA_GRAND_PARENT_UUID, Optional.empty());
-        this.entityData.define(DATA_NAME_JSON, "");
-        this.entityData.define(DATA_GROWTH_STAGE, MaidChildEntity.GrowthStage.ADULT.name());
-        this.entityData.define(DATA_LONGING, 0);
-        this.entityData.define(DATA_SOOTHE_COUNT, 0);
-        this.entityData.define(DATA_MEMORY_COUNT, 0);
-        this.entityData.define(DATA_RECOGNIZED_FATHER, false);
-        this.entityData.define(DATA_LANTERN_BOUND, false);
-        this.entityData.define(DATA_STAYING, false);
-        this.entityData.define(DATA_FAREWELL, false);
-        this.entityData.define(DATA_RENDER_ANCHOR_X, Float.NaN);
-        this.entityData.define(DATA_RENDER_ANCHOR_Y, Float.NaN);
-        this.entityData.define(DATA_RENDER_ANCHOR_Z, Float.NaN);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ORIGINAL_MAID_UUID, Optional.empty());
+        builder.define(DATA_OWNER_UUID, Optional.empty());
+        builder.define(DATA_MOTHER_UUID, Optional.empty());
+        builder.define(DATA_FATHER_UUID, Optional.empty());
+        builder.define(DATA_GRAND_PARENT_UUID, Optional.empty());
+        builder.define(DATA_NAME_JSON, "");
+        builder.define(DATA_GROWTH_STAGE, MaidChildEntity.GrowthStage.ADULT.name());
+        builder.define(DATA_LONGING, 0);
+        builder.define(DATA_SOOTHE_COUNT, 0);
+        builder.define(DATA_MEMORY_COUNT, 0);
+        builder.define(DATA_RECOGNIZED_FATHER, false);
+        builder.define(DATA_LANTERN_BOUND, false);
+        builder.define(DATA_STAYING, false);
+        builder.define(DATA_FAREWELL, false);
+        builder.define(DATA_RENDER_ANCHOR_X, Float.NaN);
+        builder.define(DATA_RENDER_ANCHOR_Y, Float.NaN);
+        builder.define(DATA_RENDER_ANCHOR_Z, Float.NaN);
     }
 
     @Override
@@ -350,8 +352,8 @@ public class MaidSpiritEntity extends EntityMaid {
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yaw, float pitch, int positionRotationIncrements, boolean teleport) {
-        super.lerpTo(x, y, z, yaw, pitch, positionRotationIncrements, teleport);
+    public void lerpTo(double x, double y, double z, float yaw, float pitch, int positionRotationIncrements) {
+        super.lerpTo(x, y, z, yaw, pitch, positionRotationIncrements);
         this.baseY = y;
     }
 
@@ -472,7 +474,6 @@ public class MaidSpiritEntity extends EntityMaid {
         return false;
     }
 
-    @Override
     public boolean canBeLeashed(Player player) {
         return false;
     }
@@ -572,8 +573,8 @@ public class MaidSpiritEntity extends EntityMaid {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
+        return new ClientboundAddEntityPacket(this, serverEntity);
     }
 
     private void tickLanternFollow() {
@@ -705,7 +706,6 @@ public class MaidSpiritEntity extends EntityMaid {
         return state.getCollisionShape(level, pos).isEmpty();
     }
 
-    @Override
     public double getMeleeAttackRangeSqr(net.minecraft.world.entity.LivingEntity target) {
         return 0.0D;
     }
@@ -738,7 +738,7 @@ public class MaidSpiritEntity extends EntityMaid {
             return null;
         }
         try {
-            return Component.Serializer.fromJson(nameJson);
+            return ComponentJsonUtil.fromJson(nameJson, net.minecraft.client.Minecraft.getInstance().level.registryAccess());
         } catch (Exception ignored) {
             return null;
         }

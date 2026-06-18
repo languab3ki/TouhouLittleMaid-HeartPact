@@ -1,5 +1,11 @@
 package com.example.maidmarriage.network.payload;
 
+import org.jetbrains.annotations.NotNull;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import com.example.maidmarriage.MaidMarriageMod;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,7 +17,10 @@ import net.minecraft.network.FriendlyByteBuf;
  * 可选携带一个女仆 UUID（表示玩家当前准星选中的女仆），
  * 若未携带则服务端会自动查找一个可摸头的坐姿女仆。
  */
-public class PetHeadPayload {
+public class PetHeadPayload implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PetHeadPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "PetHead".replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT)));
+    public static final StreamCodec<RegistryFriendlyByteBuf, PetHeadPayload> STREAM_CODEC = StreamCodec.ofMember(PetHeadPayload::encode, PetHeadPayload::decode);
+
     @Nullable
     private final UUID maidUuid;
 
@@ -42,4 +51,10 @@ public class PetHeadPayload {
         boolean hasMaid = buf.readBoolean();
         return new PetHeadPayload(hasMaid ? buf.readUUID() : null);
     }
+
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
 }

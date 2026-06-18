@@ -255,7 +255,7 @@ public final class HugDialogueTextPools {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             for (String language : DialogueLocaleResolver.fallbackLanguages()) {
-                ResourceLocation file = new ResourceLocation(
+                ResourceLocation file = ResourceLocation.fromNamespaceAndPath(
                         "maidmarriage",
                         "dialogue/" + language + "/pools/" + resourcePath
                 );
@@ -276,16 +276,16 @@ public final class HugDialogueTextPools {
         try (InputStream stream = HugDialogueTextPools.class.getResourceAsStream(legacyPath)) {
             if (stream == null) {
                 LOGGER.warn("Cannot find dialogue pool resource {}", legacyPath);
-                return new LoadedPoolResource(new ResourceLocation("maidmarriage", POOL_ROOT + resourcePath), new JsonObject());
+                return new LoadedPoolResource(ResourceLocation.fromNamespaceAndPath("maidmarriage", POOL_ROOT + resourcePath), new JsonObject());
             }
             JsonObject root = GSON.fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), JsonObject.class);
             return new LoadedPoolResource(
-                    new ResourceLocation("maidmarriage", POOL_ROOT + resourcePath),
+                    ResourceLocation.fromNamespaceAndPath("maidmarriage", POOL_ROOT + resourcePath),
                     root == null ? new JsonObject() : root
             );
         } catch (Exception exception) {
             LOGGER.warn("Failed to load dialogue pool resource {}", legacyPath, exception);
-            return new LoadedPoolResource(new ResourceLocation("maidmarriage", POOL_ROOT + resourcePath), new JsonObject());
+            return new LoadedPoolResource(ResourceLocation.fromNamespaceAndPath("maidmarriage", POOL_ROOT + resourcePath), new JsonObject());
         }
     }
 

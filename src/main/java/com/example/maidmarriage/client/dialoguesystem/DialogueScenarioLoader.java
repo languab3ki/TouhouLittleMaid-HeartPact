@@ -28,7 +28,7 @@ public final class DialogueScenarioLoader {
     }
 
     public static DialogueScenario load(ResourceLocation id) {
-        ResourceLocation resolvedId = id == null ? new ResourceLocation("maidmarriage", "hug_menu_v2") : id;
+        ResourceLocation resolvedId = id == null ? ResourceLocation.fromNamespaceAndPath("maidmarriage", "hug_menu_v2") : id;
         String language = DialogueLocaleResolver.currentLanguage();
         return CACHE.computeIfAbsent(new CacheKey(resolvedId, language), key -> readScenario(key.id()));
     }
@@ -43,7 +43,7 @@ public final class DialogueScenarioLoader {
             return new DialogueScenario().normalize(id);
         }
         for (String language : DialogueLocaleResolver.fallbackLanguages()) {
-            ResourceLocation localizedFile = new ResourceLocation(
+            ResourceLocation localizedFile = ResourceLocation.fromNamespaceAndPath(
                     id.getNamespace(),
                     "dialogue/" + language + "/scenarios/" + id.getPath() + ".json"
             );
@@ -59,7 +59,7 @@ public final class DialogueScenarioLoader {
             }
         }
 
-        ResourceLocation legacyFile = new ResourceLocation(id.getNamespace(), "dialogue/scenarios/" + id.getPath() + ".json");
+        ResourceLocation legacyFile = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "dialogue/scenarios/" + id.getPath() + ".json");
         var optionalResource = minecraft.getResourceManager().getResource(legacyFile);
         if (optionalResource.isPresent()) {
             try (var reader = new InputStreamReader(optionalResource.get().open(), StandardCharsets.UTF_8)) {

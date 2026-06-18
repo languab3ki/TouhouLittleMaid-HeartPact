@@ -1,11 +1,10 @@
 package com.example.maidmarriage.item;
 
 import java.util.List;
-import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.Level;
+import com.example.maidmarriage.util.ItemStackDataUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -24,15 +23,15 @@ public class DescriptionItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.translatable(tooltipKey).withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.getBoolean(TAG_RING_USED)) {
+        CompoundTag tag = ItemStackDataUtil.copyCustomData(stack);
+        if (tag.getBoolean(TAG_RING_USED)) {
             return true;
         }
         return super.isFoil(stack);

@@ -1,0 +1,28 @@
+﻿{
+  "parent": "maidmarriage:spirit_soothe",
+  "display": {
+    "icon": {
+      "id": "minecraft:book"
+    },
+    "title": {
+      "translate": "advancements.maidmarriage.spirit_remember.title"
+    },
+    "description": {
+      "translate": "advancements.maidmarriage.spirit_remember.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ]
+}

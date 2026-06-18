@@ -20,11 +20,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 小女仆互动会话管理器。
@@ -38,7 +41,7 @@ import net.minecraftforge.fml.common.Mod;
  * <p>这样小女仆 UI 不再走“按键后客户端本地直接开屏”的临时路线，
  * 行为会和拥抱 UI 一样稳定：目标固定、位置固定、服务端权威。
  */
-@Mod.EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public final class ChildInteractionManager {
     private static final double AUTO_SELECT_RANGE_SQR = 16 * 16;
     private static final double START_DISTANCE_SQR = 2.25D * 2.25D;
@@ -169,11 +172,11 @@ public final class ChildInteractionManager {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (!(event.player instanceof ServerPlayer player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 

@@ -36,13 +36,58 @@ import net.minecraft.world.entity.player.Player;
  * 避免对 YSM 建立编译期依赖。
  */
 public final class YsmRuntimeHugPoseBridge {
+    private static final String ANIMATABLE_ENTITY_GETTER = "ooo00OoO00OOOO0oOooOo0Oo";
+    private static final String ANIMATABLE_RUNTIME_GETTER = "O00OOOo00Oo0OO0000oOo0oo";
     private static final String WRAPPER_ENTITY_GETTER = "OOO00Oo0OoOOooO0O0O00o0O";
     private static final String WRAPPER_MODEL_GETTER = "o0oo00OOooo0oooOoooo00O0";
     private static final String MODEL_BONES_GETTER = "Oooo0O0OO0O0000Oooo0Oo0o";
     private static final String BONE_NAME_GETTER = "oo0O0oOo0OOOO0O0OOOoo0oo";
+    private static final String RUNTIME_BONES_GETTER = "OO000o0ooOooooOOOOO0Ooo0";
+    private static final String RUNTIME_BONE_NAME_GETTER = "OOO0oooOOo00OOooo0OooOOo";
     private static final String BONE_ROT_X_METHOD = "O0OOOoOooOO0OO0o00OoO0O0";
     private static final String BONE_ROT_Y_METHOD = "ooOooO0OOo00O0oooo000oOO";
     private static final String BONE_ROT_Z_METHOD = "Oooo0O0OO0O0000Oooo0Oo0o";
+    private static final String RUNTIME_BONE_ROT_X_METHOD = "oOo0OO0O0o000OO0O000oo0o";
+    private static final String RUNTIME_BONE_ROT_Y_METHOD = "oOoo00O0o0oO0o0oO00OO0O0";
+    private static final String RUNTIME_BONE_ROT_Z_METHOD = "OO000o0ooOooooOOOOO0Ooo0";
+
+    /*
+     * YSM 抱小女仆是第三套独立默认值。
+     *
+     * Forge 版里 CarryChildPoseDebug 只管 GeckoLib / 东方(Bedrock) 两条普通模型链路；
+     * YSM 的视觉位置来自 YsmLiftHeightDebug，骨骼姿态来自本桥运行时覆写。
+     * 因此这里不要读取 CarryChildPoseDebug，也不要把 Gecko 的 190 度新参数套到 YSM 上。
+     */
+    private static final float YSM_CARRIED_CHILD_ROOT_ROT_X = 180.0F;
+    private static final float YSM_CARRIED_CHILD_ROOT_ROT_Y = -90.0F;
+    private static final float YSM_CARRIED_CHILD_ROOT_ROT_Z = -100.0F;
+    private static final float YSM_CARRIED_CHILD_BODY_ROT_X = -14.0F;
+    private static final float YSM_CARRIED_CHILD_HEAD_ROT_X = 14.0F;
+    private static final float YSM_CARRIED_CHILD_ARM_ROT_X = -10.0F;
+    private static final float YSM_CARRIED_CHILD_ARM_SWING_Y = 24.0F;
+    private static final float YSM_CARRIED_CHILD_ARM_SWING_Z = 6.0F;
+    private static final float YSM_CARRIED_CHILD_FOREARM_ROT_X = -36.0F;
+    private static final float YSM_CARRIED_CHILD_LEG_ROT_X = 14.0F;
+    private static final float YSM_CARRIED_CHILD_LEG_SWING_Y = 4.0F;
+    private static final float YSM_CARRIED_CHILD_LEG_SWING_Z = 2.0F;
+    private static final float YSM_CARRIED_CHILD_LOWER_LEG_ROT_X = 12.0F;
+
+    private static final float YSM_ADULT_CARRY_ROOT_ROT_X = 0.06F;
+    private static final float YSM_ADULT_CARRY_UP_BODY_ROT_X = 0.10F;
+    private static final float YSM_ADULT_CARRY_UPPER_BODY_ROT_X = 0.12F;
+    private static final float YSM_ADULT_CARRY_HEAD_ROT_X = -0.02F;
+    private static final float YSM_ADULT_CARRY_NECK_ROT_X = 0.04F;
+    private static final float YSM_ADULT_CARRY_SHOULDER_ROT_X = 0.08F;
+    private static final float YSM_ADULT_CARRY_SHOULDER_ROT_Y = 0.08F;
+    private static final float YSM_ADULT_CARRY_SHOULDER_ROT_Z = 0.14F;
+    private static final float YSM_ADULT_CARRY_ARM_ROT_X = 0.94F;
+    private static final float YSM_ADULT_CARRY_ARM_ROT_Y = 0.06F;
+    private static final float YSM_ADULT_CARRY_ARM_ROT_Z = 0.26F;
+    private static final float YSM_ADULT_CARRY_FOREARM_ROT_X = 0.76F;
+    private static final float YSM_ADULT_CARRY_FOREARM_ROT_Y = 0.14F;
+    private static final float YSM_ADULT_CARRY_FOREARM_ROT_Z = 0.08F;
+    private static final float YSM_ADULT_CARRY_LEG_ROT_Z = 0.03F;
+    private static final float YSM_ADULT_CARRY_SKIRT_ROT_X = -0.03F;
 
     private YsmRuntimeHugPoseBridge() {
     }
@@ -196,12 +241,7 @@ public final class YsmRuntimeHugPoseBridge {
                 return;
             }
 
-            Object model = invokeNoArg(ysmWrapper, WRAPPER_MODEL_GETTER);
-            if (model == null) {
-                return;
-            }
-
-            Map<String, Object> bones = collectBones(model);
+            Map<String, Object> bones = collectBones(ysmWrapper);
             if (bones.isEmpty()) {
                 return;
             }
@@ -287,26 +327,26 @@ public final class YsmRuntimeHugPoseBridge {
      * 只改手臂是不够的，腿部仍会保持坐姿，所以这里把下半身也一起作为“最终姿态”覆写。
      */
     private static void applyAdultCarryPose(Map<String, Object> bones) throws Exception {
-        setBoneRotationAny(bones, 0.06f, 0.0f, 0.0f, "AllBody", "Root", "root", "Body", "body");
-        setBoneRotationAny(bones, 0.10f, 0.0f, 0.0f, "UpBody", "upBody");
-        setBoneRotationAny(bones, 0.12f, 0.0f, 0.0f, "UpperBody", "upperBody");
-        setBoneRotationAny(bones, -0.02f, 0.0f, 0.0f, "Head", "head");
-        setBoneRotationAny(bones, 0.04f, 0.0f, 0.0f, "Neck", "neck");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_ROOT_ROT_X, 0.0F, 0.0F, "AllBody", "Root", "root", "Body", "body");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_UP_BODY_ROT_X, 0.0F, 0.0F, "UpBody", "upBody");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_UPPER_BODY_ROT_X, 0.0F, 0.0F, "UpperBody", "upperBody");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_HEAD_ROT_X, 0.0F, 0.0F, "Head", "head");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_NECK_ROT_X, 0.0F, 0.0F, "Neck", "neck");
 
-        setBoneRotationAny(bones, 0.08f, 0.08f, -0.14f, "LeftShoulder", "leftShoulder");
-        setBoneRotationAny(bones, 0.08f, -0.08f, 0.14f, "RightShoulder", "rightShoulder");
-        setBoneRotationAny(bones, 0.94f, 0.06f, -0.26f, "LeftArm", "leftArm", "armLeft", "ArmLeft", "left_arm");
-        setBoneRotationAny(bones, 0.94f, -0.06f, 0.26f, "RightArm", "rightArm", "armRight", "ArmRight", "right_arm");
-        setBoneRotationAny(bones, 0.76f, 0.14f, 0.08f, "LeftForeArm", "leftForeArm", "foreArmLeft", "left_fore_arm", "armLeft2");
-        setBoneRotationAny(bones, 0.76f, -0.14f, -0.08f, "RightForeArm", "rightForeArm", "foreArmRight", "right_fore_arm", "armRight2");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_SHOULDER_ROT_X, YSM_ADULT_CARRY_SHOULDER_ROT_Y, -YSM_ADULT_CARRY_SHOULDER_ROT_Z, "LeftShoulder", "leftShoulder");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_SHOULDER_ROT_X, -YSM_ADULT_CARRY_SHOULDER_ROT_Y, YSM_ADULT_CARRY_SHOULDER_ROT_Z, "RightShoulder", "rightShoulder");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_ARM_ROT_X, YSM_ADULT_CARRY_ARM_ROT_Y, -YSM_ADULT_CARRY_ARM_ROT_Z, "LeftArm", "leftArm", "armLeft", "ArmLeft", "left_arm");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_ARM_ROT_X, -YSM_ADULT_CARRY_ARM_ROT_Y, YSM_ADULT_CARRY_ARM_ROT_Z, "RightArm", "rightArm", "armRight", "ArmRight", "right_arm");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_FOREARM_ROT_X, YSM_ADULT_CARRY_FOREARM_ROT_Y, YSM_ADULT_CARRY_FOREARM_ROT_Z, "LeftForeArm", "leftForeArm", "foreArmLeft", "left_fore_arm", "armLeft2");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_FOREARM_ROT_X, -YSM_ADULT_CARRY_FOREARM_ROT_Y, -YSM_ADULT_CARRY_FOREARM_ROT_Z, "RightForeArm", "rightForeArm", "foreArmRight", "right_fore_arm", "armRight2");
 
-        setBoneRotationAny(bones, 0.0f, 0.0f, -0.03f, "LeftLeg", "leftLeg", "legLeft", "LegLeft", "left_leg");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.03f, "RightLeg", "rightLeg", "legRight", "LegRight", "right_leg");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "LeftLowerLeg", "leftLowerLeg", "legLeft2", "left_lower_leg");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "RightLowerLeg", "rightLowerLeg", "legRight2", "right_lower_leg");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "LeftFoot", "leftFoot", "footLeft", "left_foot");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "RightFoot", "rightFoot", "footRight", "right_foot");
-        setBoneRotationAny(bones, -0.03f, 0.0f, 0.0f, "Skirt", "skirt");
+        setBoneRotationAny(bones, 0.0F, 0.0F, -YSM_ADULT_CARRY_LEG_ROT_Z, "LeftLeg", "leftLeg", "legLeft", "LegLeft", "left_leg");
+        setBoneRotationAny(bones, 0.0F, 0.0F, YSM_ADULT_CARRY_LEG_ROT_Z, "RightLeg", "rightLeg", "legRight", "LegRight", "right_leg");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "LeftLowerLeg", "leftLowerLeg", "legLeft2", "left_lower_leg");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "RightLowerLeg", "rightLowerLeg", "legRight2", "right_lower_leg");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "LeftFoot", "leftFoot", "footLeft", "left_foot");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "RightFoot", "rightFoot", "footRight", "right_foot");
+        setBoneRotationAny(bones, YSM_ADULT_CARRY_SKIRT_ROT_X, 0.0F, 0.0F, "Skirt", "skirt");
     }
 
     /**
@@ -317,23 +357,23 @@ public final class YsmRuntimeHugPoseBridge {
      * “横向被托抱”姿态。
      */
     private static void applyCarriedChildPose(Map<String, Object> bones) throws Exception {
-        setBoneRotationAny(bones, deg(180.0f), deg(-90.0f), deg(-100.0f), "Root", "root");
-        setBoneRotationAny(bones, deg(-14.0f), 0.0f, 0.0f, "AllBody", "allBody", "Body", "body");
-        setBoneRotationAny(bones, deg(-14.0f), 0.0f, 0.0f, "UpBody", "upBody");
-        setBoneRotationAny(bones, deg(-14.0f), 0.0f, 0.0f, "UpperBody", "upperBody");
-        setBoneRotationAny(bones, deg(14.0f), 0.0f, 0.0f, "Head", "head");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_ROOT_ROT_X), deg(YSM_CARRIED_CHILD_ROOT_ROT_Y), deg(YSM_CARRIED_CHILD_ROOT_ROT_Z), "Root", "root");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_BODY_ROT_X), 0.0F, 0.0F, "AllBody", "allBody", "Body", "body");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_BODY_ROT_X), 0.0F, 0.0F, "UpBody", "upBody");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_BODY_ROT_X), 0.0F, 0.0F, "UpperBody", "upperBody");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_HEAD_ROT_X), 0.0F, 0.0F, "Head", "head");
 
-        setBoneRotationAny(bones, deg(-10.0f), deg(24.0f), deg(-6.0f), "LeftArm", "leftArm", "armLeft", "ArmLeft", "left_arm");
-        setBoneRotationAny(bones, deg(-10.0f), deg(-24.0f), deg(6.0f), "RightArm", "rightArm", "armRight", "ArmRight", "right_arm");
-        setBoneRotationAny(bones, deg(-36.0f), 0.0f, 0.0f, "LeftForeArm", "leftForeArm", "foreArmLeft", "left_fore_arm", "armLeft2");
-        setBoneRotationAny(bones, deg(-36.0f), 0.0f, 0.0f, "RightForeArm", "rightForeArm", "foreArmRight", "right_fore_arm", "armRight2");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_ARM_ROT_X), deg(YSM_CARRIED_CHILD_ARM_SWING_Y), deg(-YSM_CARRIED_CHILD_ARM_SWING_Z), "LeftArm", "leftArm", "armLeft", "ArmLeft", "left_arm");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_ARM_ROT_X), deg(-YSM_CARRIED_CHILD_ARM_SWING_Y), deg(YSM_CARRIED_CHILD_ARM_SWING_Z), "RightArm", "rightArm", "armRight", "ArmRight", "right_arm");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_FOREARM_ROT_X), 0.0F, 0.0F, "LeftForeArm", "leftForeArm", "foreArmLeft", "left_fore_arm", "armLeft2");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_FOREARM_ROT_X), 0.0F, 0.0F, "RightForeArm", "rightForeArm", "foreArmRight", "right_fore_arm", "armRight2");
 
-        setBoneRotationAny(bones, deg(14.0f), deg(4.0f), deg(-2.0f), "LeftLeg", "leftLeg", "legLeft", "LegLeft", "left_leg");
-        setBoneRotationAny(bones, deg(14.0f), deg(-4.0f), deg(2.0f), "RightLeg", "rightLeg", "legRight", "LegRight", "right_leg");
-        setBoneRotationAny(bones, deg(12.0f), 0.0f, 0.0f, "LeftLowerLeg", "leftLowerLeg", "legLeft2", "left_lower_leg");
-        setBoneRotationAny(bones, deg(12.0f), 0.0f, 0.0f, "RightLowerLeg", "rightLowerLeg", "legRight2", "right_lower_leg");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "LeftFoot", "leftFoot", "footLeft", "left_foot");
-        setBoneRotationAny(bones, 0.0f, 0.0f, 0.0f, "RightFoot", "rightFoot", "footRight", "right_foot");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_LEG_ROT_X), deg(YSM_CARRIED_CHILD_LEG_SWING_Y), deg(-YSM_CARRIED_CHILD_LEG_SWING_Z), "LeftLeg", "leftLeg", "legLeft", "LegLeft", "left_leg");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_LEG_ROT_X), deg(-YSM_CARRIED_CHILD_LEG_SWING_Y), deg(YSM_CARRIED_CHILD_LEG_SWING_Z), "RightLeg", "rightLeg", "legRight", "LegRight", "right_leg");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_LOWER_LEG_ROT_X), 0.0F, 0.0F, "LeftLowerLeg", "leftLowerLeg", "legLeft2", "left_lower_leg");
+        setBoneRotationAny(bones, deg(YSM_CARRIED_CHILD_LOWER_LEG_ROT_X), 0.0F, 0.0F, "RightLowerLeg", "rightLowerLeg", "legRight2", "right_lower_leg");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "LeftFoot", "leftFoot", "footLeft", "left_foot");
+        setBoneRotationAny(bones, 0.0F, 0.0F, 0.0F, "RightFoot", "rightFoot", "footRight", "right_foot");
     }
 
     /**
@@ -773,12 +813,33 @@ public final class YsmRuntimeHugPoseBridge {
     }
 
     private static EntityMaid resolveMaid(Object ysmWrapper) throws Exception {
-        Object entity = invokeNoArg(ysmWrapper, WRAPPER_ENTITY_GETTER);
+        /*
+         * YSM 2.6.5 把原来的 wrapper 换成了 animatable，实体 getter 也随之改名。
+         * 这里保留旧 Forge 路径作为回退，方便同一套桥继续兼容旧参数和旧结构。
+         */
+        Object entity = invokeNoArgOrNull(ysmWrapper, ANIMATABLE_ENTITY_GETTER);
+        if (entity == null) {
+            entity = invokeNoArg(ysmWrapper, WRAPPER_ENTITY_GETTER);
+        }
         return entity instanceof EntityMaid maid ? maid : null;
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> collectBones(Object ysmModel) throws Exception {
+    private static Map<String, Object> collectBones(Object ysmObject) throws Exception {
+        /*
+         * 新版 YSM 2.6.5：animatable -> runtime -> Int2ReferenceMap<runtimeBone>。
+         * 旧版 Forge：wrapper -> model -> Map<?, bone>。
+         * 两条路最后都整理成“骨骼名 -> 运行时骨骼对象”，上层动作参数不用分叉。
+         */
+        Map<String, Object> runtimeBones = collectRuntimeBones(ysmObject);
+        if (!runtimeBones.isEmpty()) {
+            return runtimeBones;
+        }
+
+        Object ysmModel = invokeNoArgOrNull(ysmObject, WRAPPER_MODEL_GETTER);
+        if (ysmModel == null) {
+            return Map.of();
+        }
         Object rawMap = invokeNoArg(ysmModel, MODEL_BONES_GETTER);
         if (!(rawMap instanceof Map<?, ?> map)) {
             return Map.of();
@@ -798,6 +859,30 @@ public final class YsmRuntimeHugPoseBridge {
         return result;
     }
 
+    private static Map<String, Object> collectRuntimeBones(Object ysmObject) throws Exception {
+        Object runtime = invokeNoArgOrNull(ysmObject, ANIMATABLE_RUNTIME_GETTER);
+        if (runtime == null) {
+            return Map.of();
+        }
+        Object rawMap = invokeNoArg(runtime, RUNTIME_BONES_GETTER);
+        if (!(rawMap instanceof Map<?, ?> map)) {
+            return Map.of();
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        Collection<?> values = map.values();
+        for (Object bone : values) {
+            if (bone == null) {
+                continue;
+            }
+            Object rawName = invokeNoArg(bone, RUNTIME_BONE_NAME_GETTER);
+            if (rawName instanceof String name && !name.isEmpty()) {
+                result.putIfAbsent(name, bone);
+            }
+        }
+        return result;
+    }
+
     /**
      * 绝对覆写单根骨骼的最终旋转。
      *
@@ -810,9 +895,23 @@ public final class YsmRuntimeHugPoseBridge {
         if (bone == null) {
             return;
         }
-        invokeFloat(bone, BONE_ROT_X_METHOD, rotX);
-        invokeFloat(bone, BONE_ROT_Y_METHOD, rotY);
-        invokeFloat(bone, BONE_ROT_Z_METHOD, rotZ);
+        if (invokeFloatIfPresent(bone, BONE_ROT_X_METHOD, rotX)
+                & invokeFloatIfPresent(bone, BONE_ROT_Y_METHOD, rotY)
+                & invokeFloatIfPresent(bone, BONE_ROT_Z_METHOD, rotZ)) {
+            return;
+        }
+
+        /*
+         * YSM 2.6.5 的 runtime bone 使用 12 个连续 float 保存每根骨骼状态。
+         * 反编译 oOoOoO0OoOoOOoOO00O000O0 后可以确认：
+         * - 0/1/2 槽由模型骨骼默认旋转初始化，对应最终旋转；
+         * - 6/7/8 槽在构造函数里固定初始化为 1/1/1，更像缩放槽。
+         *
+         * 之前误写 6/7/8 会把旋转弧度写进缩放，YSM 模型会直接被压没或翻到不可见。
+         */
+        invokeFloat(bone, RUNTIME_BONE_ROT_X_METHOD, rotX);
+        invokeFloat(bone, RUNTIME_BONE_ROT_Y_METHOD, rotY);
+        invokeFloat(bone, RUNTIME_BONE_ROT_Z_METHOD, rotZ);
     }
 
     /**
@@ -839,9 +938,26 @@ public final class YsmRuntimeHugPoseBridge {
         return method.invoke(target);
     }
 
+    private static Object invokeNoArgOrNull(Object target, String methodName) {
+        try {
+            return invokeNoArg(target, methodName);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
     private static void invokeFloat(Object target, String methodName, float value) throws Exception {
         Method method = target.getClass().getMethod(methodName, float.class);
         method.setAccessible(true);
         method.invoke(target, value);
+    }
+
+    private static boolean invokeFloatIfPresent(Object target, String methodName, float value) {
+        try {
+            invokeFloat(target, methodName, value);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 }

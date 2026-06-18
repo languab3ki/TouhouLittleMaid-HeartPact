@@ -14,10 +14,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 客户端膝枕同步状态。
@@ -25,7 +28,7 @@ import net.minecraftforge.fml.common.Mod;
  * <p>服务端负责真实锁位与校验；客户端这里只保存“谁正在膝枕”和“摸头动作还剩多久”，
  * 供 UI 条件和模型动作桥读取。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class LapPillowClientState {
     private static final Map<UUID, UUID> PLAYER_TO_MAID = new ConcurrentHashMap<>();
     private static final Map<UUID, UUID> MAID_TO_PLAYER = new ConcurrentHashMap<>();
@@ -78,11 +81,8 @@ public final class LapPillowClientState {
      * forcedPose 只影响渲染表现；真实实体状态仍保持普通交互状态，避免剧情面板被隐藏。
      */
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        Minecraft minecraft = Minecraft.getInstance();
+    public static void onClientTick(ClientTickEvent.Post event) {
+                Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             clear();
             return;
@@ -95,7 +95,12 @@ public final class LapPillowClientState {
                 clear();
                 return;
             }
-            minecraft.player.setForcedPose(Pose.SLEEPING);
+            /*
+             * 隐藏 UI 时要让玩家回到真正的自由转头状态。
+             * 膝枕画面本身仍由渲染期 mixin 桥接成睡姿；这里不要在自由视角模式下持续写 forcedPose，
+             * 否则原版相机仍会按睡眠姿态限制视角。
+             */
+            minecraft.player.setForcedPose(HugActionScreen.isCompactLookMode() ? null : Pose.SLEEPING);
             while (RhythmKeyMappings.LAP_PILLOW_EXIT.consumeClick()) {
                 ModNetworking.sendLapPillowAction(new LapPillowActionPayload(LapPillowActionPayload.ACTION_EXIT, null));
                 clear();
@@ -243,7 +248,7 @@ public final class LapPillowClientState {
     private static void applyForcedPoseIfLocal(UUID playerUuid) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && playerUuid.equals(minecraft.player.getUUID())) {
-            minecraft.player.setForcedPose(Pose.SLEEPING);
+            minecraft.player.setForcedPose(HugActionScreen.isCompactLookMode() ? null : Pose.SLEEPING);
         }
     }
 

@@ -17,7 +17,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 
 public class MaidMarriageConfigScreen extends Screen {
     private final Screen parent;
@@ -271,16 +271,14 @@ public class MaidMarriageConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        ScreenBackgrounds.renderInWorld(graphics, this.width, this.height);
 
         int panelLeft = this.width / 2 - 176;
         int panelRight = this.width / 2 + 176;
         int panelTop = this.height / 6;
         int panelBottom = panelTop + 280;
 
-        graphics.fill(panelLeft, panelTop, panelRight, panelBottom, 0xCC14121E);
-        graphics.fill(panelLeft, panelTop, panelRight, panelTop + 20, 0xEE201A33);
-        graphics.fill(panelLeft + 8, panelTop + 50, panelRight - 8, panelBottom - 26, 0x55272735);
+        graphics.fill(panelLeft, panelTop, panelRight, panelTop + 20, 0xAA201A33);
         if (activePage == Page.GENERAL && maidAddressingBox != null && maidAddressingBox.visible) {
             graphics.drawString(this.font, Component.translatable("config.maidmarriage.maid_addressing"),
                     maidAddressingBox.getX(), maidAddressingBox.getY() - 10, 0xFFD8D0EB, false);
@@ -341,6 +339,26 @@ public class MaidMarriageConfigScreen extends Screen {
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
     }
 
     private void resetToDefaults() {

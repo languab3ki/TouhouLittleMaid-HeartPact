@@ -10,6 +10,7 @@ import com.example.maidmarriage.data.PregnancyData;
 import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.init.ModItems;
 import com.example.maidmarriage.item.MarriageConsentFormItem;
+import com.example.maidmarriage.util.ItemStackDataUtil;
 import com.mojang.authlib.GameProfile;
 import com.github.tartaricacid.touhoulittlemaid.api.event.InteractMaidEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -45,12 +47,15 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.IItemHandler;
+import net.minecraft.world.item.component.ItemLore;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.IItemHandler;
 
 public final class MarriageEventHandler {
     private static final String TAG_PLAYER_PRIMARY_MAID = "maidmarriage_primary_maid";
@@ -593,19 +598,17 @@ public final class MarriageEventHandler {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+                if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (event.player.level().isClientSide()) {
-            return;
-        }
-        UUID playerId = event.player.getUUID();
+        Player player = event.getEntity();
+        UUID playerId = player.getUUID();
         Integer elapsed = PROPOSAL_PUNISH_ACTIVE.get(playerId);
         if (elapsed == null) {
             return;
         }
-        if (!event.player.isAlive()) {
+        if (!player.isAlive()) {
             PROPOSAL_PUNISH_ACTIVE.remove(playerId);
             return;
         }
@@ -614,20 +617,20 @@ public final class MarriageEventHandler {
         if (nextElapsed % PROPOSAL_PUNISH_STRIKE_INTERVAL_TICKS != 0) {
             return;
         }
-        float currentHealth = event.player.getHealth();
+        float currentHealth = player.getHealth();
         if (currentHealth <= PROPOSAL_PUNISH_TARGET_HEALTH) {
             PROPOSAL_PUNISH_ACTIVE.remove(playerId);
             return;
         }
-        if (event.player.level() instanceof ServerLevel level) {
-            summonProposalPunishLightning(level, event.player, false);
+        if (player.level() instanceof ServerLevel level) {
+            summonProposalPunishLightning(level, player, false);
         }
-        applyProposalFreezeEffect(event.player);
+        applyProposalFreezeEffect(player);
         float damage = currentHealth > PROPOSAL_PUNISH_HEALTH_THRESHOLD
                 ? currentHealth * PROPOSAL_PUNISH_DAMAGE_RATIO
                 : PROPOSAL_PUNISH_DAMAGE_LOW_HEALTH;
         float nextHealth = Math.max(PROPOSAL_PUNISH_TARGET_HEALTH, currentHealth - damage);
-        event.player.setHealth(nextHealth);
+        player.setHealth(nextHealth);
         if (nextHealth <= PROPOSAL_PUNISH_TARGET_HEALTH) {
             PROPOSAL_PUNISH_ACTIVE.remove(playerId);
         }
@@ -763,8 +766,16 @@ public final class MarriageEventHandler {
         return true;
     }
     /**
-     * 闁汇垹鐤囬顒佺▕閿旂虎鍎戝☉鎾亾婵縿鍎荤槐鐗堢▔鐠佽櫕鐪介悗闈涙贡濞蹭即寮介崶褏鎽嶅ù鐙呯到閵堣櫕绂掗崱娆愮０缂佹梻濯寸槐婵堟媼閺夎法绉跨€垫澘鎳愪簺濞存嚎鍊曢顔炬寬鎺抽埀?     *
-     * @param player 鐟滅増鎸告晶鐘虫媴鐠恒劍鏆忛柣銏犵枃椤曨剚绋婇敂鐐暠闁绘壕鏅涢宥夋晬閸綆娲ｆ慨鐟板€瑰Σ鍛婄附閸忓懐鐭庡☉鎾诡唺濮瑰鏁?     * @param maid   閻炴凹鍋婇埀顒€顦懙鎴︽儍閸曨偆鎽嶅ù鐙呯到閵堣櫕绂?     * @return 濠殿喖顑囩划鎾存交閺傛寧绀€ true闁挎稑鐭侀妴鍐矆妤﹁法绠规繛鍡忊偓鍙夊攭濞存粍甯掗崙锟犳偨鏉堚晜鏆ら悹鍥腹閸旂喐寰勯崟顓熷€?     */
+     * 处理“婚约同意书”第一次右键女仆的流程。
+     *
+     * <p>只有当前主人可以选择已经成年的子代女仆；选择成功后会把女仆 UUID 和显示名写入申请书的
+     * {@code CUSTOM_DATA}，第二步再由主人右键目标玩家完成移交。
+     *
+     * @param player 当前持有申请书的玩家
+     * @param maid   被选择的子代女仆
+     * @param stack  婚约同意书物品栈
+     * @return 返回 true 表示本次交互已经被心契同眠处理，外层不再继续执行默认互动
+     */
     private static boolean handleMarriageConsentMaidSelection(net.minecraft.world.entity.player.Player player, EntityMaid maid, ItemStack stack) {
         if (!maid.isOwnedBy(player)) {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.consent.need_owner", maid.getDisplayName()));
@@ -784,8 +795,17 @@ public final class MarriageEventHandler {
     }
 
     /**
-     * 闁汇垹鐤囬顒佺▕閿旂虎鍎戝ù婊冩湰椤掔偤鏁嶅顐㈢槣濞存粌鎼顕€鎯勯鐣屽灱闁绘壕鏅涢宥囨兜椤旀鍚囬柟鍝勭墛濞煎牓鏁嶇仦鍊熷珯缂佹柨顑呭畵鍡欑矓鐠佽櫕鍞夊┑鍌氬帠缁繘骞嶉埀顒勫嫉婢跺缍€闁?     * 缂佸顔婂锕傚籍閺堢數绐楅梺鎻掔Ф閻ゅ棙绺介崗鍛煄濠靛倽濮ら崝鍛▔鎼粹槅鐓煎┑顔垮吹婵悂骞€娓氬﹦绀夌痪顓у枙缁绘岸宕ユ惔锝囨暰闊洤鎳橀妴蹇涙煂瀹ュ棙鐓€闁糕晝鎳撻崥鍥礃瀹ュ棛婀村┑鐘冲搸閳?     *
-     * @param owner  闁告鍠嶇€靛本绂?     * @param target 闁哄倿顣︾€靛本绂嶉崫鍕ㄥ亾濞嗘挴鍋撴径灞借礋閻?     * @param stack  濞戞挾绮晶婊堟偨鐎圭媭鍤炲☉?     * @return 闁哄嫷鍨伴幆浣衡偓鐟版湰閸ㄦ碍寰勯崟顓熷€?     */
+     * 处理“婚约同意书”第二次右键目标玩家的流程。
+     *
+     * <p>这里会重新校验申请书中记录的女仆是否仍然存在、是否仍属于原主人、是否已经成年，
+     * 并阻止把子代女仆移交给她的父母。校验通过后才执行驯服目标玩家、清空旧婚姻数据、
+     * 刷新好感度和发送告别对话。
+     *
+     * @param owner  当前申请书持有人，也就是原主人
+     * @param target 被右键选择的新主人
+     * @param stack  婚约同意书物品栈
+     * @return 返回 true 表示本次交互已经被处理
+     */
     private static boolean handleMarriageConsentPlayerSelection(net.minecraft.world.entity.player.Player owner,
                                                                 net.minecraft.world.entity.player.Player target,
                                                                 ItemStack stack) {
@@ -857,7 +877,10 @@ public final class MarriageEventHandler {
     }
 
     /**
-     * 闁告帇鍊栭弻鍥蓟閹邦喖璐熼悗纭呭煐濡叉悂宕ラ敂鑺バ﹂悹鍥ュ劚閵堣櫕绂掗崱姘兼蕉闁汇垹鐤囬顒佺▕閿旇棄鎴块柡澶婂暢缁诲啴鎯冮崟顓熺獥闁哄秴娲ㄧ敮铏光偓纭呯堪閳?     * 閻犲洢鍎版穱濠囧箒椤栨瑧绋婂☉鎾跺劋閻増绻濆顒€顤呴悶娑掑亾濞存粍褰冮崹鐣屸偓瑙勬皑濞堟垿宕楀鍐亢闁谎嗘閹洟宕￠弴顏嗙濞戞挸绉甸弫濂稿矗濡吋绾紒顖涙椤㈠懏绂嶉懠棰濇綈闁告帗鐟﹀﹢浼寸叕椤愮姭鍋?     */
+     * 判断指定玩家是否已经被记录为同意接收这名女仆的新主人。
+     *
+     * <p>这个标记写在女仆持久化数据中，用来衔接移交流程和后续婚约/互动逻辑。
+     */
     private static boolean isConsentApprovedPlayer(EntityMaid maid, UUID playerUuid) {
         CompoundTag data = maid.getPersistentData();
         return data.hasUUID(TAG_CONSENT_APPROVED_PLAYER)
@@ -865,7 +888,10 @@ public final class MarriageEventHandler {
     }
 
     /**
-     * 閻犳亽鍔庡ǎ顔芥償閿旂晫鍙€闁归潧澧藉ú浼村冀閸パ佸仢濞寸姴妫庨埀?     * 闁汇垹鐤囬顒佺▕閿旂虎鍎戝ù婊冩湰椤掔偤鎮欓崷顓炶礋閻庣鍩栧鍌炴晬瀹€鍕粯閻熸洑妞掔划鐘诲礂閵婏附绠涚紓浣规綑鐎硅櫕绋夐鐐垫毎濞达絽绉堕鍥ㄧ▔閳ь剙顫㈤妷鈹惧亾婢跺鍘柣銊ュ閵堣櫕绂掗崱妤冩澖濞达絾鎸堕埀?     */
+     * 跨所有服务端维度查找指定 UUID 的女仆。
+     *
+     * <p>婚约同意书可能在不同维度使用，因此不能只查玩家当前所在世界。
+     */
     private static EntityMaid findMaidByUuid(MinecraftServer server, UUID maidUuid) {
         for (ServerLevel serverLevel : server.getAllLevels()) {
             Entity entity = serverLevel.getEntity(maidUuid);
@@ -902,7 +928,10 @@ public final class MarriageEventHandler {
     }
 
     /**
-     * 闁革负鍔岄崣蹇曠磼閺夋垵顔婂☉鎿冨幗閻擄繝骞嶉幆褏鏉藉ù锝嗘尭閼荤喐娼婚弬鎸庣闁哄嫬澧介妵姘跺触瀹ュ啠鍋?     * 闁哄啫绻楀銊╁蓟閵夘煈鍤勯柡鍐啇缁辨繈鎮ラ懜鐢垫Г/缂佷焦鐗炵欢銏ゅ矗椤栨繂鍘村☉鎾崇Т濠€顏囥亹閹惧啿顤呯紓浣规綑鐎规娊鏁嶇仦鐓庘枏闁活潿鍔忓▔鏇犵磼閺夋垵顔婃俊顐熷亾缂佷究鍨硅ぐ鍙夊濡搫甯ラ柡鍕⒔閵囨岸鎯囬悢椋庢澖闁告艾绉撮悺褔鎳撳畝鍕 UUID闁?     */
+     * 跨所有服务端维度解析实体显示名。
+     *
+     * <p>用于家谱/关系提示中的兜底显示：实体还加载时显示真实名称，找不到时再使用 UUID 简写。
+     */
     @Nullable
     private static Component resolveEntityDisplayNameFromAllLevels(MinecraftServer server, UUID entityUuid) {
         for (ServerLevel level : server.getAllLevels()) {
@@ -1075,24 +1104,21 @@ public final class MarriageEventHandler {
     }
 
     static boolean isRingUsed(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(TAG_RING_USED);
+        return ItemStackDataUtil.copyCustomData(stack).getBoolean(TAG_RING_USED);
     }
 
     static void engraveRing(ItemStack ring, net.minecraft.world.entity.player.Player player, EntityMaid maid) {
-        CompoundTag tag = ring.getOrCreateTag();
-        tag.putBoolean(TAG_RING_USED, true);
-        tag.putUUID(TAG_RING_PLAYER, player.getUUID());
-        tag.putUUID(TAG_RING_MAID, maid.getUUID());
+        ItemStackDataUtil.updateCustomData(ring, tag -> {
+            tag.putBoolean(TAG_RING_USED, true);
+            tag.putUUID(TAG_RING_PLAYER, player.getUUID());
+            tag.putUUID(TAG_RING_MAID, maid.getUUID());
+        });
 
-        ring.setHoverName(Component.translatable("item.maidmarriage.vow_ring"));
-        CompoundTag display = ring.getOrCreateTagElement("display");
-        ListTag lore = new ListTag();
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.translatable("item.maidmarriage.vow_ring.pair", player.getName(), maid.getName()))));
-        lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.translatable("item.maidmarriage.vow_ring.desc"))));
-        display.put("Lore", lore);
+        ring.set(DataComponents.CUSTOM_NAME, Component.translatable("item.maidmarriage.vow_ring"));
+        ring.set(DataComponents.LORE, new ItemLore(List.of(
+                Component.translatable("item.maidmarriage.vow_ring.pair", player.getName(), maid.getName()),
+                Component.translatable("item.maidmarriage.vow_ring.desc")
+        )));
     }
 
     static void giveRingToMaid(EntityMaid maid, ItemStack ring) {
@@ -1135,10 +1161,9 @@ public final class MarriageEventHandler {
                 || !existing.is(ModItems.PROPOSAL_RING.get()) || !expected.is(ModItems.PROPOSAL_RING.get())) {
             return false;
         }
-        CompoundTag existingTag = existing.getTag();
-        CompoundTag expectedTag = expected.getTag();
-        if (existingTag == null || expectedTag == null
-                || !existingTag.getBoolean(TAG_RING_USED) || !expectedTag.getBoolean(TAG_RING_USED)
+        CompoundTag existingTag = ItemStackDataUtil.copyCustomData(existing);
+        CompoundTag expectedTag = ItemStackDataUtil.copyCustomData(expected);
+        if (!existingTag.getBoolean(TAG_RING_USED) || !expectedTag.getBoolean(TAG_RING_USED)
                 || !existingTag.hasUUID(TAG_RING_PLAYER) || !expectedTag.hasUUID(TAG_RING_PLAYER)
                 || !existingTag.hasUUID(TAG_RING_MAID) || !expectedTag.hasUUID(TAG_RING_MAID)) {
             return false;

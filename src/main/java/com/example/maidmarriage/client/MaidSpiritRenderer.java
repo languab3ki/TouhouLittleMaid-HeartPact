@@ -61,12 +61,16 @@ public class MaidSpiritRenderer extends EntityMaidRenderer {
     }
 
     private static float renderScale(MaidChildEntity.GrowthStage stage) {
-        return switch (stage) {
-            case INFANT -> INFANT_RENDER_SCALE;
-            case JUVENILE -> JUVENILE_RENDER_SCALE;
-            case CHILD -> CHILD_RENDER_SCALE;
-            case ADULT -> 1.0F;
-        };
+        if (stage == MaidChildEntity.GrowthStage.INFANT) {
+            return INFANT_RENDER_SCALE;
+        }
+        if (stage == MaidChildEntity.GrowthStage.JUVENILE) {
+            return JUVENILE_RENDER_SCALE;
+        }
+        if (stage == MaidChildEntity.GrowthStage.CHILD) {
+            return CHILD_RENDER_SCALE;
+        }
+        return 1.0F;
     }
 
     @Override
@@ -102,54 +106,39 @@ public class MaidSpiritRenderer extends EntityMaidRenderer {
         }
 
         @Override
-        public VertexConsumer vertex(double x, double y, double z) {
-            delegate.vertex(x, y, z);
+        public VertexConsumer addVertex(float x, float y, float z) {
+            delegate.addVertex(x, y, z);
             return this;
         }
 
         @Override
-        public VertexConsumer color(int red, int green, int blue, int alpha) {
-            delegate.color(red, green, blue, Math.min(alpha, Math.round(alpha * alphaMultiplier)));
+        public VertexConsumer setColor(int red, int green, int blue, int alpha) {
+            delegate.setColor(red, green, blue, Math.min(alpha, Math.round(alpha * alphaMultiplier)));
             return this;
         }
 
         @Override
-        public VertexConsumer uv(float u, float v) {
-            delegate.uv(u, v);
+        public VertexConsumer setUv(float u, float v) {
+            delegate.setUv(u, v);
             return this;
         }
 
         @Override
-        public VertexConsumer overlayCoords(int u, int v) {
-            delegate.overlayCoords(u, v);
+        public VertexConsumer setUv1(int u, int v) {
+            delegate.setUv1(u, v);
             return this;
         }
 
         @Override
-        public VertexConsumer uv2(int u, int v) {
-            delegate.uv2(u, v);
+        public VertexConsumer setUv2(int u, int v) {
+            delegate.setUv2(u, v);
             return this;
         }
 
         @Override
-        public VertexConsumer normal(float x, float y, float z) {
-            delegate.normal(x, y, z);
+        public VertexConsumer setNormal(float x, float y, float z) {
+            delegate.setNormal(x, y, z);
             return this;
-        }
-
-        @Override
-        public void endVertex() {
-            delegate.endVertex();
-        }
-
-        @Override
-        public void defaultColor(int red, int green, int blue, int alpha) {
-            delegate.defaultColor(red, green, blue, Math.min(alpha, Math.round(alpha * alphaMultiplier)));
-        }
-
-        @Override
-        public void unsetDefaultColor() {
-            delegate.unsetDefaultColor();
         }
     }
 

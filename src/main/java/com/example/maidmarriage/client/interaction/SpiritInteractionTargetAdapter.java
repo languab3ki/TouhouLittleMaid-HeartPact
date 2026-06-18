@@ -13,8 +13,8 @@ import net.minecraft.world.entity.Entity;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 
 public final class SpiritInteractionTargetAdapter implements InteractionTargetAdapter {
-    public static final ResourceLocation TYPE = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit");
-    public static final ResourceLocation SCENARIO = new ResourceLocation(MaidMarriageMod.MOD_ID, "spirit_interaction_v1");
+    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit");
+    public static final ResourceLocation SCENARIO = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "spirit_interaction_v1");
     private static final double MOTHER_REUNION_DISTANCE = 10.0D;
     private static final double MOTHER_REUNION_DISTANCE_SQR = MOTHER_REUNION_DISTANCE * MOTHER_REUNION_DISTANCE;
 

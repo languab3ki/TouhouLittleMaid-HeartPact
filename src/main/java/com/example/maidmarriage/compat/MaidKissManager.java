@@ -17,8 +17,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * 亲密交互会话内的亲吻管理器。
@@ -143,11 +145,8 @@ public final class MaidKissManager {
      * 在亲吻后的短时间内维持“对视”，避免客户端插值造成的瞬间偏头。
      */
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        if (!ACTIVE_KISS.isEmpty()) {
+    public static void onServerTick(ServerTickEvent.Post event) {
+                if (!ACTIVE_KISS.isEmpty()) {
             var iterator = ACTIVE_KISS.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<UUID, KissSession> entry = iterator.next();

@@ -1,44 +1,44 @@
 package com.example.maidmarriage.config;
 
 import com.example.maidmarriage.compat.RelationshipThresholds;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ModConfigs {
     public static final double DEFAULT_LIFT_HEIGHT = 0.10D;
     public static final double MIN_LIFT_HEIGHT = -0.20D;
     public static final double MAX_LIFT_HEIGHT = 1.50D;
 
-    public static final ForgeConfigSpec SPEC;
-    private static final ForgeConfigSpec.BooleanValue HAREM_MODE;
-    private static final ForgeConfigSpec.IntValue REQUIRED_FAVORABILITY;
-    private static final ForgeConfigSpec.DoubleValue PREGNANCY_CHANCE;
-    private static final ForgeConfigSpec.IntValue PREGNANCY_BIRTH_DAYS;
-    private static final ForgeConfigSpec.IntValue CHILD_GROWTH_DAYS;
-    private static final ForgeConfigSpec.IntValue LONGING_DAYS;
-    private static final ForgeConfigSpec.BooleanValue CLINGY_MAID_ENABLED;
-    private static final ForgeConfigSpec.BooleanValue POSTPARTUM_RECOVERY_ENABLED;
-    private static final ForgeConfigSpec.ConfigValue<String> MAID_ADDRESSING;
-    private static final ForgeConfigSpec.ConfigValue<String> CHILD_MAID_ADDRESSING;
-    private static final ForgeConfigSpec.ConfigValue<String> DIALOGUE_SCRIPT_PATH;
-    private static final ForgeConfigSpec.BooleanValue HEART_PACT_VOICE_ENABLED;
-    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_VOICE_SCRIPT_NAME;
-    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_MAID_NAME;
-    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_CHILD_NAME;
-    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_NAME;
-    private static final ForgeConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_MAID_NAME;
-    private static final ForgeConfigSpec.DoubleValue HEART_PACT_VOICE_VOLUME;
-    private static final ForgeConfigSpec.EnumValue<RhythmHitKey> RHYTHM_HIT_KEY;
-    private static final ForgeConfigSpec.EnumValue<ActionKey> PET_HEAD_KEY;
-    private static final ForgeConfigSpec.EnumValue<ActionKey> INTERACTION_KEY;
-    private static final ForgeConfigSpec.BooleanValue RHYTHM_ALWAYS_SKIP;
-    private static final ForgeConfigSpec.DoubleValue LIFT_HEIGHT;
-    private static final ForgeConfigSpec.DoubleValue HUG_DISTANCE;
-    private static final ForgeConfigSpec.BooleanValue ENABLE_DEBUG_TOOLS;
-    private static final ForgeConfigSpec.BooleanValue SHOW_PREGNANCY_DEBUG_COUNTDOWN;
-    private static final ForgeConfigSpec.BooleanValue SHOW_UI_ACTION_DEBUG;
+    public static final ModConfigSpec SPEC;
+    private static final ModConfigSpec.BooleanValue HAREM_MODE;
+    private static final ModConfigSpec.IntValue REQUIRED_FAVORABILITY;
+    private static final ModConfigSpec.DoubleValue PREGNANCY_CHANCE;
+    private static final ModConfigSpec.IntValue PREGNANCY_BIRTH_DAYS;
+    private static final ModConfigSpec.IntValue CHILD_GROWTH_DAYS;
+    private static final ModConfigSpec.IntValue LONGING_DAYS;
+    private static final ModConfigSpec.BooleanValue CLINGY_MAID_ENABLED;
+    private static final ModConfigSpec.BooleanValue POSTPARTUM_RECOVERY_ENABLED;
+    private static final ModConfigSpec.ConfigValue<String> MAID_ADDRESSING;
+    private static final ModConfigSpec.ConfigValue<String> CHILD_MAID_ADDRESSING;
+    private static final ModConfigSpec.ConfigValue<String> DIALOGUE_SCRIPT_PATH;
+    private static final ModConfigSpec.BooleanValue HEART_PACT_VOICE_ENABLED;
+    private static final ModConfigSpec.ConfigValue<String> HEART_PACT_VOICE_SCRIPT_NAME;
+    private static final ModConfigSpec.ConfigValue<String> HEART_PACT_TTS_MAID_NAME;
+    private static final ModConfigSpec.ConfigValue<String> HEART_PACT_TTS_CHILD_NAME;
+    private static final ModConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_NAME;
+    private static final ModConfigSpec.ConfigValue<String> HEART_PACT_TTS_PLAYER_MAID_NAME;
+    private static final ModConfigSpec.DoubleValue HEART_PACT_VOICE_VOLUME;
+    private static final ModConfigSpec.EnumValue<RhythmHitKey> RHYTHM_HIT_KEY;
+    private static final ModConfigSpec.EnumValue<ActionKey> PET_HEAD_KEY;
+    private static final ModConfigSpec.EnumValue<ActionKey> INTERACTION_KEY;
+    private static final ModConfigSpec.BooleanValue RHYTHM_ALWAYS_SKIP;
+    private static final ModConfigSpec.DoubleValue LIFT_HEIGHT;
+    private static final ModConfigSpec.DoubleValue HUG_DISTANCE;
+    private static final ModConfigSpec.BooleanValue ENABLE_DEBUG_TOOLS;
+    private static final ModConfigSpec.BooleanValue SHOW_PREGNANCY_DEBUG_COUNTDOWN;
+    private static final ModConfigSpec.BooleanValue SHOW_UI_ACTION_DEBUG;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.comment("General settings for Maid Marriage.")
                 .translation("config.maidmarriage.general")
                 .push("general");

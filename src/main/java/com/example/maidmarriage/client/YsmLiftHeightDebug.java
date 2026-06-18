@@ -6,11 +6,11 @@ import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -22,7 +22,7 @@ import org.lwjgl.glfw.GLFW;
  *
  * <p>按键：
  * <ul>
- *   <li>`F8` 开关面板</li>
+ *   <li>`Shift + F8` 开启面板，面板开启后按 `F8` 关闭</li>
  *   <li>`↑ / ↓` 调抱小女仆上下</li>
  *   <li>`← / →` 调抱小女仆左右</li>
  *   <li>`Ctrl + ← / →` 调抱小女仆前后</li>
@@ -30,12 +30,22 @@ import org.lwjgl.glfw.GLFW;
  *   <li>`C` 复制参数，`R` 重置参数</li>
  * </ul>
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class YsmLiftHeightDebug {
-    private static final double DEFAULT_VISUAL_HEIGHT = -0.20D;
-    private static final double DEFAULT_CARRY_CHILD_VISUAL_OFFSET_X = 0.75D;
-    private static final double DEFAULT_CARRY_CHILD_VISUAL_OFFSET_Z = -0.35D;
-    private static final double DEFAULT_CARRY_CHILD_VISUAL_HEIGHT = 0.50D;
+    /*
+     * YSM 专用默认位置。
+     *
+     * 这组值来自 Forge 版 YsmLiftHeightDebug：
+     * - 举高高只做 YSM 模型的视觉高度补偿；
+     * - 抱小女仆只做 YSM 被抱小女仆的三轴视觉偏移。
+     *
+     * GeckoLib / 东方(Bedrock) 的抱娃参数在 CarryChildPoseDebug 里各自独立维护，
+     * 删除配置后重进游戏时，三套默认值应该分别回到各自这里的常量。
+     */
+    private static final double DEFAULT_VISUAL_HEIGHT = -0.60D;
+    private static final double DEFAULT_CARRY_CHILD_VISUAL_OFFSET_X = 0.80D;
+    private static final double DEFAULT_CARRY_CHILD_VISUAL_OFFSET_Z = -0.45D;
+    private static final double DEFAULT_CARRY_CHILD_VISUAL_HEIGHT = -0.45D;
 
     private static boolean enabled;
     private static double visualHeight = DEFAULT_VISUAL_HEIGHT;
@@ -50,15 +60,13 @@ public final class YsmLiftHeightDebug {
     private static boolean lastRight;
     private static boolean lastCopy;
     private static boolean lastReset;
+    private static boolean suppressCarryPoseDebugToggle;
 
     private YsmLiftHeightDebug() {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (!ModConfigs.enableDebugTools()) {
             enabled = false;
             clearEdges();
@@ -73,8 +81,10 @@ public final class YsmLiftHeightDebug {
 
         long window = mc.getWindow().getWindow();
         boolean f8 = isDown(window, GLFW.GLFW_KEY_F8);
-        if (pressed(f8, lastF8)) {
+        boolean shift = isDown(window, GLFW.GLFW_KEY_LEFT_SHIFT) || isDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+        if (pressed(f8, lastF8) && (enabled || shift)) {
             enabled = !enabled;
+            suppressCarryPoseDebugToggle = true;
             mc.player.displayClientMessage(Component.literal(enabled
                     ? "YSM高度调试：开启"
                     : "YSM高度调试：关闭"), true);
@@ -86,7 +96,6 @@ public final class YsmLiftHeightDebug {
             return;
         }
 
-        boolean shift = isDown(window, GLFW.GLFW_KEY_LEFT_SHIFT) || isDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
         boolean ctrl = isDown(window, GLFW.GLFW_KEY_LEFT_CONTROL) || isDown(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
         boolean up = isDown(window, GLFW.GLFW_KEY_UP);
         boolean down = isDown(window, GLFW.GLFW_KEY_DOWN);
@@ -144,7 +153,7 @@ public final class YsmLiftHeightDebug {
     }
 
     @SubscribeEvent
-    public static void onRender(RenderGuiOverlayEvent.Post event) {
+    public static void onRender(RenderGuiLayerEvent.Post event) {
         if (!enabled || !ModConfigs.enableDebugTools()) {
             return;
         }
@@ -211,6 +220,16 @@ public final class YsmLiftHeightDebug {
         return visualHeight + (configuredLiftHeight - ModConfigs.DEFAULT_LIFT_HEIGHT);
     }
 
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static boolean consumeCarryPoseDebugToggleSuppression() {
+        boolean result = suppressCarryPoseDebugToggle;
+        suppressCarryPoseDebugToggle = false;
+        return result;
+    }
+
     private static String exportValues() {
         return String.format(
                 Locale.ROOT,
@@ -222,7 +241,7 @@ public final class YsmLiftHeightDebug {
         );
     }
 
-    private static void draw(RenderGuiOverlayEvent.Post event, Font font, int x, int y, String text, int color) {
+    private static void draw(RenderGuiLayerEvent.Post event, Font font, int x, int y, String text, int color) {
         event.getGuiGraphics().drawString(font, text, x, y, color, true);
     }
 

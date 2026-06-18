@@ -87,7 +87,7 @@ public final class GiftScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        ScreenBackgrounds.renderInWorld(graphics, this.width, this.height);
         int panelLeft = this.width / 2 - 176;
         int panelTop = this.height / 2 - 111;
         int panelRight = panelLeft + 352;
@@ -113,6 +113,26 @@ public final class GiftScreen extends Screen {
 
         super.render(graphics, mouseX, mouseY, partialTick);
         renderHoveredItemTooltip(graphics, panelLeft + 12, panelTop + 42, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
     }
 
     @Override

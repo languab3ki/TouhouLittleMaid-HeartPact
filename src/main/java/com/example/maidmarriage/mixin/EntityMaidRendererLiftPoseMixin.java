@@ -42,13 +42,13 @@ public abstract class EntityMaidRendererLiftPoseMixin extends MobRenderer<Mob, B
     }
 
     @Inject(
-            method = "setupRotations(Lnet/minecraft/world/entity/Mob;Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V",
+            method = "setupRotations(Lnet/minecraft/world/entity/Mob;Lcom/mojang/blaze3d/vertex/PoseStack;FFFF)V",
             at = @At("HEAD"),
             cancellable = true,
             remap = false
     )
     private void maidmarriage$useLiftPoseInsteadOfPrincessCarry(Mob mob, PoseStack poseStack,
-                                                                 float ageInTicks, float rotationYaw, float partialTicks,
+                                                                 float ageInTicks, float rotationYaw, float partialTicks, float scale,
                                                                  CallbackInfo ci) {
         if (!(mob instanceof EntityMaid maid)) {
             return;
@@ -59,7 +59,7 @@ public abstract class EntityMaidRendererLiftPoseMixin extends MobRenderer<Mob, B
                 && !MaidCarryChildManager.isCarryAdultState(maid)) {
             return;
         }
-        super.setupRotations(mob, poseStack, ageInTicks, rotationYaw, partialTicks);
+        super.setupRotations(mob, poseStack, ageInTicks, rotationYaw, partialTicks, 1.0F);
         boolean isGeckoModel = this.mainInfo != null && this.mainInfo.isGeckoModel();
         if (!isGeckoModel && MaidCarryChildManager.isCarriedChild(maid)) {
             /**

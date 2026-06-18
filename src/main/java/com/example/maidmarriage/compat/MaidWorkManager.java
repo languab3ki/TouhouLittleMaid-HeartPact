@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -36,11 +38,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * 小女仆工作系统：
@@ -83,11 +86,11 @@ public final class MaidWorkManager {
 
     private static final long HINT_COOLDOWN_TICKS = 200L;
 
-    private static final List<Potion> HIGH_TIER_POTIONS = List.of(
+    private static final List<Holder<Potion>> HIGH_TIER_POTIONS = List.of(
             Potions.STRONG_HEALING, Potions.STRONG_REGENERATION, Potions.STRONG_STRENGTH,
             Potions.STRONG_SWIFTNESS, Potions.LONG_INVISIBILITY, Potions.LONG_FIRE_RESISTANCE
     );
-    private static final List<Potion> NORMAL_TIER_POTIONS = List.of(
+    private static final List<Holder<Potion>> NORMAL_TIER_POTIONS = List.of(
             Potions.HEALING, Potions.REGENERATION, Potions.STRENGTH,
             Potions.SWIFTNESS, Potions.FIRE_RESISTANCE, Potions.NIGHT_VISION
     );
@@ -604,13 +607,13 @@ public final class MaidWorkManager {
     private static ItemStack createRandomEnchantedBook(ServerLevel level, RandomSource random, double favorRate, boolean lowQuality) {
         if (lowQuality) {
             ItemStack book = new ItemStack(Items.BOOK);
-            ItemStack enchanted = EnchantmentHelper.enchantItem(random, book, 4 + random.nextInt(7), false);
+            ItemStack enchanted = EnchantmentHelper.enchantItem(random, book, 4 + random.nextInt(7), allEnchantments(level));
             return enchanted.is(Items.ENCHANTED_BOOK) ? enchanted : new ItemStack(Items.BOOK);
         }
         boolean highTier = random.nextDouble() < 0.20D + favorRate * 0.45D;
         int enchantLevel = highTier ? 26 + random.nextInt(12) : 10 + random.nextInt(12);
         ItemStack book = new ItemStack(Items.BOOK);
-        ItemStack enchanted = EnchantmentHelper.enchantItem(random, book, enchantLevel, false);
+        ItemStack enchanted = EnchantmentHelper.enchantItem(random, book, enchantLevel, allEnchantments(level));
         return enchanted.is(Items.ENCHANTED_BOOK) ? enchanted : new ItemStack(Items.ENCHANTED_BOOK);
     }
 
@@ -619,17 +622,15 @@ public final class MaidWorkManager {
         double favorRate = favorRate(maid);
         List<ItemStack> result = new ArrayList<>();
         if (lowQuality) {
-            ItemStack awkward = new ItemStack(Items.POTION);
-            PotionUtils.setPotion(awkward, random.nextBoolean() ? Potions.AWKWARD : Potions.WATER);
+            ItemStack awkward = PotionContents.createItemStack(Items.POTION, random.nextBoolean() ? Potions.AWKWARD : Potions.WATER);
             result.add(awkward);
             return result;
         }
         boolean highTier = random.nextDouble() < 0.15D + favorRate * 0.40D;
-        List<Potion> pool = highTier ? HIGH_TIER_POTIONS : NORMAL_TIER_POTIONS;
-        Potion potion = pool.get(random.nextInt(pool.size()));
+        List<Holder<Potion>> pool = highTier ? HIGH_TIER_POTIONS : NORMAL_TIER_POTIONS;
+        Holder<Potion> potion = pool.get(random.nextInt(pool.size()));
         Item potionItem = highTier && random.nextDouble() < 0.35D ? Items.LINGERING_POTION : Items.POTION;
-        ItemStack potionStack = new ItemStack(potionItem);
-        PotionUtils.setPotion(potionStack, potion);
+        ItemStack potionStack = PotionContents.createItemStack(potionItem, potion);
         result.add(potionStack);
 
         if (random.nextDouble() < 0.10D + favorRate * 0.35D) {
@@ -678,8 +679,8 @@ public final class MaidWorkManager {
             return;
         }
         int enchantLevel = highTier ? 24 + random.nextInt(10) : 8 + random.nextInt(8);
-        ItemStack enchanted = EnchantmentHelper.enchantItem(random, weapon.copy(), enchantLevel, true);
-        weapon.setTag(enchanted.getTag());
+        ItemStack enchanted = EnchantmentHelper.enchantItem(random, weapon.copy(), enchantLevel, allEnchantments(level));
+        weapon.applyComponents(enchanted.getComponents());
     }
 
     private static ExploreResult createExploreRewards(EntityMaid maid) {
@@ -871,14 +872,17 @@ public final class MaidWorkManager {
         if (stack.isEmpty()) {
             return;
         }
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(TAG_GENERATED_REWARD)) {
+        CompoundTag tag = com.example.maidmarriage.util.ItemStackDataUtil.copyCustomData(stack);
+        if (!tag.contains(TAG_GENERATED_REWARD)) {
             return;
         }
         tag.remove(TAG_GENERATED_REWARD);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
+        com.example.maidmarriage.util.ItemStackDataUtil.setCustomData(stack, tag);
+    }
+
+    private static java.util.stream.Stream<Holder<Enchantment>> allEnchantments(ServerLevel level) {
+        return level.registryAccess().registryOrThrow(Registries.ENCHANTMENT).holders()
+                .map(holder -> (Holder<Enchantment>) holder);
     }
 
     private static int calculateActionDurationTicks(int baseDurationTicks, int currentFavorability) {
@@ -1036,7 +1040,7 @@ public final class MaidWorkManager {
         }
 
         private static ResourceLocation id(String path) {
-            return new ResourceLocation(MaidMarriageMod.MOD_ID, path);
+            return ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, path);
         }
 
         private static Optional<WorkMode> fromTask(IMaidTask task) {

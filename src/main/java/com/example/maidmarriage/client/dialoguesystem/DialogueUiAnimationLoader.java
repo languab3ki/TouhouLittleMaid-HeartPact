@@ -30,7 +30,7 @@ public final class DialogueUiAnimationLoader {
     }
 
     public static DialogueUiAnimationLibrary load(ResourceLocation id) {
-        ResourceLocation resolvedId = id == null ? new ResourceLocation("maidmarriage", "default") : id;
+        ResourceLocation resolvedId = id == null ? ResourceLocation.fromNamespaceAndPath("maidmarriage", "default") : id;
         return CACHE.computeIfAbsent(resolvedId, DialogueUiAnimationLoader::readLibrary);
     }
 
@@ -39,7 +39,7 @@ public final class DialogueUiAnimationLoader {
     }
 
     private static DialogueUiAnimationLibrary readLibrary(ResourceLocation id) {
-        ResourceLocation file = new ResourceLocation(id.getNamespace(), "dialogue_ui/animations/" + id.getPath() + ".json");
+        ResourceLocation file = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "dialogue_ui/animations/" + id.getPath() + ".json");
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) {
             return new DialogueUiAnimationLibrary().normalize(id);

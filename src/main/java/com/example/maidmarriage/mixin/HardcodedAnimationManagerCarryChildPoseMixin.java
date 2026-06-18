@@ -45,7 +45,7 @@ public abstract class HardcodedAnimationManagerCarryChildPoseMixin {
             return;
         }
         if (MaidCarryChildManager.isCarriedChild(entityMaid)) {
-            applyBedrockCarriedChildPose(models);
+            applyBedrockCarriedChildPose(entityMaid, models);
             return;
         }
     }
@@ -124,7 +124,7 @@ public abstract class HardcodedAnimationManagerCarryChildPoseMixin {
         }
     }
 
-    private static void applyBedrockCarriedChildPose(HashMap<String, ModelRendererWrapper> models) {
+    private static void applyBedrockCarriedChildPose(EntityMaid child, HashMap<String, ModelRendererWrapper> models) {
         ModelRendererWrapper root = models.get("root");
         ModelRendererWrapper body = models.get("body");
         ModelRendererWrapper upperBody = models.get("upperBody");
@@ -209,10 +209,17 @@ public abstract class HardcodedAnimationManagerCarryChildPoseMixin {
             root.setOffsetY(CarryChildPoseDebug.bedrockShiftY());
             root.setOffsetZ(CarryChildPoseDebug.bedrockShiftZ());
         }
+        EntityMaid adult = MaidCarryChildManager.getCarryAdult(child);
+        boolean carriedByYsmMother = adult != null && adult.isYsmModel();
+        /*
+         * YSM 妈妈 + 东方小女仆是混合骨架组合。
+         * 成年女仆的抱娃落点由 YSM 专用桥接控制，所以被抱的 Bedrock/东方小女仆
+         * 需要沿用旧的贴身落点；普通东方妈妈仍使用 F11 当前默认值。
+         */
         GlWrapper.translate(
-                CarryChildPoseDebug.bedrockTranslateX(),
-                -0.08D + CarryChildPoseDebug.bedrockTranslateY(),
-                CarryChildPoseDebug.bedrockTranslateZ()
+                carriedByYsmMother ? 0.47D : CarryChildPoseDebug.bedrockTranslateX(),
+                -0.08D + (carriedByYsmMother ? 0.57D : CarryChildPoseDebug.bedrockTranslateY()),
+                carriedByYsmMother ? 0.6D : CarryChildPoseDebug.bedrockTranslateZ()
         );
     }
 

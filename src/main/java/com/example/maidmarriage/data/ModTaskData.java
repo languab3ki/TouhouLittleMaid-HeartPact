@@ -22,27 +22,27 @@ public final class ModTaskData {
 
     public static void registerAll(TaskDataRegister register) {
         MARRIAGE_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "marriage_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "marriage_data"),
                 MarriageData.CODEC
         );
         PREGNANCY_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "pregnancy_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "pregnancy_data"),
                 PregnancyData.CODEC
         );
         MOOD_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "mood_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "mood_data"),
                 MaidMoodData.CODEC
         );
         CHILD_STATE_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "child_state_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "child_state_data"),
                 ChildStateData.CODEC
         );
         CHILD_LINEAGE_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "child_lineage_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "child_lineage_data"),
                 ChildLineageData.CODEC
         );
         RELATIONSHIP_PROGRESS_DATA = register.register(
-                new ResourceLocation(MaidMarriageMod.MOD_ID, "relationship_progress_data"),
+                ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "relationship_progress_data"),
                 RelationshipProgressData.CODEC
         );
     }

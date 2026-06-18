@@ -4,11 +4,14 @@ import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.mixin.client.CameraLapPillowAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 拥抱与亲吻专用的第一人称视角缩放。
@@ -17,7 +20,7 @@ import net.minecraftforge.fml.common.Mod;
  * 因此这里不再继续依赖“实体贴近”制造亲密感，而是在第一人称下压低 FOV。
  * 实体可以保持更安全的物理距离，玩家看到的画面仍然像靠近了女仆。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class HugCameraZoom {
     private static final double MIN_HUG_FOV_SCALE = 0.34D;
     private static final double MAX_HUG_FOV_SCALE = 0.96D;
@@ -118,8 +121,8 @@ public final class HugCameraZoom {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
+    public static void onClientTick(ClientTickEvent.Post event) {
+        {
             clientTick++;
         }
     }

@@ -3,8 +3,8 @@ package com.example.maidmarriage.client;
 import com.example.maidmarriage.MaidMarriageMod;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.client.settings.KeyModifier;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.neoforge.client.settings.KeyModifier;
 import org.lwjgl.glfw.GLFW;
 
 public final class RhythmKeyMappings {
@@ -34,6 +34,12 @@ public final class RhythmKeyMappings {
             "key.maidmarriage.carry_pose_debug",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F8,
+            "key.categories.maidmarriage"
+    );
+    public static final KeyMapping BEDROCK_CARRY_POSE_DEBUG = new KeyMapping(
+            "key.maidmarriage.bedrock_carry_pose_debug",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_F11,
             "key.categories.maidmarriage"
     );
     public static final KeyMapping MAID_DEBUG_PANEL = new KeyMapping(

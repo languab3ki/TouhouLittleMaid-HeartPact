@@ -5,6 +5,7 @@ import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.init.ModEntities;
+import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidAndItemTransformEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.item.ItemFilm;
@@ -16,9 +17,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Optional;
 import java.util.Objects;
@@ -74,7 +75,7 @@ public final class SoulSlabChildBridge {
              * 因此胶片/魂符只写 child 标记，不改 id；恢复成普通 EntityMaid 后，
              * 再由 EntityJoinLevelEvent 中的 repairOrPromoteLegacyChild 替换成 MaidChildEntity。
              */
-            data.putString("id", Objects.requireNonNull(ForgeRegistries.ENTITY_TYPES.getKey(ModEntities.MAID_CHILD.get())).toString());
+            data.putString("id", Objects.requireNonNull(BuiltInRegistries.ENTITY_TYPE.getKey(ModEntities.MAID_CHILD.get())).toString());
         }
 
         if (isChild) {
@@ -322,7 +323,7 @@ public final class SoulSlabChildBridge {
             return;
         }
         Optional<String> customName = maid.hasCustomName() && maid.getCustomName() != null
-                ? Optional.of(net.minecraft.network.chat.Component.Serializer.toJson(maid.getCustomName()))
+                ? Optional.of(ComponentJsonUtil.toJson(maid.getCustomName(), maid.level()))
                 : Optional.empty();
         maid.setData(ModTaskData.CHILD_LINEAGE_DATA, new ChildLineageData(true, mother, father, grandParent, customName));
     }

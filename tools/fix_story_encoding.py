@@ -5,7 +5,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 
-ROOT = Path(r"E:\wallpaper\maid-marriage-forge-1.20.1")
+ROOT = Path(r"E:\wallpaper\HeartPactneoforge\HeartPact-1.21neoforge")
 SCENARIO_PATH = ROOT / "src/main/resources/assets/maidmarriage/dialogue/scenarios/hug_menu_v2.json"
 
 

@@ -3,13 +3,12 @@ package com.example.maidmarriage.item;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import com.example.maidmarriage.util.ItemStackDataUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 /**
  * 婚姻同意申请书物品。
@@ -37,8 +36,8 @@ public class MarriageConsentFormItem extends DescriptionItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         getBoundMaidName(stack).ifPresent(name -> tooltipComponents.add(
                 Component.translatable("item.maidmarriage.marriage_consent_form.bound_maid", name)
                         .withStyle(ChatFormatting.AQUA)));
@@ -59,28 +58,30 @@ public class MarriageConsentFormItem extends DescriptionItem {
      * 重新绑定女仆时会清理旧的目标玩家绑定，避免串线。
      */
     public static void bindMaid(ItemStack stack, UUID maidUuid, Component maidName) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putUUID(TAG_BOUND_MAID_UUID, maidUuid);
-        tag.putString(TAG_BOUND_MAID_NAME, maidName.getString());
-        tag.remove(TAG_BOUND_TARGET_UUID);
-        tag.remove(TAG_BOUND_TARGET_NAME);
+        ItemStackDataUtil.updateCustomData(stack, tag -> {
+            tag.putUUID(TAG_BOUND_MAID_UUID, maidUuid);
+            tag.putString(TAG_BOUND_MAID_NAME, maidName.getString());
+            tag.remove(TAG_BOUND_TARGET_UUID);
+            tag.remove(TAG_BOUND_TARGET_NAME);
+        });
     }
 
     /**
      * 绑定目标玩家信息到申请书。
      */
     public static void bindTargetPlayer(ItemStack stack, UUID playerUuid, Component playerName) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putUUID(TAG_BOUND_TARGET_UUID, playerUuid);
-        tag.putString(TAG_BOUND_TARGET_NAME, playerName.getString());
+        ItemStackDataUtil.updateCustomData(stack, tag -> {
+            tag.putUUID(TAG_BOUND_TARGET_UUID, playerUuid);
+            tag.putString(TAG_BOUND_TARGET_NAME, playerName.getString());
+        });
     }
 
     /**
      * 读取已绑定女仆 UUID。
      */
     public static Optional<UUID> getBoundMaidUuid(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.hasUUID(TAG_BOUND_MAID_UUID)) {
+        CompoundTag tag = ItemStackDataUtil.copyCustomData(stack);
+        if (!tag.hasUUID(TAG_BOUND_MAID_UUID)) {
             return Optional.empty();
         }
         return Optional.of(tag.getUUID(TAG_BOUND_MAID_UUID));
@@ -90,8 +91,8 @@ public class MarriageConsentFormItem extends DescriptionItem {
      * 读取已绑定女仆显示名。
      */
     public static Optional<String> getBoundMaidName(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(TAG_BOUND_MAID_NAME)) {
+        CompoundTag tag = ItemStackDataUtil.copyCustomData(stack);
+        if (!tag.contains(TAG_BOUND_MAID_NAME)) {
             return Optional.empty();
         }
         String name = tag.getString(TAG_BOUND_MAID_NAME);
@@ -102,8 +103,8 @@ public class MarriageConsentFormItem extends DescriptionItem {
      * 读取已绑定目标玩家显示名。
      */
     public static Optional<String> getBoundTargetName(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(TAG_BOUND_TARGET_NAME)) {
+        CompoundTag tag = ItemStackDataUtil.copyCustomData(stack);
+        if (!tag.contains(TAG_BOUND_TARGET_NAME)) {
             return Optional.empty();
         }
         String name = tag.getString(TAG_BOUND_TARGET_NAME);

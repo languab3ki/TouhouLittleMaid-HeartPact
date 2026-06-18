@@ -9,8 +9,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * 好感度变化的客户端视觉反馈。
@@ -21,7 +19,6 @@ import net.minecraftforge.fml.common.Mod;
  * <p>我们尝试过世界空间文字和屏幕投影飘字，但实际显示容易受视角、深度和 HUD 状态影响。
  * 现在收回到稳定的粒子效果，避免为了一个数字反馈把渲染链写复杂。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, value = Dist.CLIENT)
 public final class FavorabilityPopupClient {
     private FavorabilityPopupClient() {
     }

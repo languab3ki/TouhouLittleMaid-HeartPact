@@ -43,568 +43,388 @@ import com.example.maidmarriage.network.payload.ToggleHugPosePayload;
 import com.example.maidmarriage.network.payload.SubmitRomanceRhythmPayload;
 import com.example.maidmarriage.network.payload.UpdateMaidAddressingPayload;
 import com.example.maidmarriage.network.payload.UpdatePlayerSettingsPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class ModNetworking {
     private static final String PROTOCOL = "22";
-    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "main"),
-            () -> PROTOCOL,
-            ModNetworking::acceptRemoteVersion,
-            ModNetworking::acceptRemoteVersion
-    );
-
     private ModNetworking() {
     }
 
-    public static void register() {
-        int id = 0;
-        CHANNEL.messageBuilder(StartRomanceRhythmPayload.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(StartRomanceRhythmPayload::encode)
-                .decoder(StartRomanceRhythmPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleStartRomanceRhythmClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(SubmitRomanceRhythmPayload.class, id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SubmitRomanceRhythmPayload::encode)
-                .decoder(SubmitRomanceRhythmPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        RomanceSleepManager.onRhythmPanelResult(sender, msg.maidUuid(), msg.rhythmScore());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(UpdateMaidAddressingPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(UpdateMaidAddressingPayload::encode)
-                .decoder(UpdateMaidAddressingPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        RomanceSleepManager.updatePlayerMaidAddressing(sender, msg.addressing(), msg.childAddressing());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(UpdatePlayerSettingsPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(UpdatePlayerSettingsPayload::encode)
-                .decoder(UpdatePlayerSettingsPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                        ServerPlayer sender = ctx.get().getSender();
-                        if (sender != null) {
-                            MaidLiftManager.updatePlayerLiftSettings(sender, msg.liftHeight());
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(PROTOCOL);
+        registrar.playToClient(StartRomanceRhythmPayload.TYPE, StartRomanceRhythmPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleStartRomanceRhythmClient(msg)));
+        registrar.playToServer(SubmitRomanceRhythmPayload.TYPE, SubmitRomanceRhythmPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                RomanceSleepManager.onRhythmPanelResult(sender, msg.maidUuid(), msg.rhythmScore());
+            }
+        }));
+        registrar.playToServer(UpdateMaidAddressingPayload.TYPE, UpdateMaidAddressingPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                RomanceSleepManager.updatePlayerMaidAddressing(sender, msg.addressing(), msg.childAddressing());
+            }
+        }));
+        registrar.playToServer(UpdatePlayerSettingsPayload.TYPE, UpdatePlayerSettingsPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidLiftManager.updatePlayerLiftSettings(sender, msg.liftHeight());
                             MaidHugManager.updatePlayerHugSettings(sender, msg.hugDistance());
                             RomanceSleepManager.updatePlayerHaremMode(sender, msg.haremMode());
-                        }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(PetHeadPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(PetHeadPayload::encode)
-                .decoder(PetHeadPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        PetHeadManager.handlePetHeadRequest(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(LiftMaidPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(LiftMaidPayload::encode)
-                .decoder(LiftMaidPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidLiftManager.handleLiftToggle(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(LiftStateSyncPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(LiftStateSyncPayload::encode)
-                .decoder(LiftStateSyncPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleLiftStateSyncClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(HugMaidPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(HugMaidPayload::encode)
-                .decoder(HugMaidPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidHugManager.handleInteractionToggle(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(ToggleHugPosePayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ToggleHugPosePayload::encode)
-                .decoder(ToggleHugPosePayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidHugManager.handleHugPoseToggle(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(HugStateSyncPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(HugStateSyncPayload::encode)
-                .decoder(HugStateSyncPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleHugStateSyncClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(ChildInteractionPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ChildInteractionPayload::encode)
-                .decoder(ChildInteractionPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        ChildInteractionManager.handleInteractionToggle(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(ChildInteractionStateSyncPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ChildInteractionStateSyncPayload::encode)
-                .decoder(ChildInteractionStateSyncPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleChildInteractionStateSyncClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(DialogueChoiceResultPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(DialogueChoiceResultPayload::encode)
-                .decoder(DialogueChoiceResultPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidDialogueInteractionManager.handleDialogueChoiceResult(
-                                sender,
-                                msg.maidUuid(),
-                                msg.positiveFavor(),
-                                msg.neutralFavor(),
-                                msg.negativeFavor(),
-                                msg.positiveMoodDelta(),
-                                msg.neutralMoodDelta(),
-                                msg.negativeMoodDelta(),
-                                msg.resultKey()
-                        );
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(GiftSubmitPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(GiftSubmitPayload::encode)
-                .decoder(GiftSubmitPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        GiftManager.handleGiftSubmit(sender, msg.maidUuid(), msg.slotIndex());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(GiftResultPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(GiftResultPayload::encode)
-                .decoder(GiftResultPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleGiftResultClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(KissMaidPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(KissMaidPayload::encode)
-                .decoder(KissMaidPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidKissManager.handleKissRequest(sender, msg.maidUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(KissEffectPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(KissEffectPayload::encode)
-                .decoder(KissEffectPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleKissEffectClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(FavorabilityEffectPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(FavorabilityEffectPayload::encode)
-                .decoder(FavorabilityEffectPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleFavorabilityEffectClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(CarryChildMaidPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(CarryChildMaidPayload::encode)
-                .decoder(CarryChildMaidPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidCarryChildManager.handleCarryToggle(sender, msg.childUuid());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(CarryChildStateSyncPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(CarryChildStateSyncPayload::encode)
-                .decoder(CarryChildStateSyncPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleCarryChildStateSyncClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(LapPillowActionPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(LapPillowActionPayload::encode)
-                .decoder(LapPillowActionPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        switch (msg.action()) {
-                            case LapPillowActionPayload.ACTION_START -> LapPillowManager.handleStart(sender, msg.maidUuid());
-                            case LapPillowActionPayload.ACTION_EXIT -> LapPillowManager.handleExit(sender);
-                            case LapPillowActionPayload.ACTION_PET_PLAYER_HEAD -> LapPillowManager.handlePetPlayerHead(sender, msg.maidUuid());
-                            default -> {
-                            }
-                        }
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(LapPillowStateSyncPayload.class, ++id, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(LapPillowStateSyncPayload::encode)
-                .decoder(LapPillowStateSyncPayload::decode)
-                .consumerMainThread((msg, ctx) -> handleLapPillowStateSyncClient(msg))
-                .add();
-
-        CHANNEL.messageBuilder(LapPillowDebugPosePayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(LapPillowDebugPosePayload::encode)
-                .decoder(LapPillowDebugPosePayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        LapPillowManager.handleDebugPose(sender, msg.sideOffset(), msg.heightOffset(), msg.forwardOffset(), msg.yawOffset());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(MaidDebugDataPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(MaidDebugDataPayload::encode)
-                .decoder(MaidDebugDataPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidDebugDataManager.handleDebugData(sender, msg.maidUuid(), msg.favorability(), msg.mood());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(StoryProgressActionPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(StoryProgressActionPayload::encode)
-                .decoder(StoryProgressActionPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        MaidStoryInteractionManager.handleStoryAction(sender, msg.maidUuid(), msg.actionId());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(ChildNameSubmitPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ChildNameSubmitPayload::encode)
-                .decoder(ChildNameSubmitPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        ChildNameManager.handleNameSubmit(sender, msg.motherUuid(), msg.name());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(SpiritInteractionPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SpiritInteractionPayload::encode)
-                .decoder(SpiritInteractionPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        SpiritInteractionManager.handleAction(sender, msg.spiritUuid(), msg.actionId());
-                    }
-                })
-                .add();
-
-        CHANNEL.messageBuilder(SpiritOfferingPayload.class, ++id, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SpiritOfferingPayload::encode)
-                .decoder(SpiritOfferingPayload::decode)
-                .consumerMainThread((msg, ctx) -> {
-                    ServerPlayer sender = ctx.get().getSender();
-                    if (sender != null) {
-                        SpiritInteractionManager.handleOffering(sender, msg.spiritUuid(), msg.slotIndex());
-                    }
-                })
-                .add();
+            }
+        }));
+        registrar.playToServer(PetHeadPayload.TYPE, PetHeadPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                PetHeadManager.handlePetHeadRequest(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToServer(LiftMaidPayload.TYPE, LiftMaidPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidLiftManager.handleLiftToggle(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToClient(LiftStateSyncPayload.TYPE, LiftStateSyncPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleLiftStateSyncClient(msg)));
+        registrar.playToServer(HugMaidPayload.TYPE, HugMaidPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidHugManager.handleInteractionToggle(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToServer(ToggleHugPosePayload.TYPE, ToggleHugPosePayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidHugManager.handleHugPoseToggle(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToClient(HugStateSyncPayload.TYPE, HugStateSyncPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleHugStateSyncClient(msg)));
+        registrar.playToServer(ChildInteractionPayload.TYPE, ChildInteractionPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                ChildInteractionManager.handleInteractionToggle(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToClient(ChildInteractionStateSyncPayload.TYPE, ChildInteractionStateSyncPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleChildInteractionStateSyncClient(msg)));
+        registrar.playToServer(DialogueChoiceResultPayload.TYPE, DialogueChoiceResultPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidDialogueInteractionManager.handleDialogueChoiceResult(sender, msg.maidUuid(), msg.positiveFavor(), msg.neutralFavor(), msg.negativeFavor(), msg.positiveMoodDelta(), msg.neutralMoodDelta(), msg.negativeMoodDelta(), msg.resultKey());
+            }
+        }));
+        registrar.playToServer(GiftSubmitPayload.TYPE, GiftSubmitPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                GiftManager.handleGiftSubmit(sender, msg.maidUuid(), msg.slotIndex());
+            }
+        }));
+        registrar.playToClient(GiftResultPayload.TYPE, GiftResultPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleGiftResultClient(msg)));
+        registrar.playToServer(KissMaidPayload.TYPE, KissMaidPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidKissManager.handleKissRequest(sender, msg.maidUuid());
+            }
+        }));
+        registrar.playToClient(KissEffectPayload.TYPE, KissEffectPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleKissEffectClient(msg)));
+        registrar.playToClient(FavorabilityEffectPayload.TYPE, FavorabilityEffectPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleFavorabilityEffectClient(msg)));
+        registrar.playToServer(CarryChildMaidPayload.TYPE, CarryChildMaidPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidCarryChildManager.handleCarryToggle(sender, msg.childUuid());
+            }
+        }));
+        registrar.playToClient(CarryChildStateSyncPayload.TYPE, CarryChildStateSyncPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleCarryChildStateSyncClient(msg)));
+        registrar.playToServer(LapPillowActionPayload.TYPE, LapPillowActionPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                handleLapPillowAction(sender, msg);
+            }
+        }));
+        registrar.playToClient(LapPillowStateSyncPayload.TYPE, LapPillowStateSyncPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> handleLapPillowStateSyncClient(msg)));
+        registrar.playToServer(LapPillowDebugPosePayload.TYPE, LapPillowDebugPosePayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                LapPillowManager.handleDebugPose(sender, msg.sideOffset(), msg.heightOffset(), msg.forwardOffset(), msg.yawOffset());
+            }
+        }));
+        registrar.playToServer(MaidDebugDataPayload.TYPE, MaidDebugDataPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidDebugDataManager.handleDebugData(sender, msg.maidUuid(), msg.favorability(), msg.mood());
+            }
+        }));
+        registrar.playToServer(StoryProgressActionPayload.TYPE, StoryProgressActionPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                MaidStoryInteractionManager.handleStoryAction(sender, msg.maidUuid(), msg.actionId());
+            }
+        }));
+        registrar.playToServer(ChildNameSubmitPayload.TYPE, ChildNameSubmitPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                ChildNameManager.handleNameSubmit(sender, msg.motherUuid(), msg.name());
+            }
+        }));
+        registrar.playToServer(SpiritInteractionPayload.TYPE, SpiritInteractionPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                SpiritInteractionManager.handleAction(sender, msg.spiritUuid(), msg.actionId());
+            }
+        }));
+        registrar.playToServer(SpiritOfferingPayload.TYPE, SpiritOfferingPayload.STREAM_CODEC, (msg, context) -> context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sender) {
+                SpiritInteractionManager.handleOffering(sender, msg.spiritUuid(), msg.slotIndex());
+            }
+        }));
     }
-
     public static void sendStart(ServerPlayer player, StartRomanceRhythmPayload payload) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), payload);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static void sendSubmit(SubmitRomanceRhythmPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendUpdateMaidAddressing(UpdateMaidAddressingPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendUpdatePlayerSettings(UpdatePlayerSettingsPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendPetHead(PetHeadPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendLiftMaid(LiftMaidPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendLiftState(ServerPlayer player, LiftStateSyncPayload payload) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), payload);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static void sendHugMaid(HugMaidPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendToggleHugPose(ToggleHugPosePayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendHugState(ServerPlayer player, HugStateSyncPayload payload) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), payload);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, payload);
     }
 
     public static void sendChildInteraction(ChildInteractionPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendChildInteractionState(ServerPlayer player, ChildInteractionStateSyncPayload payload) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), payload);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, payload);
     }
 
     public static void sendDialogueChoiceResult(DialogueChoiceResultPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendGiftSubmit(GiftSubmitPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendGiftResult(ServerPlayer player, GiftResultPayload payload) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), payload);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static void sendKissMaid(KissMaidPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendKissEffect(ServerPlayer player, KissEffectPayload payload) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), payload);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static void sendFavorabilityEffect(net.minecraft.world.entity.Entity entity, FavorabilityEffectPayload payload) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity), payload);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, payload);
     }
 
     public static void sendCarryChildMaid(CarryChildMaidPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendLapPillowAction(LapPillowActionPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendLapPillowDebugPose(LapPillowDebugPosePayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendMaidDebugData(MaidDebugDataPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendStoryProgressAction(StoryProgressActionPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendChildNameSubmit(ChildNameSubmitPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendSpiritInteraction(SpiritInteractionPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     public static void sendSpiritOffering(SpiritOfferingPayload payload) {
         if (!canSendToServer()) {
             return;
         }
-        CHANNEL.sendToServer(payload);
+        PacketDistributor.sendToServer(payload);
     }
 
     private static boolean canSendToServer() {
-        Boolean canSend = DistExecutor.safeCallWhenOn(
-                Dist.CLIENT,
-                () -> com.example.maidmarriage.client.ClientNetworkState::canSendToServer
-        );
-        return Boolean.TRUE.equals(canSend);
+        return FMLEnvironment.dist.isClient() && com.example.maidmarriage.client.ClientNetworkState.canSendToServer();
     }
 
     public static void sendCarryChildState(ServerPlayer player, CarryChildStateSyncPayload payload) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), payload);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, payload);
     }
 
     public static void sendLapPillowState(ServerPlayer player, LapPillowStateSyncPayload payload) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), payload);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, payload);
+    }
+
+    private static void handleLapPillowAction(ServerPlayer sender, LapPillowActionPayload msg) {
+        switch (msg.action()) {
+            case LapPillowActionPayload.ACTION_START -> LapPillowManager.handleStart(sender, msg.maidUuid());
+            case LapPillowActionPayload.ACTION_EXIT -> LapPillowManager.handleExit(sender);
+            case LapPillowActionPayload.ACTION_PET_PLAYER_HEAD -> LapPillowManager.handlePetPlayerHead(sender, msg.maidUuid());
+            default -> {
+            }
+        }
     }
 
     private static void handleStartRomanceRhythmClient(StartRomanceRhythmPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.example.maidmarriage.client.RomanceRhythmHud.start(msg.maidUuid()));
+        if (FMLEnvironment.dist.isClient()) {
+            com.example.maidmarriage.client.RomanceRhythmHud.start(msg.maidUuid());
+        }
     }
 
     private static void handleLiftStateSyncClient(LiftStateSyncPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                MaidLiftManager.handleClientLiftStateSync(msg.playerUuid(), msg.maidUuid(), msg.proxyUuid(), msg.liftHeight()));
+        if (FMLEnvironment.dist.isClient()) {
+            MaidLiftManager.handleClientLiftStateSync(msg.playerUuid(), msg.maidUuid(), msg.proxyUuid(), msg.liftHeight());
+        }
     }
 
     private static void handleHugStateSyncClient(HugStateSyncPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                {
-                    MaidHugManager.handleClientHugStateSync(msg.playerUuid(), msg.maidUuid(), msg.hugging());
-                    com.example.maidmarriage.client.HugClientState.handleSync(
-                            msg.playerUuid(),
-                            msg.maidUuid(),
-                            msg.hugging(),
-                            msg.childNameRequired(),
-                            msg.childLossGrief()
-                    );
-                });
+        if (FMLEnvironment.dist.isClient()) {
+            MaidHugManager.handleClientHugStateSync(msg.playerUuid(), msg.maidUuid(), msg.hugging());
+            com.example.maidmarriage.client.HugClientState.handleSync(
+                    msg.playerUuid(),
+                    msg.maidUuid(),
+                    msg.hugging(),
+                    msg.childNameRequired(),
+                    msg.childLossGrief()
+            );
+        }
     }
 
     private static void handleChildInteractionStateSyncClient(ChildInteractionStateSyncPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                {
-                    ChildInteractionManager.handleClientInteractionStateSync(msg.playerUuid(), msg.maidUuid());
-                    com.example.maidmarriage.client.ChildInteractionClientState.handleSync(msg.playerUuid(), msg.maidUuid());
-                });
+        if (FMLEnvironment.dist.isClient()) {
+            ChildInteractionManager.handleClientInteractionStateSync(msg.playerUuid(), msg.maidUuid());
+            com.example.maidmarriage.client.ChildInteractionClientState.handleSync(msg.playerUuid(), msg.maidUuid());
+        }
     }
 
     private static void handleKissEffectClient(KissEffectPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                {
-                    com.example.maidmarriage.client.HugCameraZoom.playKissZoom();
-                    com.example.maidmarriage.client.HugClientState.startPostKissShyTurn(
-                            msg.maidUuid(),
-                            msg.shyDelayTicks(),
-                            msg.shyDurationTicks(),
-                            msg.shyHeadYawDegrees(),
-                            msg.shyHeadPitchDegrees(),
-                            msg.shyDirectionSign()
-                    );
-                });
+        if (FMLEnvironment.dist.isClient()) {
+            com.example.maidmarriage.client.HugCameraZoom.playKissZoom();
+            com.example.maidmarriage.client.HugClientState.startPostKissShyTurn(
+                    msg.maidUuid(),
+                    msg.shyDelayTicks(),
+                    msg.shyDurationTicks(),
+                    msg.shyHeadYawDegrees(),
+                    msg.shyHeadPitchDegrees(),
+                    msg.shyDirectionSign()
+            );
+        }
     }
 
     private static void handleFavorabilityEffectClient(FavorabilityEffectPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.example.maidmarriage.client.FavorabilityPopupClient.show(msg.maidUuid(), msg.delta()));
+        if (FMLEnvironment.dist.isClient()) {
+            com.example.maidmarriage.client.FavorabilityPopupClient.show(msg.maidUuid(), msg.delta());
+        }
     }
 
     private static void handleGiftResultClient(GiftResultPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.example.maidmarriage.client.HugActionScreen.handleGiftResult(msg));
+        if (FMLEnvironment.dist.isClient()) {
+            com.example.maidmarriage.client.HugActionScreen.handleGiftResult(msg);
+        }
     }
 
     private static void handleCarryChildStateSyncClient(CarryChildStateSyncPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                MaidCarryChildManager.handleClientCarryStateSync(
-                        msg.ownerUuid(),
-                        msg.adultUuid(),
-                        msg.childUuid(),
-                        msg.proxyUuid()
-                ));
+        if (FMLEnvironment.dist.isClient()) {
+            MaidCarryChildManager.handleClientCarryStateSync(
+                    msg.ownerUuid(),
+                    msg.adultUuid(),
+                    msg.childUuid(),
+                    msg.proxyUuid()
+            );
+        }
     }
 
     private static void handleLapPillowStateSyncClient(LapPillowStateSyncPayload msg) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.example.maidmarriage.client.LapPillowClientState.handleSync(
-                        msg.playerUuid(),
-                        msg.maidUuid(),
-                        msg.active(),
-                        msg.sleepYaw(),
-                        msg.petTicks(),
-                        msg.recoveryStatus()
-                ));
-    }
-
-    private static boolean acceptRemoteVersion(String remoteVersion) {
-        return PROTOCOL.equals(remoteVersion);
+        if (FMLEnvironment.dist.isClient()) {
+            com.example.maidmarriage.client.LapPillowClientState.handleSync(
+                    msg.playerUuid(),
+                    msg.maidUuid(),
+                    msg.active(),
+                    msg.sleepYaw(),
+                    msg.petTicks(),
+                    msg.recoveryStatus()
+            );
+        }
     }
 }

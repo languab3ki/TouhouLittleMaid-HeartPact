@@ -18,8 +18,10 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * 摸头交互管理器（服务端逻辑）。
@@ -315,8 +317,8 @@ public final class PetHeadManager {
      * 到时后自动关闭 begging，避免女仆一直停留在享受动作。
      */
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || PET_HEAD_ANIM_STATES.isEmpty()) {
+    public static void onServerTick(ServerTickEvent.Post event) {
+        if (PET_HEAD_ANIM_STATES.isEmpty()) {
             return;
         }
         var it = PET_HEAD_ANIM_STATES.entrySet().iterator();

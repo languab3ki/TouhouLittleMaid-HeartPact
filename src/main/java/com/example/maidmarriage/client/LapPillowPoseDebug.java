@@ -8,11 +8,14 @@ import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -21,12 +24,14 @@ import org.lwjgl.glfw.GLFW;
  * <p>这些值只用于当前客户端调试。位置和睡姿朝向会同步给服务端用于锁位；
  * 镜头高度、镜头缩放、镜头俯仰和侧倾只影响本地第一人称画面。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class LapPillowPoseDebug {
     public static final double MIN_CAMERA_HEIGHT_OFFSET = -3.00D;
     public static final double MAX_CAMERA_HEIGHT_OFFSET = 3.00D;
     public static final double MIN_CAMERA_FOV_SCALE = 0.10D;
     public static final double MAX_CAMERA_FOV_SCALE = 2.00D;
+    public static final double MIN_REST_HEIGHT_OFFSET = -0.50D;
+    public static final double MAX_REST_HEIGHT_OFFSET = 2.00D;
 
     private static final double DEFAULT_SIDE_OFFSET = 0.10D;
     private static final double DEFAULT_HEIGHT_OFFSET = 0.25D;
@@ -61,11 +66,8 @@ public final class LapPillowPoseDebug {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        if (!ModConfigs.enableDebugTools()) {
+    public static void onClientTick(ClientTickEvent.Post event) {
+                if (!ModConfigs.enableDebugTools()) {
             enabled = false;
             clearEdges();
             return;
@@ -175,7 +177,7 @@ public final class LapPillowPoseDebug {
     }
 
     @SubscribeEvent
-    public static void onRender(RenderGuiOverlayEvent.Post event) {
+    public static void onRender(RenderGuiLayerEvent.Post event) {
         if (!enabled || !ModConfigs.enableDebugTools()) {
             return;
         }
@@ -216,6 +218,15 @@ public final class LapPillowPoseDebug {
         return cameraHeightOffset;
     }
 
+    public static double restHeightOffset() {
+        return heightOffset;
+    }
+
+    public static void setRestHeightOffset(double value) {
+        heightOffset = clamp(value, MIN_REST_HEIGHT_OFFSET, MAX_REST_HEIGHT_OFFSET);
+        syncServerPose();
+    }
+
     public static void setCameraHeightOffset(double value) {
         cameraHeightOffset = clamp(value, MIN_CAMERA_HEIGHT_OFFSET, MAX_CAMERA_HEIGHT_OFFSET);
     }
@@ -230,6 +241,10 @@ public final class LapPillowPoseDebug {
 
     public static String cameraHeightLabel() {
         return String.format(Locale.ROOT, "%+.2f", cameraHeightOffset);
+    }
+
+    public static String restHeightLabel() {
+        return String.format(Locale.ROOT, "%+.2f", heightOffset);
     }
 
     public static String cameraFovLabel() {
@@ -264,11 +279,11 @@ public final class LapPillowPoseDebug {
         );
     }
 
-    private static void syncServerPose() {
+    public static void syncServerPose() {
         ModNetworking.sendLapPillowDebugPose(new LapPillowDebugPosePayload(sideOffset, heightOffset, forwardOffset, yawOffset));
     }
 
-    private static void draw(RenderGuiOverlayEvent.Post event, Font font, int x, int y, String text, int color) {
+    private static void draw(RenderGuiLayerEvent.Post event, Font font, int x, int y, String text, int color) {
         event.getGuiGraphics().drawString(font, text, x, y, color, true);
     }
 

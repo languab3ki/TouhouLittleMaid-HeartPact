@@ -25,11 +25,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 女仆亲密交互会话管理器。
@@ -44,7 +47,7 @@ import net.minecraftforge.fml.common.Mod;
  * - YSM / GeckoLib / 玩家手臂姿态这些渲染桥，继续只认“真正的拥抱态”；
  * - UI、目标锁定、剧情分支，则认“交互会话是否存在”。
  */
-@Mod.EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public final class MaidHugManager {
     private static final double AUTO_SELECT_RANGE_SQR = 16 * 16;
     private static final double START_DISTANCE_SQR = 2.25D * 2.25D;
@@ -396,11 +399,11 @@ public final class MaidHugManager {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (!(event.player instanceof ServerPlayer player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 

@@ -6,6 +6,7 @@ import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTombstoneEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Optional;
@@ -15,11 +16,12 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public final class MaidDeathBridge {
     private static final String SPIRIT_SPAWNED_TAG = "maidmarriage_spirit_spawned";
 
@@ -130,7 +132,7 @@ public final class MaidDeathBridge {
         if (name == null) {
             name = maid.getDisplayName();
         }
-        return name == null ? Optional.empty() : Optional.of(Component.Serializer.toJson(name));
+        return name == null ? Optional.empty() : Optional.of(ComponentJsonUtil.toJson(name, maid.level()));
     }
 
     private static EntityMaid findMaid(ServerLevel level, UUID maidUuid) {

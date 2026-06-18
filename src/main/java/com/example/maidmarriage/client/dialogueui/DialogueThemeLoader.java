@@ -25,7 +25,7 @@ public final class DialogueThemeLoader {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().create();
     private static final Map<ResourceLocation, DialogueTheme> CACHE = new HashMap<>();
-    private static final ResourceLocation DEFAULT_THEME_ID = new ResourceLocation("maidmarriage", "hug_gal");
+    private static final ResourceLocation DEFAULT_THEME_ID = ResourceLocation.fromNamespaceAndPath("maidmarriage", "hug_gal");
 
     private DialogueThemeLoader() {
     }
@@ -40,7 +40,7 @@ public final class DialogueThemeLoader {
     }
 
     private static DialogueTheme readTheme(ResourceLocation id) {
-        ResourceLocation file = new ResourceLocation(id.getNamespace(), "dialogue_ui/themes/" + id.getPath() + ".json");
+        ResourceLocation file = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "dialogue_ui/themes/" + id.getPath() + ".json");
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) {
             return new DialogueTheme();

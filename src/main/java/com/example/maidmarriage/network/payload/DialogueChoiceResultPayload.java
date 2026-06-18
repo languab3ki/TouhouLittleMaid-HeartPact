@@ -1,5 +1,11 @@
 package com.example.maidmarriage.network.payload;
 
+import org.jetbrains.annotations.NotNull;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import com.example.maidmarriage.MaidMarriageMod;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,7 +16,10 @@ import net.minecraft.network.FriendlyByteBuf;
  * <p>剧情 JSON 只描述“这个选项在好/中/差心情下分别给多少反馈”，
  * 真正的心情判定和数值结算在服务端完成。
  */
-public class DialogueChoiceResultPayload {
+public class DialogueChoiceResultPayload implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<DialogueChoiceResultPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "DialogueChoiceResult".replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT)));
+    public static final StreamCodec<RegistryFriendlyByteBuf, DialogueChoiceResultPayload> STREAM_CODEC = StreamCodec.ofMember(DialogueChoiceResultPayload::encode, DialogueChoiceResultPayload::decode);
+
     @Nullable
     private final UUID maidUuid;
     private final int positiveFavor;
@@ -109,4 +118,10 @@ public class DialogueChoiceResultPayload {
         return new DialogueChoiceResultPayload(maidUuid, positiveFavor, neutralFavor, negativeFavor,
                 positiveMoodDelta, neutralMoodDelta, negativeMoodDelta, resultKey);
     }
+
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
 }

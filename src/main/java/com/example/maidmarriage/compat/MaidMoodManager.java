@@ -5,6 +5,7 @@ import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.FavorabilityEffectPayload;
 import com.example.maidmarriage.data.MaidMoodData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -155,7 +156,7 @@ public final class MaidMoodManager {
         mother.getPersistentData().putBoolean(TAG_CHILD_LOSS_GRIEF_ACTIVE, true);
         if (childName != null) {
             mother.getPersistentData().putString(TAG_CHILD_LOSS_GRIEF_CHILD_NAME,
-                    net.minecraft.network.chat.Component.Serializer.toJson(childName));
+                    ComponentJsonUtil.toJson(childName, mother.level()));
         }
         if (ModTaskData.MOOD_DATA != null) {
             mother.setAndSyncData(ModTaskData.MOOD_DATA, get(mother).setChildLossGrief(true));

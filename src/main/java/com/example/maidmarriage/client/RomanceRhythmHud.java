@@ -14,15 +14,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class RomanceRhythmHud {
     private static final int FAIL_STREAK_LIMIT = 8;
     private static final int PEAK_LIMIT = 3;
@@ -82,37 +85,37 @@ public final class RomanceRhythmHud {
     };
 
     private static final ResourceLocation PORTRAIT_SOFT_SMILE =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
     private static final ResourceLocation PORTRAIT_HOT_SMILE =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/hot_smile.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/hot_smile.png");
     private static final ResourceLocation PORTRAIT_KNOWING =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/knowing.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/knowing.png");
     private static final ResourceLocation PORTRAIT_SERIOUS =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/serious.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/serious.png");
     private static final ResourceLocation PORTRAIT_SHY =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/shy.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/shy.png");
     private static final ResourceLocation PORTRAIT_WINK =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/wink.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/wink.png");
     private static final ResourceLocation PORTRAIT_TROUBLED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/troubled.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/troubled.png");
     private static final ResourceLocation PORTRAIT_ANXIOUS =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/anxious.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/anxious.png");
     private static final ResourceLocation PORTRAIT_TIRED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/tired.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/tired.png");
     private static final ResourceLocation PORTRAIT_EMBARRASSED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/embarrassed_smile.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/embarrassed_smile.png");
     private static final ResourceLocation PORTRAIT_ACTION_TOUCHED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_touched.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_touched.png");
     private static final ResourceLocation PORTRAIT_ACTION_FLUSTERED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_flustered.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_flustered.png");
     private static final ResourceLocation PORTRAIT_ACTION_HELPLESS =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_helpless.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_helpless.png");
     private static final ResourceLocation PORTRAIT_ACTION_DEJECTED =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_dejected.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_dejected.png");
     private static final ResourceLocation PORTRAIT_ACTION_DIZZY =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_dizzy.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_dizzy.png");
     private static final ResourceLocation PORTRAIT_ACTION_SMUG =
-            new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/action/action_smug.png");
+            ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/action/action_smug.png");
 
     private static final ResourceLocation[] START_PORTRAITS = {
             PORTRAIT_SOFT_SMILE, PORTRAIT_KNOWING, PORTRAIT_ACTION_TOUCHED
@@ -195,8 +198,8 @@ public final class RomanceRhythmHud {
     }
 
     @SubscribeEvent
-    public static void tick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !active) {
+    public static void tick(ClientTickEvent.Post event) {
+        if (!active) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -247,7 +250,7 @@ public final class RomanceRhythmHud {
     }
 
     @SubscribeEvent
-    public static void render(RenderGuiOverlayEvent.Post event) {
+    public static void render(RenderGuiLayerEvent.Post event) {
         if (!active) {
             return;
         }
@@ -255,7 +258,7 @@ public final class RomanceRhythmHud {
          * Forge 会为多个原版 HUD 层分别触发 Post 事件。
          * 音游面板只需要每帧绘制一次，否则会在同一帧重复绘制整块 UI。
          */
-        if (!event.getOverlay().id().equals(VanillaGuiOverlay.CROSSHAIR.id())) {
+        if (!event.getName().equals(VanillaGuiLayers.CROSSHAIR)) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -337,7 +340,7 @@ public final class RomanceRhythmHud {
     }
 
     @SubscribeEvent
-    public static void hideVanillaHudWhenActive(RenderGuiOverlayEvent.Pre event) {
+    public static void hideVanillaHudWhenActive(RenderGuiLayerEvent.Pre event) {
         if (!active) {
             return;
         }
@@ -345,9 +348,9 @@ public final class RomanceRhythmHud {
         if (mc.screen != null) {
             return;
         }
-        var overlayId = event.getOverlay().id();
-        if (overlayId.equals(VanillaGuiOverlay.CHAT_PANEL.id())
-                || overlayId.equals(VanillaGuiOverlay.HOTBAR.id())) {
+        var overlayId = event.getName();
+        if (overlayId.equals(VanillaGuiLayers.CHAT)
+                || overlayId.equals(VanillaGuiLayers.HOTBAR)) {
             event.setCanceled(true);
         }
     }

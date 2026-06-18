@@ -3,8 +3,7 @@ package com.example.maidmarriage.compat;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import javax.annotation.Nullable;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 /**
  * 给 YSM 的 `tlm.*` molang 提供我们模组自己的动作状态。
@@ -73,9 +72,8 @@ public final class YsmMolangActionBridge {
         if (maid == null) {
             return false;
         }
-        Boolean active = DistExecutor.safeCallWhenOn(Dist.CLIENT, () -> () ->
-                com.example.maidmarriage.client.HugClientState.isPostKissShyTurnActive(maid.getUUID()));
-        return Boolean.TRUE.equals(active);
+        return FMLEnvironment.dist.isClient()
+                && com.example.maidmarriage.client.HugClientState.isPostKissShyTurnActive(maid.getUUID());
     }
 
     /**

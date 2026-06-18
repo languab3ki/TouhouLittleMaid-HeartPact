@@ -1,12 +1,14 @@
 package com.example.maidmarriage.entity;
 
 import com.example.maidmarriage.compat.bauble.GrowthPauseUtil;
+import com.example.maidmarriage.compat.MaidMoodManager;
 import com.example.maidmarriage.compat.RelationshipThresholds;
 import com.example.maidmarriage.config.DialogueScriptManager;
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ChildStateData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,6 +39,7 @@ public class MaidChildEntity extends EntityMaid {
     public static final String PERSISTENT_GROWTH_STAGE_KEY = "maidmarriage_child_growth_stage";
     public static final String PERSISTENT_INFANT_CARRY_END_TICK_KEY = "maidmarriage_infant_carry_end_tick";
     public static final String PERSISTENT_TAME_INITIALIZED_KEY = "maidmarriage_child_tame_initialized";
+    public static final String PERSISTENT_INITIAL_FAVORABILITY_KEY = "maidmarriage_child_initial_favorability";
     public static final String PERSISTENT_CHILD_NAME_JSON_KEY = "maidmarriage_child_name_json";
     public static final String PERSISTENT_CHILD_NAME_CONFIRMED_KEY = "maidmarriage_child_name_confirmed";
     public static final String PERSISTENT_GRAND_PARENT_UUID_KEY = "maidmarriage_grand_parent_uuid";
@@ -64,9 +67,9 @@ public class MaidChildEntity extends EntityMaid {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_GROWTH_TICKS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_GROWTH_TICKS, 0);
     }
 
     public void setParents(UUID motherUuid, UUID fatherUuid) {
@@ -123,6 +126,7 @@ public class MaidChildEntity extends EntityMaid {
         }
         getPersistentData().putBoolean(PERSISTENT_CHILD_ACTIVE_KEY, true);
         ensureFullTameState();
+        ensureInitialFavorability();
         boolean pauseGrowthByHairpin = GrowthPauseUtil.hasSunflowerHairpin(this);
         if (!pauseGrowthByHairpin) {
             this.growthTicks++;
@@ -382,7 +386,13 @@ public class MaidChildEntity extends EntityMaid {
 
     private static void applyBornMaidTraits(EntityMaid maid) {
         maid.addTag(BORN_MAID_TAG);
-        maid.setFavorability(RelationshipThresholds.HUG_UNLOCK);
+        /*
+         * 出生小女仆默认直接进入 64 好感。
+         * 不能裸写 setFavorability，否则 TLM 自己的等级、属性刷新和同步链可能没有跟上。
+         */
+        int initialFavorability = Math.max(maid.getFavorability(), RelationshipThresholds.HUG_UNLOCK);
+        MaidMoodManager.setFavorabilityWithRefresh(maid, initialFavorability, RelationshipThresholds.FAVORABILITY_MAX);
+        maid.getPersistentData().putBoolean(PERSISTENT_INITIAL_FAVORABILITY_KEY, true);
         if (maid instanceof MaidChildEntity) {
             maid.getPersistentData().putBoolean(PERSISTENT_CHILD_ACTIVE_KEY, true);
             maid.getPersistentData().putBoolean(PERSISTENT_TAME_INITIALIZED_KEY, maid.isTame() && maid.getOwnerUUID() != null);
@@ -393,6 +403,19 @@ public class MaidChildEntity extends EntityMaid {
             maid.setHealth(maid.getMaxHealth());
         }
         syncLineageData(maid, false);
+    }
+
+    private void ensureInitialFavorability() {
+        CompoundTag persistent = this.getPersistentData();
+        if (persistent.getBoolean(PERSISTENT_INITIAL_FAVORABILITY_KEY)) {
+            return;
+        }
+        if (!this.getTags().contains(BORN_MAID_TAG) && !persistent.getBoolean(PERSISTENT_CHILD_ACTIVE_KEY)) {
+            return;
+        }
+        int initialFavorability = Math.max(this.getFavorability(), RelationshipThresholds.HUG_UNLOCK);
+        MaidMoodManager.setFavorabilityWithRefresh(this, initialFavorability, RelationshipThresholds.FAVORABILITY_MAX);
+        persistent.putBoolean(PERSISTENT_INITIAL_FAVORABILITY_KEY, true);
     }
 
     private static void writeParentData(EntityMaid maid, UUID motherUuid, UUID fatherUuid) {
@@ -631,7 +654,7 @@ public class MaidChildEntity extends EntityMaid {
         persistent.remove(PERSISTENT_INFANT_CARRY_END_TICK_KEY);
         persistent.remove(PERSISTENT_TAME_INITIALIZED_KEY);
         if (maid.hasCustomName()) {
-            String nameJson = Component.Serializer.toJson(maid.getCustomName());
+            String nameJson = ComponentJsonUtil.toJson(maid.getCustomName(), maid.level());
             persistent.putString(PERSISTENT_CHILD_NAME_JSON_KEY, nameJson);
         }
         applyChildStateData(maid, ChildStateData.EMPTY, true);
@@ -775,7 +798,7 @@ public class MaidChildEntity extends EntityMaid {
             return;
         }
 
-        String nameJson = Component.Serializer.toJson(name);
+        String nameJson = ComponentJsonUtil.toJson(name, maid.level());
         CompoundTag persistent = maid.getPersistentData();
         persistent.putBoolean(PERSISTENT_CHILD_NAME_CONFIRMED_KEY, true);
         persistent.putString(PERSISTENT_CHILD_NAME_JSON_KEY, nameJson);
@@ -857,7 +880,7 @@ public class MaidChildEntity extends EntityMaid {
         if (!maid.hasCustomName() || maid.getCustomName() == null) {
             return Optional.empty();
         }
-        return Optional.of(Component.Serializer.toJson(maid.getCustomName()));
+        return Optional.of(ComponentJsonUtil.toJson(maid.getCustomName(), maid.level()));
     }
 
     /**
@@ -997,7 +1020,7 @@ public class MaidChildEntity extends EntityMaid {
             return null;
         }
         try {
-            return Component.Serializer.fromJson(json);
+            return ComponentJsonUtil.fromJson(json, net.minecraft.client.Minecraft.getInstance().level.registryAccess());
         } catch (Exception ignored) {
             return null;
         }

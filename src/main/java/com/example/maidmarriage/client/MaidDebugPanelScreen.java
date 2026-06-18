@@ -159,7 +159,7 @@ public class MaidDebugPanelScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        ScreenBackgrounds.renderInWorld(graphics, this.width, this.height);
 
         int panelLeft = this.width / 2 - 160;
         int panelRight = this.width / 2 + 160;
@@ -176,6 +176,26 @@ public class MaidDebugPanelScreen extends Screen {
         graphics.drawWordWrap(this.font, status, panelLeft + 18, panelBottom - 24, 286, statusColor);
 
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
     }
 
     @Override

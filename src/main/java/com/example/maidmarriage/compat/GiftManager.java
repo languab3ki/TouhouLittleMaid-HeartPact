@@ -4,12 +4,12 @@ import com.example.maidmarriage.config.DialogueScriptManager;
 import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.GiftResultPayload;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.util.InventorySlotSync;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -100,7 +100,7 @@ public final class GiftManager {
                     return;
                 }
                 if (MarriageEventHandler.handleFlowerGiftFromUi(player, maid, stack)) {
-                    syncGiftSlot(player, slotIndex, stack);
+                    InventorySlotSync.syncPlayerInventorySlot(player, slotIndex);
                     recordGiftReceived(maid);
                     MaidMoodManager.markMeaningfulInteraction(maid);
                     sendGiftResult(player, maid, GiftTable.GiftCategory.FLOWER, preview.reaction());
@@ -129,11 +129,7 @@ public final class GiftManager {
             MaidMoodManager.addMood(maid, moodDelta);
         }
         recordCategoryUse(maid, preview.category());
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-            player.getInventory().setChanged();
-            syncGiftSlot(player, slotIndex, stack);
-        }
+        InventorySlotSync.consumeOnePlayerInventoryItem(player, slotIndex);
         recordGiftReceived(maid);
         MaidMoodManager.markMeaningfulInteraction(maid);
 
@@ -147,16 +143,6 @@ public final class GiftManager {
                 Component.translatable(categoryLabelKey(preview.category())),
                 actualFavorDelta,
                 moodDelta));
-    }
-
-    private static void syncGiftSlot(ServerPlayer player, int slotIndex, ItemStack stack) {
-        if (player == null || slotIndex < 0) {
-            return;
-        }
-        player.getInventory().setChanged();
-        player.inventoryMenu.broadcastChanges();
-        player.containerMenu.broadcastChanges();
-        player.connection.send(new ClientboundContainerSetSlotPacket(-2, 0, slotIndex, stack.copy()));
     }
 
     private static String giftDialogueKey(GiftTable.GiftCategory category, boolean childGift) {

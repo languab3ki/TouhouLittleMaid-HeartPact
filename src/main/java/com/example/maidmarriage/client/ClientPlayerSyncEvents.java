@@ -6,13 +6,16 @@ import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.network.ModNetworking;
 import com.example.maidmarriage.network.payload.UpdateMaidAddressingPayload;
 import com.example.maidmarriage.network.payload.UpdatePlayerSettingsPayload;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class ClientPlayerSyncEvents {
     private ClientPlayerSyncEvents() {
     }
@@ -37,11 +40,8 @@ public final class ClientPlayerSyncEvents {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
+    public static void onClientTick(ClientTickEvent.Post event) {
+                net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
         HugClientState.tick(minecraft);
         ChildInteractionClientState.tick(minecraft);
         HugActionScreen.tickCompactLookHotkey(minecraft);

@@ -8,14 +8,17 @@ import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.init.ModItems;
 import com.example.maidmarriage.network.payload.SpiritInteractionPayload;
+import com.example.maidmarriage.util.ComponentJsonUtil;
+import com.example.maidmarriage.util.InventorySlotSync;
 import java.util.UUID;
 import javax.annotation.Nullable;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.Filterable;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -24,19 +27,23 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.phys.Vec3;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 
 /**
  * 灵体交互的服务端执行层。
  *
  * <p>第一期只提供“安抚”，先把目标识别、权限和反馈链路跑通。
  */
-@Mod.EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public final class SpiritInteractionManager {
     private static final String TAG_SOOTHE_COOLDOWN_UNTIL = "maidmarriage_spirit_soothe_cooldown_until";
     private static final String TAG_MEMORY_COOLDOWN_UNTIL = "maidmarriage_spirit_memory_cooldown_until";
@@ -216,8 +223,8 @@ public final class SpiritInteractionManager {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide() || !(event.player instanceof ServerPlayer player)) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
         if (!player.getPersistentData().hasUUID(TAG_BOUND_SPIRIT)) {
@@ -403,7 +410,7 @@ public final class SpiritInteractionManager {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.spirit.offering.locked", spirit.getDisplayName()));
             return;
         }
-        ItemStack stack = player.getInventory().items.get(slotIndex);
+        ItemStack stack = InventorySlotSync.getPlayerInventoryStack(player, slotIndex);
         SpiritOfferingRules.OfferingCategory category = SpiritOfferingRules.classify(stack);
         if (category != SpiritOfferingRules.OfferingCategory.FLOWER && category != SpiritOfferingRules.OfferingCategory.SOUL) {
             player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.spirit.offering.invalid"));
@@ -417,11 +424,7 @@ public final class SpiritInteractionManager {
         int gained = category == SpiritOfferingRules.OfferingCategory.SOUL ? 2 : resolveFlowerOfferingGain(spirit, stack);
         addLongingAndNotifyReady(player, spirit, gained);
         recordOffering(spirit, level);
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-            player.getInventory().setChanged();
-            syncInventorySlot(player, slotIndex, stack);
-        }
+        InventorySlotSync.consumeOnePlayerInventoryItem(player, slotIndex);
         level.sendParticles(category == SpiritOfferingRules.OfferingCategory.SOUL ? ParticleTypes.SOUL : ParticleTypes.HEART,
                 spirit.getX(), spirit.getY(1.0D), spirit.getZ(), 8, 0.22D, 0.24D, 0.22D, 0.01D);
         level.playSound(null, spirit.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.45F, 1.2F);
@@ -487,7 +490,7 @@ public final class SpiritInteractionManager {
         target.putString(MaidChildEntity.PERSISTENT_GROWTH_STAGE_KEY, MaidChildEntity.GrowthStage.INFANT.name());
         target.putBoolean(MaidChildEntity.PERSISTENT_TAME_INITIALIZED_KEY, child.isTame() && child.getOwnerUUID() != null);
         target.putBoolean(MaidChildEntity.PERSISTENT_CHILD_NAME_CONFIRMED_KEY, true);
-        String nameJson = Component.Serializer.toJson(child.getName());
+        String nameJson = ComponentJsonUtil.toJson(child.getName(), child.level());
         target.putString(MaidChildEntity.PERSISTENT_CHILD_NAME_JSON_KEY, nameJson);
         child.addTag(MaidChildEntity.BORN_MAID_TAG);
     }
@@ -539,15 +542,17 @@ public final class SpiritInteractionManager {
 
     private static void giveFarewellLetter(ServerPlayer player, MaidSpiritEntity spirit) {
         ItemStack book = new ItemStack(net.minecraft.world.item.Items.WRITTEN_BOOK);
-        net.minecraft.nbt.CompoundTag tag = book.getOrCreateTag();
-        tag.putString("author", spirit.getName().getString());
-        tag.putString("title", DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.title").getString());
-        net.minecraft.nbt.ListTag pages = new net.minecraft.nbt.ListTag();
-        pages.add(net.minecraft.nbt.StringTag.valueOf(net.minecraft.network.chat.Component.Serializer.toJson(
-                DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.page1", spirit.getDisplayName()))));
-        pages.add(net.minecraft.nbt.StringTag.valueOf(net.minecraft.network.chat.Component.Serializer.toJson(
-                DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.page2"))));
-        tag.put("pages", pages);
+        Component title = DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.title");
+        book.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(
+                Filterable.passThrough(title.getString()),
+                spirit.getName().getString(),
+                0,
+                java.util.List.of(
+                        Filterable.passThrough(DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.page1", spirit.getDisplayName())),
+                        Filterable.passThrough(DialogueScriptManager.componentForPlayer(player, "item.maidmarriage.spirit_farewell_letter.page2"))
+                ),
+                true
+        ));
         if (!player.getInventory().add(book)) {
             player.drop(book, false);
         }
@@ -603,12 +608,5 @@ public final class SpiritInteractionManager {
         boolean first = !tag.getBoolean(tagKey);
         tag.putBoolean(tagKey, true);
         return first ? 3 : 1;
-    }
-
-    private static void syncInventorySlot(ServerPlayer player, int slotIndex, ItemStack stack) {
-        player.getInventory().setChanged();
-        player.inventoryMenu.broadcastChanges();
-        player.containerMenu.broadcastChanges();
-        player.connection.send(new ClientboundContainerSetSlotPacket(-2, 0, slotIndex, stack.copy()));
     }
 }

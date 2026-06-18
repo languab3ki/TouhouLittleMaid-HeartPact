@@ -174,7 +174,7 @@ public final class HugDialogueRuntimeBridge {
      * 只是主题来源从“写死常量”改成了“场景数据声明”。
      */
     public ResourceLocation activeThemeId() {
-        return activeThemeId == null ? new ResourceLocation("maidmarriage", "hug_default") : activeThemeId;
+        return activeThemeId == null ? ResourceLocation.fromNamespaceAndPath("maidmarriage", "hug_default") : activeThemeId;
     }
 
     /**
@@ -293,7 +293,7 @@ public final class HugDialogueRuntimeBridge {
 
     private ResourceLocation parseThemeId(String rawThemeId) {
         ResourceLocation parsed = ResourceLocation.tryParse(rawThemeId);
-        return parsed == null ? new ResourceLocation("maidmarriage", "hug_default") : parsed;
+        return parsed == null ? ResourceLocation.fromNamespaceAndPath("maidmarriage", "hug_default") : parsed;
     }
 
     private String safeValue(String raw) {

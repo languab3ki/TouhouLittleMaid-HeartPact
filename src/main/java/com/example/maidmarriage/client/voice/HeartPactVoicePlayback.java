@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 /**

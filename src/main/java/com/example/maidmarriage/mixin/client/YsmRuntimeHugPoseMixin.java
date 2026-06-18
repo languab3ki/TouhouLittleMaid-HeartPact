@@ -24,19 +24,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * 让 YSM 拥抱固定动作长期都走同一条运行时桥接入口。
  */
 @Pseudo
-@Mixin(targets = "com.elfmcys.yesstevemodel.oOOooOooO000oo0oooo0oo0o", remap = false)
+@Mixin(targets = "com.elfmcys.yesstevemodel.OO0OOoo0ooooOoO0O0o00Ooo", remap = false)
 public abstract class YsmRuntimeHugPoseMixin {
     @Inject(
-            method = "O0OOOoOooOO0OO0o00OoO0O0(Lcom/elfmcys/yesstevemodel/OoOOoOooOo000OO0O00oOo00;Lnet/minecraft/resources/ResourceLocation;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            method = "oOo0OO0O0o000OO0O000oo0o(Lcom/elfmcys/yesstevemodel/O0OOoooOOoOo0O00O0oOoo0O;Lnet/minecraft/resources/ResourceLocation;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/elfmcys/yesstevemodel/oOOooOooO000oo0oooo0oo0o;O0OOOoOooOO0OO0o00OoO0O0(Lcom/elfmcys/yesstevemodel/O0oo0Oo0o00OOO0oOOo0OoOo;Lcom/elfmcys/yesstevemodel/OOO0oOOo0O0000oO00ooooO0;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V",
+                    target = "Lcom/elfmcys/yesstevemodel/OO0OOoo0ooooOoO0O0o00Ooo;oOo0OO0O0o000OO0O000oo0o(Lcom/elfmcys/yesstevemodel/o0ooO0ooO00oo0o00Oo00000;Lcom/elfmcys/yesstevemodel/OoO0oo0o0o0oOoo0oOOO0Ooo;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V",
                     shift = At.Shift.BEFORE
             )
     )
-    private void maidmarriage$applyYsmRuntimeHugPose(@Coerce Object wrapper,
+    private void maidmarriage$applyYsmRuntimeHugPose(@Coerce Object animatable,
                                                      ResourceLocation texture,
-                                                     float limbSwing,
+                                                     float entityYaw,
                                                      float partialTicks,
                                                      com.mojang.blaze3d.vertex.PoseStack poseStack,
                                                      MultiBufferSource bufferSource,
@@ -51,10 +51,10 @@ public abstract class YsmRuntimeHugPoseMixin {
          *
          * 这样以后调试面板里的高度数值改动，能直接在当前这条 YSM 渲染路线里生效。
          */
-        if (YsmRuntimeHugPoseBridge.isLiftState(wrapper)) {
-            double configuredLiftHeight = YsmRuntimeHugPoseBridge.resolveLiftConfiguredHeight(wrapper);
+        if (YsmRuntimeHugPoseBridge.isLiftState(animatable)) {
+            double configuredLiftHeight = YsmRuntimeHugPoseBridge.resolveLiftConfiguredHeight(animatable);
             poseStack.translate(0.0D, YsmLiftHeightDebug.resolveVisualHeight(configuredLiftHeight), 0.0D);
-        } else if (YsmRuntimeHugPoseBridge.isCarriedChildState(wrapper)) {
+        } else if (YsmRuntimeHugPoseBridge.isCarriedChildState(animatable)) {
             poseStack.translate(
                     YsmRuntimeHugPoseBridge.resolveCarryChildVisualOffsetX(),
                     YsmRuntimeHugPoseBridge.resolveCarryChildVisualHeight(),
@@ -62,6 +62,6 @@ public abstract class YsmRuntimeHugPoseMixin {
             );
         }
 
-        YsmRuntimeHugPoseBridge.applyIfNeeded(wrapper);
+        YsmRuntimeHugPoseBridge.applyIfNeeded(animatable);
     }
 }

@@ -68,7 +68,7 @@ public final class ChildNameScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        ScreenBackgrounds.renderInWorld(graphics, this.width, this.height);
         int panelLeft = this.width / 2 - 150;
         int panelTop = this.height / 2 - 70;
         graphics.fill(panelLeft, panelTop, panelLeft + 300, panelTop + 140, 0xEE171520);
@@ -83,6 +83,26 @@ public final class ChildNameScreen extends Screen {
                 0xFFD8D0EB
         );
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
     }
 
     @Override

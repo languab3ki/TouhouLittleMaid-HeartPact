@@ -41,11 +41,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -64,7 +65,7 @@ import org.lwjgl.glfw.GLFW;
  * <p>这样后续继续扩动作、扩剧情、扩表情和 UI 动画时，
  * 我们就不需要再往这个类里继续堆 switch-case 了。
  */
-@Mod.EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class HugActionScreen extends Screen {
     private static final Pattern STRUCTURED_DIALOGUE_LINE = Pattern.compile("^(女仆|小女仆|旁白|玩家|Maid|Little Maid|Narration|Player|メイド|小さなメイド|地の文|プレイヤー)\\s*[：:]\\s*(.+)$");
     private static final long VOICE_DOUBLE_CLICK_WINDOW_MS = 280L;
@@ -76,7 +77,7 @@ public class HugActionScreen extends Screen {
      * <p>如果新剧情没有声明自己的主题，
      * 或者声明的主题资源写错了，就自动回退到这里。
      */
-    private static final ResourceLocation DEFAULT_THEME_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "hug_default");
+    private static final ResourceLocation DEFAULT_THEME_ID = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "hug_default");
     private static final Pattern SINGLE_TEMPLATE_VARIABLE = Pattern.compile("^\\$?\\{([A-Za-z0-9_]+)}$");
 
     /**
@@ -85,26 +86,26 @@ public class HugActionScreen extends Screen {
      * <p>这里故意写成常量，
      * 方便后面逐步把旧的拥抱菜单完整迁到新的场景 JSON 上。
      */
-    private static final ResourceLocation HUG_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "hug_menu_v2");
-    private static final ResourceLocation CHILD_SCENARIO_ID = new ResourceLocation(MaidMarriageMod.MOD_ID, "child_interaction_v1");
+    private static final ResourceLocation HUG_SCENARIO_ID = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "hug_menu_v2");
+    private static final ResourceLocation CHILD_SCENARIO_ID = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "child_interaction_v1");
 
     /**
      * 旧界面右上角的“隐藏 UI”按钮图标。
      */
-    private static final ResourceLocation HIDE_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_hide_icon.png");
+    private static final ResourceLocation HIDE_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_hide_icon.png");
 
     /**
      * 旧界面右上角的“退出拥抱”按钮图标。
      */
-    private static final ResourceLocation EXIT_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_exit_icon.png");
-    private static final ResourceLocation VOICE_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon.png");
-    private static final ResourceLocation VOICE_DISABLED_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon_disabled.png");
-    private static final ResourceLocation CAMERA_ICON = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/hug_camera_icon.png");
+    private static final ResourceLocation EXIT_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_exit_icon.png");
+    private static final ResourceLocation VOICE_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon.png");
+    private static final ResourceLocation VOICE_DISABLED_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_voice_icon_disabled.png");
+    private static final ResourceLocation CAMERA_ICON = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/hug_camera_icon.png");
 
     /**
      * 当剧情没有提供可解析的表情贴图时使用的兜底贴图。
      */
-    private static final ResourceLocation SOFT_SMILE = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
+    private static final ResourceLocation SOFT_SMILE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/soft_smile.png");
 
     /**
      * 旧资源里常用的“脸红/热笑”贴图。
@@ -112,7 +113,7 @@ public class HugActionScreen extends Screen {
      * <p>当前虽然不再由 Screen 自己写死切换逻辑，
      * 但这个资源仍然有保留价值，后续剧情和表情系统都还能继续复用。
      */
-    private static final ResourceLocation HOT_SMILE = new ResourceLocation(MaidMarriageMod.MOD_ID, "textures/gui/emotion/hot_smile.png");
+    private static final ResourceLocation HOT_SMILE = ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "textures/gui/emotion/hot_smile.png");
 
     /**
      * 旧 UI 的紧凑显示开关。
@@ -144,15 +145,20 @@ public class HugActionScreen extends Screen {
 
     public static void restoreFromCompactLookMode(Minecraft minecraft) {
         compactMode = false;
-        if (minecraft != null && minecraft.screen == null
-                && (HugClientState.isLocalPlayerInteracting() || LapPillowClientState.isLocalPlayerActive())) {
+        if (minecraft == null || minecraft.screen != null) {
+            return;
+        }
+        if (ChildInteractionClientState.isLocalPlayerInteracting()) {
+            minecraft.setScreen(HugActionScreen.childInteraction(ChildInteractionClientState.getLocalInteractionMaidUuid()));
+            minecraft.mouseHandler.releaseMouse();
+        } else if (HugClientState.isLocalPlayerInteracting() || LapPillowClientState.isLocalPlayerActive()) {
             minecraft.setScreen(new HugActionScreen());
             minecraft.mouseHandler.releaseMouse();
         }
     }
 
     private static final int CAMERA_PANEL_WIDTH = 142;
-    private static final int CAMERA_PANEL_HEIGHT = 114;
+    private static final int CAMERA_PANEL_HEIGHT = 133;
     private static final int CAMERA_PANEL_MARGIN = 8;
     private static final int CAMERA_SLIDER_WIDTH = 74;
     private static final int CAMERA_SLIDER_HEIGHT = 5;
@@ -261,6 +267,7 @@ public class HugActionScreen extends Screen {
     private float cameraPanelSnapshotPitchOffset;
     private double cameraPanelSnapshotLapPillowFovScale;
     private double cameraPanelSnapshotLapPillowHeightOffset;
+    private double cameraPanelSnapshotLapPillowRestHeightOffset;
 
     /**
      * 屏幕左上角短提示文案。
@@ -461,6 +468,26 @@ public class HugActionScreen extends Screen {
     }
 
     @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics graphics) {
+        ScreenBackgrounds.suppressVanillaBackground();
+    }
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return super.mouseClicked(mouseX, mouseY, button);
@@ -598,8 +625,8 @@ public class HugActionScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        HugCameraZoom.adjustHugZoom(delta);
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        HugCameraZoom.adjustHugZoom(scrollY);
         return true;
     }
 
@@ -652,13 +679,13 @@ public class HugActionScreen extends Screen {
      * 在拥抱 UI 打开时，继续隐藏原版热键栏和聊天栏。
      */
     @SubscribeEvent
-    public static void hideVanillaHudWhenHugUiActive(RenderGuiOverlayEvent.Pre event) {
+    public static void hideVanillaHudWhenHugUiActive(RenderGuiLayerEvent.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!(minecraft.screen instanceof HugActionScreen screen) || !screen.shouldHideVanillaHud()) {
             return;
         }
-        if (event.getOverlay().id().equals(VanillaGuiOverlay.HOTBAR.id())
-                || event.getOverlay().id().equals(VanillaGuiOverlay.CHAT_PANEL.id())) {
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR)
+                || event.getName().equals(VanillaGuiLayers.CHAT)) {
             event.setCanceled(true);
         }
     }
@@ -802,27 +829,26 @@ public class HugActionScreen extends Screen {
                 LapPillowClientState.getLocalRecoveryStatus();
         int y = top;
         if (status.healLimitHp() > 0) {
-            Component healLine = Component.literal("膝枕恢复：" + hpToHeartText(status.healUsedHp())
-                    + " / " + hpToHeartText(status.healLimitHp()) + "颗心");
+            Component healLine = status.healUsedHp() >= status.healLimitHp()
+                    ? Component.translatable("ui.maidmarriage.lap_pillow.heal_max", status.healUsedHp(), status.healLimitHp())
+                    : Component.translatable("ui.maidmarriage.lap_pillow.heal", status.healUsedHp(), status.healLimitHp());
             graphics.drawString(this.font, healLine, right - this.font.width(healLine), y, 0xFFE8FFF0, true);
             y += this.font.lineHeight + 2;
+            if (status.lastHealHp() > 0 && status.healUsedHp() < status.healLimitHp()) {
+                Component lastHealLine = Component.translatable("ui.maidmarriage.lap_pillow.last_heal", status.lastHealHp());
+                graphics.drawString(this.font, lastHealLine, right - this.font.width(lastHealLine), y, 0xFFD8FFE6, true);
+                y += this.font.lineHeight + 2;
+            }
         }
         if (status.cleanseLimit() > 0) {
-            Component cleanseLine = Component.literal("负面净化：" + status.cleanseUsed() + " / " + status.cleanseLimit());
+            Component cleanseLine = Component.translatable("ui.maidmarriage.lap_pillow.cleanse", status.cleanseUsed(), status.cleanseLimit());
             graphics.drawString(this.font, cleanseLine, right - this.font.width(cleanseLine), y, 0xFFE8F4FF, true);
             y += this.font.lineHeight + 2;
         }
         if (status.resistanceLimit() > 0) {
-            Component resistanceLine = Component.literal("抗性守护：" + status.resistanceUsed() + " / " + status.resistanceLimit());
+            Component resistanceLine = Component.translatable("ui.maidmarriage.lap_pillow.resistance", status.resistanceUsed(), status.resistanceLimit());
             graphics.drawString(this.font, resistanceLine, right - this.font.width(resistanceLine), y, 0xFFFFF4D6, true);
         }
-    }
-
-    private String hpToHeartText(int hp) {
-        if ((hp & 1) == 0) {
-            return Integer.toString(hp / 2);
-        }
-        return String.format(java.util.Locale.ROOT, "%.1f", hp / 2.0F);
     }
 
     /**
@@ -851,8 +877,10 @@ public class HugActionScreen extends Screen {
                 HugCameraZoom.minCameraPitchOffsetDegrees(), HugCameraZoom.maxCameraPitchOffsetDegrees(), HugCameraZoom.pitchOffsetLabel());
         renderCameraSlider(graphics, panelX + 8, panelY + 61, "膝枕缩放", LapPillowPoseDebug.cameraFovScale(),
                 LapPillowPoseDebug.MIN_CAMERA_FOV_SCALE, LapPillowPoseDebug.MAX_CAMERA_FOV_SCALE, LapPillowPoseDebug.cameraFovLabel());
-        renderCameraSlider(graphics, panelX + 8, panelY + 80, "膝枕高度", LapPillowPoseDebug.cameraHeightOffset(),
+        renderCameraSlider(graphics, panelX + 8, panelY + 80, "镜头高度", LapPillowPoseDebug.cameraHeightOffset(),
                 LapPillowPoseDebug.MIN_CAMERA_HEIGHT_OFFSET, LapPillowPoseDebug.MAX_CAMERA_HEIGHT_OFFSET, LapPillowPoseDebug.cameraHeightLabel());
+        renderCameraSlider(graphics, panelX + 8, panelY + 99, "躺姿高度", LapPillowPoseDebug.restHeightOffset(),
+                LapPillowPoseDebug.MIN_REST_HEIGHT_OFFSET, LapPillowPoseDebug.MAX_REST_HEIGHT_OFFSET, LapPillowPoseDebug.restHeightLabel());
 
         int saveX = cameraPanelSaveX();
         int saveY = cameraPanelSaveY();
@@ -919,6 +947,12 @@ public class HugActionScreen extends Screen {
             updateCameraSliderValue(mouseX);
             return true;
         }
+        if (isInside(mouseX, mouseY, cameraSliderTrackX(), cameraSliderLapRestHeightTrackY() - 4,
+                CAMERA_SLIDER_WIDTH, CAMERA_SLIDER_HEIGHT + 8)) {
+            cameraSliderDragTarget = CameraSliderDragTarget.LAP_PILLOW_REST_HEIGHT;
+            updateCameraSliderValue(mouseX);
+            return true;
+        }
 
         return isInside(mouseX, mouseY, cameraPanelX(), cameraPanelY(), CAMERA_PANEL_WIDTH, CAMERA_PANEL_HEIGHT);
     }
@@ -933,6 +967,7 @@ public class HugActionScreen extends Screen {
         cameraPanelSnapshotPitchOffset = HugCameraZoom.currentCameraPitchOffsetDegrees();
         cameraPanelSnapshotLapPillowFovScale = LapPillowPoseDebug.cameraFovScale();
         cameraPanelSnapshotLapPillowHeightOffset = LapPillowPoseDebug.cameraHeightOffset();
+        cameraPanelSnapshotLapPillowRestHeightOffset = LapPillowPoseDebug.restHeightOffset();
         cameraSliderDragTarget = CameraSliderDragTarget.NONE;
         cameraAdjustPanelOpen = true;
     }
@@ -945,6 +980,7 @@ public class HugActionScreen extends Screen {
         HugCameraZoom.setCameraPitchOffsetDegrees(cameraPanelSnapshotPitchOffset);
         LapPillowPoseDebug.setCameraFovScale(cameraPanelSnapshotLapPillowFovScale);
         LapPillowPoseDebug.setCameraHeightOffset(cameraPanelSnapshotLapPillowHeightOffset);
+        LapPillowPoseDebug.setRestHeightOffset(cameraPanelSnapshotLapPillowRestHeightOffset);
         cameraSliderDragTarget = CameraSliderDragTarget.NONE;
         cameraAdjustPanelOpen = false;
     }
@@ -974,6 +1010,16 @@ public class HugActionScreen extends Screen {
             double min = LapPillowPoseDebug.MIN_CAMERA_HEIGHT_OFFSET;
             double max = LapPillowPoseDebug.MAX_CAMERA_HEIGHT_OFFSET;
             LapPillowPoseDebug.setCameraHeightOffset(min + (max - min) * progress);
+            return;
+        }
+        if (cameraSliderDragTarget == CameraSliderDragTarget.LAP_PILLOW_REST_HEIGHT) {
+            double min = LapPillowPoseDebug.MIN_REST_HEIGHT_OFFSET;
+            double max = LapPillowPoseDebug.MAX_REST_HEIGHT_OFFSET;
+            /*
+             * 躺姿高度是服务端锁位参数，拖动时立即同步给服务端，
+             * 这样玩家能现场看到身体是否真正落在女仆膝上。
+             */
+            LapPillowPoseDebug.setRestHeightOffset(min + (max - min) * progress);
         }
     }
 
@@ -1023,6 +1069,10 @@ public class HugActionScreen extends Screen {
 
     private int cameraSliderLapHeightTrackY() {
         return cameraPanelY() + 80 + 2;
+    }
+
+    private int cameraSliderLapRestHeightTrackY() {
+        return cameraPanelY() + 99 + 2;
     }
 
     private int cameraPanelSaveX() {
@@ -2348,6 +2398,7 @@ public class HugActionScreen extends Screen {
         ZOOM,
         PITCH,
         LAP_PILLOW_FOV,
-        LAP_PILLOW_HEIGHT
+        LAP_PILLOW_HEIGHT,
+        LAP_PILLOW_REST_HEIGHT
     }
 }

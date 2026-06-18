@@ -10,9 +10,9 @@ import com.github.tartaricacid.touhoulittlemaid.client.overlay.MaidTipsOverlay;
 import com.github.tartaricacid.touhoulittlemaid.entity.data.TaskDataRegister;
 import com.github.tartaricacid.touhoulittlemaid.entity.task.TaskManager;
 import com.github.tartaricacid.touhoulittlemaid.item.bauble.BaubleManager;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
 
 @LittleMaidExtension
 /**
@@ -21,10 +21,10 @@ import net.minecraftforge.common.MinecraftForge;
  */
 public class LittleMaidCompat implements ILittleMaid {
     public LittleMaidCompat() {
-        MinecraftForge.EVENT_BUS.register(MarriageEventHandler.class);
-        MinecraftForge.EVENT_BUS.register(RomanceSleepManager.class);
-        MinecraftForge.EVENT_BUS.register(MaidWorkManager.class);
-        MinecraftForge.EVENT_BUS.register(MaidLiftManager.class);
+        NeoForge.EVENT_BUS.register(MarriageEventHandler.class);
+        NeoForge.EVENT_BUS.register(RomanceSleepManager.class);
+        NeoForge.EVENT_BUS.register(MaidWorkManager.class);
+        NeoForge.EVENT_BUS.register(MaidLiftManager.class);
         /*
          * 亲吻管理器除了处理网络包外，还负责服务端 tick 中的两段后续逻辑：
          * 1. 亲吻后的短暂对视维持；
@@ -32,9 +32,9 @@ public class LittleMaidCompat implements ILittleMaid {
          * 如果这里不注册到事件总线，亲吻请求虽然能发到服务端，
          * 但后续动作和延迟台词都不会执行。
          */
-        MinecraftForge.EVENT_BUS.register(MaidKissManager.class);
-        MinecraftForge.EVENT_BUS.register(PetHeadManager.class);
-        MinecraftForge.EVENT_BUS.register(SoulSlabChildBridge.class);
+        NeoForge.EVENT_BUS.register(MaidKissManager.class);
+        NeoForge.EVENT_BUS.register(PetHeadManager.class);
+        NeoForge.EVENT_BUS.register(SoulSlabChildBridge.class);
     }
 
     @Override

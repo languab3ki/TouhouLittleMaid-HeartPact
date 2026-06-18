@@ -6,6 +6,7 @@
   "refmap": "maidmarriage-refmap.json",
   "mixins": [
     "EntityLapPillowPoseServerGuardMixin",
+    "MaidMainContainerChildArmorSlotMixin",
     "QueryBindingLiftStateMixin",
     "YsmTlmMolangCompatMixin"
   ],

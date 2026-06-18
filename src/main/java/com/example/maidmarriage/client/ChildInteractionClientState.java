@@ -62,6 +62,13 @@ public final class ChildInteractionClientState {
         if (minecraft == null) {
             return;
         }
+        if (HugActionScreen.isCompactLookMode()) {
+            /*
+             * 隐藏按钮进入的是自由视角模式，不能在下一帧把小女仆互动页重新打开。
+             * 否则 UI 虽然短暂关闭，鼠标又会立刻被 Screen 接管，看起来就像视角仍然被锁住。
+             */
+            return;
+        }
         if (!isLocalPlayerInteracting()) {
             if (minecraft.screen instanceof HugActionScreen screen && screen.isChildInteractionScreen()) {
                 minecraft.setScreen(null);

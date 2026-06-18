@@ -1,5 +1,11 @@
 package com.example.maidmarriage.network.payload;
 
+import org.jetbrains.annotations.NotNull;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import com.example.maidmarriage.MaidMarriageMod;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.FriendlyByteBuf;
@@ -7,7 +13,10 @@ import net.minecraft.network.FriendlyByteBuf;
 /**
  * 膝枕状态同步包（服务端 -> 客户端）。
  */
-public class LapPillowStateSyncPayload {
+public class LapPillowStateSyncPayload implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<LapPillowStateSyncPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MaidMarriageMod.MOD_ID, "LapPillowStateSync".replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT)));
+    public static final StreamCodec<RegistryFriendlyByteBuf, LapPillowStateSyncPayload> STREAM_CODEC = StreamCodec.ofMember(LapPillowStateSyncPayload::encode, LapPillowStateSyncPayload::decode);
+
     private final UUID playerUuid;
     @Nullable
     private final UUID maidUuid;
@@ -91,19 +100,21 @@ public class LapPillowStateSyncPayload {
     /**
      * 膝枕每日恢复状态。
      *
-     * <p>单位说明：回血用 HP 计数，2 HP 等于游戏里 1 颗心。
+     * <p>单位说明：回血统一用 HP 计数，所有语言界面也直接显示 HP。
      */
     public record RecoveryStatus(int healUsedHp,
                                  int healLimitHp,
+                                 int lastHealHp,
                                  int cleanseUsed,
                                  int cleanseLimit,
                                  int resistanceUsed,
                                  int resistanceLimit) {
-        public static final RecoveryStatus EMPTY = new RecoveryStatus(0, 0, 0, 0, 0, 0);
+        public static final RecoveryStatus EMPTY = new RecoveryStatus(0, 0, 0, 0, 0, 0, 0);
 
         private void encode(FriendlyByteBuf buf) {
             buf.writeVarInt(healUsedHp);
             buf.writeVarInt(healLimitHp);
+            buf.writeVarInt(lastHealHp);
             buf.writeVarInt(cleanseUsed);
             buf.writeVarInt(cleanseLimit);
             buf.writeVarInt(resistanceUsed);
@@ -117,8 +128,15 @@ public class LapPillowStateSyncPayload {
                     buf.readVarInt(),
                     buf.readVarInt(),
                     buf.readVarInt(),
+                    buf.readVarInt(),
                     buf.readVarInt()
             );
         }
     }
+
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
 }

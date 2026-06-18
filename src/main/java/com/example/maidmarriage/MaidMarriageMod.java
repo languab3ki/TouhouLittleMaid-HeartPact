@@ -7,14 +7,13 @@ import com.example.maidmarriage.init.ModCreativeTabs;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.init.ModItems;
 import com.example.maidmarriage.network.ModNetworking;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(MaidMarriageMod.MOD_ID)
 /**
@@ -24,14 +23,15 @@ import net.minecraftforge.fml.DistExecutor;
 public final class MaidMarriageMod {
     public static final String MOD_ID = "maidmarriage";
 
-    public MaidMarriageMod() {
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public MaidMarriageMod(IEventBus modBus, ModContainer modContainer) {
         ModItems.ITEMS.register(modBus);
         ModCreativeTabs.CREATIVE_TABS.register(modBus);
         ModEntities.ENTITY_TYPES.register(modBus);
-        ModNetworking.register();
-        MinecraftForge.EVENT_BUS.register(ModDebugCommands.class);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientOnlyBootstrap::init);
+        modBus.addListener(ModNetworking::register);
+        NeoForge.EVENT_BUS.register(ModDebugCommands.class);
+        modContainer.registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ClientOnlyBootstrap.init(modContainer);
+        }
     }
 }
