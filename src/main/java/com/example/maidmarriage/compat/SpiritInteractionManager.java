@@ -1,6 +1,7 @@
 package com.example.maidmarriage.compat;
 
 import com.example.maidmarriage.advancement.ModAdvancements;
+import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.config.DialogueScriptManager;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.entity.MaidChildEntity;
@@ -344,7 +345,9 @@ public final class SpiritInteractionManager {
         child.getSchedulePos().setHomeModeEnable(child, child.blockPosition());
         child.setHomeModeEnable(true);
         child.syncChildStateToClient();
-        StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        if (ModConfigs.recruitAnimationEnabled()) {
+            StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        }
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
@@ -602,7 +605,9 @@ public final class SpiritInteractionManager {
         child.getSchedulePos().setHomeModeEnable(child, child.blockPosition());
         child.setHomeModeEnable(true);
         child.syncChildStateToClient();
-        StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        if (ModConfigs.recruitAnimationEnabled()) {
+            StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        }
         clearSpirit(level, spirit, true);
         return child;
     }

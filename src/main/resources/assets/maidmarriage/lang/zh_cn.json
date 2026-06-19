@@ -148,6 +148,7 @@
   "config.maidmarriage.open_guide": "查看玩家指南",
   "guide.maidmarriage.title": "心契同眠玩家指南",
   "config.maidmarriage.harem_mode": "后宫模式",
+  "config.maidmarriage.recruit_animation_enabled": "启用招募动画",
   "config.maidmarriage.required_favorability": "结婚所需好感度",
   "config.maidmarriage.pregnancy_chance": "怀孕概率",
   "message.maidmarriage.child.favor.rested": "小女仆休息了一整天，好感度+5，当前：%s",

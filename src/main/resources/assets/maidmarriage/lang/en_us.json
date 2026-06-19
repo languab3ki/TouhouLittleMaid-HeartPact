@@ -150,6 +150,7 @@
   "config.maidmarriage.open_guide": "Open Player Guide",
   "guide.maidmarriage.title": "Heart Pact Player Guide",
   "config.maidmarriage.harem_mode": "Harem Mode",
+  "config.maidmarriage.recruit_animation_enabled": "Enable Recruitment Animation",
   "config.maidmarriage.required_favorability": "Required Favorability",
   "config.maidmarriage.pregnancy_chance": "Pregnancy Chance",
   "message.maidmarriage.child.favor.rested": "%s rested for a full day. Favorability +5, now: %s",

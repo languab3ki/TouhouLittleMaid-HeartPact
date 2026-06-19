@@ -11,6 +11,7 @@ public final class ModConfigs {
 
     public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.BooleanValue HAREM_MODE;
+    private static final ModConfigSpec.BooleanValue RECRUIT_ANIMATION_ENABLED;
     private static final ModConfigSpec.IntValue REQUIRED_FAVORABILITY;
     private static final ModConfigSpec.DoubleValue PREGNANCY_CHANCE;
     private static final ModConfigSpec.IntValue PREGNANCY_BIRTH_DAYS;
@@ -66,6 +67,11 @@ public final class ModConfigs {
                 .comment("Allow a player to marry multiple maids.")
                 .translation("config.maidmarriage.harem_mode")
                 .define("haremMode", false);
+
+        RECRUIT_ANIMATION_ENABLED = builder
+                .comment("Enable the starfall magic circle recruitment animation for childbirth and spirit revival.")
+                .translation("config.maidmarriage.recruit_animation_enabled")
+                .define("recruitAnimationEnabled", true);
 
         REQUIRED_FAVORABILITY = builder
                 .comment("Favorability threshold to marry.")
@@ -239,6 +245,14 @@ public final class ModConfigs {
 
     public static void setHaremMode(boolean enabled) {
         HAREM_MODE.set(enabled);
+    }
+
+    public static boolean recruitAnimationEnabled() {
+        return RECRUIT_ANIMATION_ENABLED.get();
+    }
+
+    public static void setRecruitAnimationEnabled(boolean enabled) {
+        RECRUIT_ANIMATION_ENABLED.set(enabled);
     }
 
     public static int requiredFavorability() {

@@ -88,6 +88,12 @@ public class MaidMarriageConfigScreen extends Screen {
                         (btn, v) -> ModConfigs.setHaremMode(v)));
 
         y += 24;
+        addToPage(Page.GENERAL, CycleButton.booleanBuilder(Component.translatable("options.on"), Component.translatable("options.off"))
+                .withInitialValue(ModConfigs.recruitAnimationEnabled())
+                .create(left, y, 156, 20, Component.translatable("config.maidmarriage.recruit_animation_enabled"),
+                        (btn, v) -> ModConfigs.setRecruitAnimationEnabled(v)));
+
+        y += 24;
         addToPage(Page.GENERAL, new IntSlider(left, y, 156, 20,
                 Component.translatable("config.maidmarriage.pregnancy_birth_days"),
                 1, 30, ModConfigs.pregnancyBirthDays(), ModConfigs::setPregnancyBirthDays));
@@ -363,6 +369,7 @@ public class MaidMarriageConfigScreen extends Screen {
 
     private void resetToDefaults() {
         ModConfigs.setHaremMode(false);
+        ModConfigs.setRecruitAnimationEnabled(true);
         ModConfigs.setPregnancyBirthDays(5);
         ModConfigs.setChildGrowthDays(10);
         ModConfigs.setMaidAddressing("");
