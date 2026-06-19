@@ -366,7 +366,8 @@ public final class ModNetworking {
                     msg.maidUuid(),
                     msg.hugging(),
                     msg.childNameRequired(),
-                    msg.childLossGrief()
+                    msg.childLossGrief(),
+                    msg.scenarioId()
             );
         }
     }
