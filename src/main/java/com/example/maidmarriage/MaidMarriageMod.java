@@ -30,6 +30,7 @@ public final class MaidMarriageMod {
         modBus.addListener(ModNetworking::register);
         NeoForge.EVENT_BUS.register(ModDebugCommands.class);
         modContainer.registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);
+        modBus.addListener(ModConfigs::onConfigLoaded);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ClientOnlyBootstrap.init(modContainer);
         }

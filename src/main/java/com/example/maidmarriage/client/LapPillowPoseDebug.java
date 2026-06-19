@@ -21,7 +21,8 @@ import org.lwjgl.glfw.GLFW;
 /**
  * 膝枕姿态调试面板。
  *
- * <p>这些值只用于当前客户端调试。位置和睡姿朝向会同步给服务端用于锁位；
+ * <p>
+ * 这些值只用于当前客户端调试。位置和睡姿朝向会同步给服务端用于锁位；
  * 镜头高度、镜头缩放、镜头俯仰和侧倾只影响本地第一人称画面。
  */
 @EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -67,7 +68,7 @@ public final class LapPillowPoseDebug {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-                if (!ModConfigs.enableDebugTools()) {
+        if (!ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             enabled = false;
             clearEdges();
             return;
@@ -178,7 +179,7 @@ public final class LapPillowPoseDebug {
 
     @SubscribeEvent
     public static void onRender(RenderGuiLayerEvent.Post event) {
-        if (!enabled || !ModConfigs.enableDebugTools()) {
+        if (!enabled || !ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -194,8 +195,10 @@ public final class LapPillowPoseDebug {
         draw(event, font, x, y + 24, String.format(Locale.ROOT, "高度 height: %.2f", heightOffset), 0xFF8BD7FF);
         draw(event, font, x, y + 36, String.format(Locale.ROOT, "前后 forward: %.2f", forwardOffset), 0xFF8BD7FF);
         draw(event, font, x, y + 48, String.format(Locale.ROOT, "朝向 yawOffset: %.1f", yawOffset), 0xFF8BFF98);
-        draw(event, font, x, y + 64, String.format(Locale.ROOT, "镜头 yaw/pitch/roll: %.1f / %.1f / %.1f", cameraYawOffset, cameraPitch, cameraRoll), 0xFFFFC078);
-        draw(event, font, x, y + 76, String.format(Locale.ROOT, "镜头高度/FOV: %.2f / %.2f", cameraHeightOffset, cameraFovScale), 0xFFFFC078);
+        draw(event, font, x, y + 64, String.format(Locale.ROOT, "镜头 yaw/pitch/roll: %.1f / %.1f / %.1f",
+                cameraYawOffset, cameraPitch, cameraRoll), 0xFFFFC078);
+        draw(event, font, x, y + 76,
+                String.format(Locale.ROOT, "镜头高度/FOV: %.2f / %.2f", cameraHeightOffset, cameraFovScale), 0xFFFFC078);
         draw(event, font, x, y + 96, "↑/↓ 高度  ←/→ 左右  Ctrl+←/→ 前后", 0xFFE8E8E8);
         draw(event, font, x, y + 108, "Alt+←/→ 睡姿朝向  Alt+↑/↓ 镜头俯仰", 0xFFE8E8E8);
         draw(event, font, x, y + 120, "Ctrl+Alt+↑/↓ 镜头高低  Ctrl+Alt+←/→ 缩放", 0xFFE8E8E8);
@@ -275,12 +278,12 @@ public final class LapPillowPoseDebug {
                 cameraPitch,
                 cameraRoll,
                 cameraHeightOffset,
-                cameraFovScale
-        );
+                cameraFovScale);
     }
 
     public static void syncServerPose() {
-        ModNetworking.sendLapPillowDebugPose(new LapPillowDebugPosePayload(sideOffset, heightOffset, forwardOffset, yawOffset));
+        ModNetworking.sendLapPillowDebugPose(
+                new LapPillowDebugPosePayload(sideOffset, heightOffset, forwardOffset, yawOffset));
     }
 
     private static void draw(RenderGuiLayerEvent.Post event, Font font, int x, int y, String text, int color) {
