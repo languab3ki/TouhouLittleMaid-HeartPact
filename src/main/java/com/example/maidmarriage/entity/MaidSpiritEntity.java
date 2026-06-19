@@ -226,6 +226,15 @@ public class MaidSpiritEntity extends EntityMaid {
         this.entityData.set(DATA_GROWTH_STAGE, growthStage.name());
     }
 
+    public void remapMotherUuid(UUID oldMotherUuid, UUID newMotherUuid) {
+        if (oldMotherUuid == null || newMotherUuid == null || !oldMotherUuid.equals(this.motherUuid)) {
+            return;
+        }
+        this.motherUuid = newMotherUuid;
+        this.entityData.set(DATA_MOTHER_UUID, Optional.of(newMotherUuid));
+        getPersistentData().putUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY, newMotherUuid);
+    }
+
     public int getLonging() {
         return this.entityData.get(DATA_LONGING);
     }

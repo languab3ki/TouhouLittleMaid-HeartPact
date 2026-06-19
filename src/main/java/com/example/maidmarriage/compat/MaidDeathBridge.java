@@ -2,10 +2,10 @@ package com.example.maidmarriage.compat;
 
 import com.example.maidmarriage.MaidMarriageMod;
 import com.example.maidmarriage.config.DialogueScriptManager;
-import com.example.maidmarriage.entity.MaidChildEntity;
-import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.data.ChildLineageData;
 import com.example.maidmarriage.data.ModTaskData;
+import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTombstoneEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
@@ -40,7 +40,7 @@ public final class MaidDeathBridge {
         if (!(event.getEntity() instanceof EntityMaid maid) || !(maid.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!isFamilyMaid(maid)) {
+        if (!isChildSpiritEligible(maid)) {
             return;
         }
 
@@ -80,18 +80,8 @@ public final class MaidDeathBridge {
         }
     }
 
-    private static boolean isFamilyMaid(EntityMaid maid) {
-        if (MaidChildEntity.shouldStayChild(maid) || maid.getTags().contains(MaidChildEntity.BORN_MAID_TAG)) {
-            return true;
-        }
-        ChildLineageData lineage = maid.getData(ModTaskData.CHILD_LINEAGE_DATA);
-        if (lineage != null && lineage.bornMaid()) {
-            return true;
-        }
-        CompoundTag persistent = maid.getPersistentData();
-        return persistent.hasUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY)
-                || persistent.hasUUID(MaidChildEntity.PERSISTENT_FATHER_UUID_KEY)
-                || persistent.hasUUID(MaidChildEntity.PERSISTENT_GRAND_PARENT_UUID_KEY);
+    private static boolean isChildSpiritEligible(EntityMaid maid) {
+        return MaidChildEntity.shouldStayChild(maid);
     }
 
     private static Optional<UUID> findMotherUuid(EntityMaid maid) {

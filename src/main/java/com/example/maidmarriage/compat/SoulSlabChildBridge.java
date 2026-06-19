@@ -2,8 +2,10 @@ package com.example.maidmarriage.compat;
 
 import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.data.ChildLineageData;
+import com.example.maidmarriage.data.ChildStateData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.entity.MaidSpiritEntity;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.util.ComponentJsonUtil;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidAndItemTransformEvent;
@@ -23,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Optional;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Keep child-maid identity stable across Smart Slab (soul spell) store/restore.
@@ -30,7 +33,10 @@ import java.util.Objects;
 public final class SoulSlabChildBridge {
     private static final String FORGE_DATA_TAG = "ForgeData";
     private static final String TAGS_TAG = "Tags";
+    private static final String VANILLA_UUID_TAG = "UUID";
     private static final String BRIDGE_CHILD_TAG = "maidmarriage_bridge_child";
+    private static final String PERSISTENT_REVIVED_FROM_MAID_UUID_KEY = "maidmarriage_revived_from_maid_uuid";
+    private static final String TAG_PLAYER_PRIMARY_MAID = "maidmarriage_primary_maid";
     private static final int DAY_TICKS = 24000;
     public static final String PERSISTENT_TEMP_REVIVE_CHILD_KEY = "maidmarriage_temp_revive_child";
     public static final String PERSISTENT_TEMP_REVIVE_FROM_PHOTO_KEY = "maidmarriage_temp_revive_from_photo";
@@ -103,6 +109,9 @@ public final class SoulSlabChildBridge {
         }
         CompoundTag data = event.getData();
         CompoundTag forgeData = data.getCompound(FORGE_DATA_TAG);
+        if (data.hasUUID(VANILLA_UUID_TAG)) {
+            event.getMaid().getPersistentData().putUUID(PERSISTENT_REVIVED_FROM_MAID_UUID_KEY, data.getUUID(VANILLA_UUID_TAG));
+        }
         if (data.getBoolean(PERSISTENT_TEMP_REVIVE_CHILD_KEY)) {
             forgeData.putBoolean(PERSISTENT_TEMP_REVIVE_CHILD_KEY, true);
         }
@@ -139,6 +148,9 @@ public final class SoulSlabChildBridge {
             return;
         }
 
+        if (event.getLevel() instanceof ServerLevel level) {
+            remapRevivedMotherReferences(level, maid);
+        }
         syncLineageTaskData(maid);
         /*
          * 先清成年残留，再判断是否仍是小女仆。
@@ -156,6 +168,79 @@ public final class SoulSlabChildBridge {
         }
 
         repairOrPromoteLegacyChild(level, maid);
+    }
+
+    private static void remapRevivedMotherReferences(ServerLevel level, EntityMaid revivedMaid) {
+        CompoundTag persistent = revivedMaid.getPersistentData();
+        if (!persistent.hasUUID(PERSISTENT_REVIVED_FROM_MAID_UUID_KEY)) {
+            return;
+        }
+        UUID oldMotherUuid = persistent.getUUID(PERSISTENT_REVIVED_FROM_MAID_UUID_KEY);
+        UUID newMotherUuid = revivedMaid.getUUID();
+        if (oldMotherUuid.equals(newMotherUuid)) {
+            return;
+        }
+        remapPrimaryMaidReferences(level, oldMotherUuid, newMotherUuid);
+        for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
+            if (entity == revivedMaid) {
+                continue;
+            }
+            if (entity instanceof MaidSpiritEntity spirit) {
+                spirit.remapMotherUuid(oldMotherUuid, newMotherUuid);
+            } else if (entity instanceof EntityMaid maid) {
+                remapChildMotherUuid(maid, oldMotherUuid, newMotherUuid);
+            }
+        }
+    }
+
+    private static void remapPrimaryMaidReferences(ServerLevel level, UUID oldMaidUuid, UUID newMaidUuid) {
+        for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+            CompoundTag tag = player.getPersistentData();
+            if (tag.hasUUID(TAG_PLAYER_PRIMARY_MAID) && oldMaidUuid.equals(tag.getUUID(TAG_PLAYER_PRIMARY_MAID))) {
+                tag.putUUID(TAG_PLAYER_PRIMARY_MAID, newMaidUuid);
+            }
+        }
+    }
+
+    private static void remapChildMotherUuid(EntityMaid maid, UUID oldMotherUuid, UUID newMotherUuid) {
+        boolean changed = false;
+        CompoundTag persistent = maid.getPersistentData();
+        if (persistent.hasUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY)
+                && oldMotherUuid.equals(persistent.getUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY))) {
+            persistent.putUUID(MaidChildEntity.PERSISTENT_MOTHER_UUID_KEY, newMotherUuid);
+            changed = true;
+        }
+
+        ChildLineageData lineage = maid.getData(ModTaskData.CHILD_LINEAGE_DATA);
+        if (lineage != null && lineage.bornMaid() && lineage.mother().filter(oldMotherUuid::equals).isPresent()) {
+            maid.setData(ModTaskData.CHILD_LINEAGE_DATA, new ChildLineageData(
+                    true,
+                    Optional.of(newMotherUuid),
+                    lineage.father(),
+                    lineage.grandParent(),
+                    lineage.customNameJson()
+            ));
+            changed = true;
+        }
+
+        ChildStateData state = maid.getData(ModTaskData.CHILD_STATE_DATA);
+        if (state != null && state.mother().filter(oldMotherUuid::equals).isPresent()) {
+            maid.setData(ModTaskData.CHILD_STATE_DATA, new ChildStateData(
+                    state.child(),
+                    state.growthTicks(),
+                    state.growthStage(),
+                    Optional.of(newMotherUuid),
+                    state.father(),
+                    state.tameInitialized(),
+                    state.childNameConfirmed(),
+                    state.customNameJson()
+            ));
+            changed = true;
+        }
+
+        if (changed) {
+            syncLineageTaskData(maid);
+        }
     }
 
     /**
