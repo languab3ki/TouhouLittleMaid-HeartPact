@@ -19,7 +19,7 @@ import net.neoforged.fml.common.Mod;
  * <p>灵魂灯笼是原版物品，不能像本模组物品那样无条件注册到 TLM 的物品提示里；
  * 否则玩家拿着灯笼看普通女仆/普通场景也会出现误导提示。这里仅在准星命中灵体时绘制。
  */
-@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, value = Dist.CLIENT)
 public final class SpiritLanternTipOverlay {
     private SpiritLanternTipOverlay() {
     }
@@ -30,7 +30,9 @@ public final class SpiritLanternTipOverlay {
         if (minecraft.player == null || minecraft.options.hideGui || minecraft.screen != null) {
             return;
         }
-        if (!minecraft.player.getMainHandItem().is(Items.SOUL_LANTERN)) {
+        boolean holdingLantern = minecraft.player.getMainHandItem().is(Items.SOUL_LANTERN);
+        boolean holdingTorch = minecraft.player.getMainHandItem().is(Items.SOUL_TORCH);
+        if (!holdingLantern && !holdingTorch) {
             return;
         }
         if (!(minecraft.hitResult instanceof EntityHitResult hitResult)
@@ -38,7 +40,7 @@ public final class SpiritLanternTipOverlay {
             return;
         }
 
-        Component text = Component.translatable(resolveTipKey(spirit), spirit.getDisplayName());
+        Component text = Component.translatable(holdingTorch ? "overlay.maidmarriage.spirit_torch.ready" : resolveTipKey(spirit), spirit.getDisplayName());
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
         int textWidth = minecraft.font.width(text);
