@@ -503,6 +503,7 @@ public final class RomanceSleepManager {
         }
 
         if (spawned > 0) {
+            StarfallEffectSpawner.spawnBirthEffect(serverLevel, player, new net.minecraft.world.phys.Vec3(spawnX, spawnY, spawnZ));
             serverLevel.sendParticles(ParticleTypes.HEART, spawnX, spawnY + 0.75, spawnZ, 16 + spawned * 4, 0.45, 0.25, 0.45, 0.02);
             serverLevel.playSound(null, mother.blockPosition(), net.minecraft.sounds.SoundEvents.CHICKEN_EGG,
                     net.minecraft.sounds.SoundSource.NEUTRAL, 0.7F, 1.1F);

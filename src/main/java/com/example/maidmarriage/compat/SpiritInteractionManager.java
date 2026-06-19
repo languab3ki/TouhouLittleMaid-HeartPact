@@ -322,6 +322,7 @@ public final class SpiritInteractionManager {
         child.getSchedulePos().setHomeModeEnable(child, child.blockPosition());
         child.setHomeModeEnable(true);
         child.syncChildStateToClient();
+        StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }

@@ -32,6 +32,8 @@ public final class ClientModEvents {
         EntityRenderers.register(ModEntities.MAID_CARRY_PROXY.get(), MaidCarryProxyRenderer::new);
         EntityRenderers.register(ModEntities.LAP_PILLOW_ANCHOR.get(), LapPillowAnchorRenderer::new);
         EntityRenderers.register(ModEntities.MAID_SPIRIT.get(), MaidSpiritRenderer::new);
+        EntityRenderers.register(ModEntities.STARFALL_METEOR.get(), StarfallMeteorRenderer::new);
+        EntityRenderers.register(ModEntities.STARFALL_MAGIC_CIRCLE.get(), StarfallMagicCircleRenderer::new);
     }
 
     @SubscribeEvent

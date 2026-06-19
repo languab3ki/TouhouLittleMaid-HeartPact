@@ -6,6 +6,8 @@ import com.example.maidmarriage.entity.LiftProxyEntity;
 import com.example.maidmarriage.entity.MaidCarryProxyEntity;
 import com.example.maidmarriage.entity.MaidChildEntity;
 import com.example.maidmarriage.entity.MaidSpiritEntity;
+import com.example.maidmarriage.entity.StarfallMagicCircleEntity;
+import com.example.maidmarriage.entity.StarfallMeteorEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -64,6 +66,23 @@ public final class ModEntities {
                             .clientTrackingRange(32)
                             .updateInterval(1)
                             .build("maidmarriage:maid_spirit"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<StarfallMeteorEntity>> STARFALL_METEOR =
+            ENTITY_TYPES.register("starfall_meteor", () ->
+                    EntityType.Builder.<StarfallMeteorEntity>of(StarfallMeteorEntity::new, MobCategory.MISC)
+                            .sized(1.25F, 1.25F)
+                            .clientTrackingRange(96)
+                            .updateInterval(1)
+                            .fireImmune()
+                            .build("maidmarriage:starfall_meteor"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<StarfallMagicCircleEntity>> STARFALL_MAGIC_CIRCLE =
+            ENTITY_TYPES.register("starfall_magic_circle", () ->
+                    EntityType.Builder.<StarfallMagicCircleEntity>of(StarfallMagicCircleEntity::new, MobCategory.MISC)
+                            .sized(6.5F, 0.05F)
+                            .clientTrackingRange(96)
+                            .updateInterval(1)
+                            .build("maidmarriage:starfall_magic_circle"));
 
     private ModEntities() {
     }
