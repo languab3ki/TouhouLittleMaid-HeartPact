@@ -45,7 +45,7 @@ public final class PregnancyDebugOverlay {
             return;
         }
 
-        boolean showPregnancyDebug = ModConfigs.showPregnancyDebugCountdown();
+        boolean showPregnancyDebug = ModConfigs.isLoaded() && ModConfigs.showPregnancyDebugCountdown();
         long now = mc.level.getGameTime();
         if (shouldRefreshCache(now, showPregnancyDebug)) {
             refreshCache(mc, now, showPregnancyDebug);
