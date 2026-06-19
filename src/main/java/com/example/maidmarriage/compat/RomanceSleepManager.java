@@ -8,6 +8,7 @@ import com.example.maidmarriage.data.MaidMoodData;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.data.PregnancyData;
 import com.example.maidmarriage.entity.MaidChildEntity;
+import com.example.maidmarriage.init.ModEffects;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.rhythm.RomanceRhythmSync;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidDeathEvent;
@@ -985,6 +986,9 @@ public final class RomanceSleepManager {
      */
     private static PregnancyAttemptResult settleConceptionAttempt(ServerPlayer player, EntityMaid maid, PregnancyData current, boolean speakAfterWake) {
         long gameTime = maid.level().getGameTime();
+        if (hasSafetyEffect(player, maid)) {
+            return PregnancyAttemptResult.noChange(current);
+        }
         if (current.guaranteedConceptionNextAttempt()) {
             PregnancyData conceived = current.conceive(player.getUUID(), gameTime, true);
             maid.setAndSyncData(ModTaskData.PREGNANCY_DATA, conceived);
@@ -1022,6 +1026,9 @@ public final class RomanceSleepManager {
     public static DebugConceptionResult debugSettleConception(ServerPlayer player, EntityMaid maid, PregnancyData current) {
         long gameTime = maid.level().getGameTime();
 
+        if (hasSafetyEffect(player, maid)) {
+            return new DebugConceptionResult(0.0D, false, false, current);
+        }
         if (current.guaranteedConceptionNextAttempt()) {
             PregnancyData conceived = current.conceive(player.getUUID(), gameTime, true);
             maid.setAndSyncData(ModTaskData.PREGNANCY_DATA, conceived);
@@ -1050,6 +1057,9 @@ public final class RomanceSleepManager {
      */
     private static PregnancyAttemptResult settleRhythmConceptionAttempt(ServerPlayer player, EntityMaid maid, PregnancyData current, float rhythmScore) {
         long gameTime = maid.level().getGameTime();
+        if (hasSafetyEffect(player, maid)) {
+            return PregnancyAttemptResult.noChange(current);
+        }
         float clampedScore = (float) Math.max(0.0D, Math.min(1.0D, rhythmScore));
         double chance = RHYTHM_MAX_CONCEPTION_CHANCE * clampedScore;
         if (chance <= 0.0D || maid.getRandom().nextDouble() >= chance) {
@@ -1063,6 +1073,11 @@ public final class RomanceSleepManager {
         speakSingleLineAfterWake(maid, "dialogue.maidmarriage.pregnant");
         player.sendSystemMessage(scriptForPlayer(player, "message.maidmarriage.breed.pregnant_success", maid.getDisplayName()));
         return new PregnancyAttemptResult(true, twins, conceived);
+    }
+
+    private static boolean hasSafetyEffect(ServerPlayer player, EntityMaid maid) {
+        return (player != null && player.hasEffect(ModEffects.SAFETY))
+                || (maid != null && maid.hasEffect(ModEffects.SAFETY));
     }
 
     private static void playConceptionEffects(EntityMaid maid) {
