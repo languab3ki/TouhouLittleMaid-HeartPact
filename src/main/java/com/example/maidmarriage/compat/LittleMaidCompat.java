@@ -65,6 +65,8 @@ public class LittleMaidCompat implements ILittleMaid {
         overlay.addTips("overlay.maidmarriage.pregnancy_test_tool.tip", ModItems.PREGNANCY_TEST_TOOL.get());
         overlay.addTips("overlay.maidmarriage.family_tree_tool.tip", ModItems.FAMILY_TREE_TOOL.get());
         overlay.addTips("overlay.maidmarriage.marriage_consent_form.tip", ModItems.MARRIAGE_CONSENT_FORM.get());
+        overlay.addTips("overlay.maidmarriage.soul_lantern.tip", net.minecraft.world.item.Items.SOUL_LANTERN);
+        overlay.addTips("overlay.maidmarriage.soul_torch.tip", net.minecraft.world.item.Items.SOUL_TORCH);
         overlay.addTips("overlay.maidmarriage.child.learn.enchantment", net.minecraft.world.item.Items.BOOK);
         overlay.addTips("overlay.maidmarriage.child.learn.alchemy", net.minecraft.world.item.Items.GLASS_BOTTLE);
         overlay.addTips("overlay.maidmarriage.child.learn.tactics", net.minecraft.world.item.Items.IRON_SWORD);

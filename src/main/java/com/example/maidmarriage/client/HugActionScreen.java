@@ -152,7 +152,7 @@ public class HugActionScreen extends Screen {
             minecraft.setScreen(HugActionScreen.childInteraction(ChildInteractionClientState.getLocalInteractionMaidUuid()));
             minecraft.mouseHandler.releaseMouse();
         } else if (HugClientState.isLocalPlayerInteracting() || LapPillowClientState.isLocalPlayerActive()) {
-            minecraft.setScreen(new HugActionScreen());
+            minecraft.setScreen(HugActionScreen.interaction(HugClientState.getLocalScenarioId()));
             minecraft.mouseHandler.releaseMouse();
         }
     }
@@ -298,6 +298,15 @@ public class HugActionScreen extends Screen {
 
     public HugActionScreen() {
         this(HUG_SCENARIO_ID, null, false, text("ui.maidmarriage.hug_action.title"));
+    }
+
+    public static HugActionScreen interaction(ResourceLocation scenarioId) {
+        return new HugActionScreen(
+                scenarioId == null ? HUG_SCENARIO_ID : scenarioId,
+                null,
+                false,
+                text("ui.maidmarriage.hug_action.title")
+        );
     }
 
     public static HugActionScreen childInteraction(UUID maidUuid) {

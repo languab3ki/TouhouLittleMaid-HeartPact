@@ -60,7 +60,7 @@ public final class PetHeadClientHandler {
 
         cleanupClientPredictedPetHead(mc);
         if (RhythmKeyMappings.MAID_DEBUG_PANEL.consumeClick()) {
-            if (ModConfigs.enableDebugTools()) {
+            if (ModConfigs.isLoaded() && ModConfigs.enableDebugTools()) {
                 MaidDebugPanelScreen.open(mc);
             }
             return;

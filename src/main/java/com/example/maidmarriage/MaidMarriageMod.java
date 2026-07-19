@@ -4,8 +4,10 @@ import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.client.ClientOnlyBootstrap;
 import com.example.maidmarriage.debug.ModDebugCommands;
 import com.example.maidmarriage.init.ModCreativeTabs;
+import com.example.maidmarriage.init.ModEffects;
 import com.example.maidmarriage.init.ModEntities;
 import com.example.maidmarriage.init.ModItems;
+import com.example.maidmarriage.init.ModPotions;
 import com.example.maidmarriage.network.ModNetworking;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
@@ -27,9 +29,12 @@ public final class MaidMarriageMod {
         ModItems.ITEMS.register(modBus);
         ModCreativeTabs.CREATIVE_TABS.register(modBus);
         ModEntities.ENTITY_TYPES.register(modBus);
+        ModEffects.MOB_EFFECTS.register(modBus);
+        ModPotions.POTIONS.register(modBus);
         modBus.addListener(ModNetworking::register);
         NeoForge.EVENT_BUS.register(ModDebugCommands.class);
         modContainer.registerConfig(ModConfig.Type.COMMON, ModConfigs.SPEC);
+        modBus.addListener(ModConfigs::onConfigLoaded);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ClientOnlyBootstrap.init(modContainer);
         }

@@ -1,6 +1,7 @@
 package com.example.maidmarriage.compat;
 
 import com.example.maidmarriage.advancement.ModAdvancements;
+import com.example.maidmarriage.config.ModConfigs;
 import com.example.maidmarriage.config.DialogueScriptManager;
 import com.example.maidmarriage.data.ModTaskData;
 import com.example.maidmarriage.entity.MaidChildEntity;
@@ -43,7 +44,7 @@ import net.neoforged.fml.common.Mod;
  *
  * <p>第一期只提供“安抚”，先把目标识别、权限和反馈链路跑通。
  */
-@EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = com.example.maidmarriage.MaidMarriageMod.MOD_ID)
 public final class SpiritInteractionManager {
     private static final String TAG_SOOTHE_COOLDOWN_UNTIL = "maidmarriage_spirit_soothe_cooldown_until";
     private static final String TAG_MEMORY_COOLDOWN_UNTIL = "maidmarriage_spirit_memory_cooldown_until";
@@ -211,6 +212,8 @@ public final class SpiritInteractionManager {
         ItemStack stack = event.getItemStack();
         if (stack.is(Items.SOUL_LANTERN)) {
             tryBindSoulLantern(event.getEntity(), spirit);
+        } else if (stack.is(Items.SOUL_TORCH)) {
+            exorciseWithSoulTorch(event.getEntity(), spirit, stack);
         } else if (stack.is(ModItems.LONGING_TESTER.get())) {
             fillLongingForTest(event.getEntity(), spirit);
         } else if (stack.is(Items.TOTEM_OF_UNDYING)) {
@@ -272,6 +275,26 @@ public final class SpiritInteractionManager {
         ));
     }
 
+    private static void exorciseWithSoulTorch(Player rawPlayer, MaidSpiritEntity spirit, ItemStack stack) {
+        if (!(rawPlayer instanceof ServerPlayer player) || spirit == null || !(player.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!isFamily(player, spirit)) {
+            player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.spirit.need_family", spirit.getDisplayName()));
+            return;
+        }
+        Component spiritName = spirit.getDisplayName();
+        clearSpirit(level, spirit, true);
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+        level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME,
+                spirit.getX(), spirit.getY(0.8D), spirit.getZ(),
+                24, 0.3D, 0.35D, 0.3D, 0.02D);
+        level.playSound(null, spirit.blockPosition(), SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS, 0.6F, 0.75F);
+        player.sendSystemMessage(DialogueScriptManager.componentForPlayer(player, "message.maidmarriage.spirit.exorcise.success", spiritName));
+    }
+
     private static void tryResurrectWithTotem(Player rawPlayer, MaidSpiritEntity spirit, ItemStack stack) {
         if (!(rawPlayer instanceof ServerPlayer player) || spirit == null || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -322,6 +345,9 @@ public final class SpiritInteractionManager {
         child.getSchedulePos().setHomeModeEnable(child, child.blockPosition());
         child.setHomeModeEnable(true);
         child.syncChildStateToClient();
+        if (ModConfigs.recruitAnimationEnabled()) {
+            StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        }
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
@@ -521,6 +547,69 @@ public final class SpiritInteractionManager {
         if (mother != null) {
             MaidMoodManager.clearChildLossGrief(mother);
         }
+    }
+
+    public static boolean forceClearSpirit(ServerPlayer player, MaidSpiritEntity spirit) {
+        if (player == null || spirit == null || !(player.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        clearSpirit(level, spirit, true);
+        return true;
+    }
+
+    public static boolean forceReviveSpirit(ServerPlayer player, MaidSpiritEntity spirit) {
+        if (player == null || spirit == null || !(player.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        return resurrectSpirit(player, level, spirit) != null;
+    }
+
+    private static void clearSpirit(ServerLevel level, MaidSpiritEntity spirit, boolean clearGrief) {
+        if (level == null || spirit == null) {
+            return;
+        }
+        UUID spiritUuid = spirit.getUUID();
+        if (clearGrief) {
+            clearMotherGrief(level, spirit);
+        }
+        for (ServerPlayer serverPlayer : level.players()) {
+            if (serverPlayer.getPersistentData().hasUUID(TAG_BOUND_SPIRIT)
+                    && spiritUuid.equals(serverPlayer.getPersistentData().getUUID(TAG_BOUND_SPIRIT))) {
+                serverPlayer.getPersistentData().remove(TAG_BOUND_SPIRIT);
+            }
+        }
+        spirit.setLanternBound(false);
+        spirit.discard();
+    }
+
+    private static MaidChildEntity resurrectSpirit(ServerPlayer player, ServerLevel level, MaidSpiritEntity spirit) {
+        MaidChildEntity child = ModEntities.MAID_CHILD.get().create(level);
+        if (child == null) {
+            return null;
+        }
+
+        child.moveTo(spirit.getX(), spirit.getY(), spirit.getZ(), spirit.getYRot(), spirit.getXRot());
+        child.tame(player);
+        child.setCustomName(spirit.getName().copy());
+        child.setCustomNameVisible(spirit.isCustomNameVisible());
+        child.setParents(spirit.getMotherUuid(), resolveFatherUuid(player, spirit));
+        child.applyBornMaidTraits();
+        child.prepareNewbornInfant(level.getGameTime());
+        child.inheritModelFromMother(spirit);
+        child.setSoundPackId(spirit.getSoundPackId());
+        copySpiritPersistentIdentity(spirit, child);
+
+        if (!level.addFreshEntity(child)) {
+            return null;
+        }
+        child.getSchedulePos().setHomeModeEnable(child, child.blockPosition());
+        child.setHomeModeEnable(true);
+        child.syncChildStateToClient();
+        if (ModConfigs.recruitAnimationEnabled()) {
+            StarfallEffectSpawner.spawnResurrectionEffect(level, child.position());
+        }
+        clearSpirit(level, spirit, true);
+        return child;
     }
 
     private static EntityMaid findMother(ServerLevel level, MaidSpiritEntity spirit) {

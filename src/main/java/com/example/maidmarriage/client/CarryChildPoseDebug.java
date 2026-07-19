@@ -16,7 +16,8 @@ import org.lwjgl.glfw.GLFW;
 /**
  * 大女仆抱小女仆姿态的客户端调试器。
  *
- * <p>这个类只负责开发期实时调姿态，不参与服务端逻辑，也不影响存档数据。
+ * <p>
+ * 这个类只负责开发期实时调姿态，不参与服务端逻辑，也不影响存档数据。
  * 游戏内按 F8 调 GeckoLib，按 F11 调东方 / Bedrock，然后使用 Alt + 方向键切换/调整参数。
  * 调好以后把左上角显示的数值发出来，再固化回默认常量即可。
  */
@@ -65,7 +66,8 @@ public final class CarryChildPoseDebug {
     /**
      * 东方 / Bedrock 模型专用调试参数。
      *
-     * <p>这套参数只作用于普通 Bedrock 女仆模型，和 GeckoLib 完全隔离，
+     * <p>
+     * 这套参数只作用于普通 Bedrock 女仆模型，和 GeckoLib 完全隔离，
      * 调东方模型时不会把 Gecko 那边已经调好的姿态弄乱。
      */
     private static float bedrockRotX = 90.0F;
@@ -92,7 +94,7 @@ public final class CarryChildPoseDebug {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        if (!ModConfigs.enableDebugTools()) {
+        if (!ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             geckoEnabled = false;
             bedrockEnabled = false;
             clearKeyEdges();
@@ -185,7 +187,7 @@ public final class CarryChildPoseDebug {
 
     @SubscribeEvent
     public static void onRender(RenderGuiLayerEvent.Post event) {
-        if ((!geckoEnabled && !bedrockEnabled) || !ModConfigs.enableDebugTools()) {
+        if ((!geckoEnabled && !bedrockEnabled) || !ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -214,7 +216,8 @@ public final class CarryChildPoseDebug {
         overlayDirty = false;
         PoseParam[] params = activeParams();
         String[] lines = new String[params.length + 4];
-        lines[0] = (bedrockEnabled ? "Bedrock Carry Child Pose Debug - F11 close" : "Gecko Carry Child Pose Debug - F8 close");
+        lines[0] = (bedrockEnabled ? "Bedrock Carry Child Pose Debug - F11 close"
+                : "Gecko Carry Child Pose Debug - F8 close");
         lines[1] = "Alt+Left/Right select, Alt+Up/Down adjust, Shift = big step";
         lines[2] = "Alt+C copy, Alt+R reset";
         lines[3] = "Translate values affect the visible carried-child position";
@@ -338,8 +341,10 @@ public final class CarryChildPoseDebug {
         return String.format(Locale.ROOT,
                 "gecko{rotX=%.2f, rotY=%.2f, rotZ=%.2f, shiftX=%.2f, shiftY=%.2f, shiftZ=%.2f, translateX=%.3f, translateY=%.3f, translateZ=%.3f}, "
                         + "bedrock{rotX=%.2f, rotY=%.2f, rotZ=%.2f, shiftX=%.2f, shiftY=%.2f, shiftZ=%.2f, translateX=%.3f, translateY=%.3f, translateZ=%.3f}",
-                geckoRotX, geckoRotY, geckoRotZ, geckoShiftX, geckoShiftY, geckoShiftZ, geckoTranslateX, geckoTranslateY, geckoTranslateZ,
-                bedrockRotX, bedrockRotY, bedrockRotZ, bedrockShiftX, bedrockShiftY, bedrockShiftZ, bedrockTranslateX, bedrockTranslateY, bedrockTranslateZ);
+                geckoRotX, geckoRotY, geckoRotZ, geckoShiftX, geckoShiftY, geckoShiftZ, geckoTranslateX,
+                geckoTranslateY, geckoTranslateZ,
+                bedrockRotX, bedrockRotY, bedrockRotZ, bedrockShiftX, bedrockShiftY, bedrockShiftZ, bedrockTranslateX,
+                bedrockTranslateY, bedrockTranslateZ);
     }
 
     private static void draw(RenderGuiLayerEvent.Post event, Font font, int x, int y, String text, int color) {

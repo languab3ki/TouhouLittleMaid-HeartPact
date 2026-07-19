@@ -121,6 +121,13 @@ public final class MarriageEventHandler {
             event.setCanceled(true);
             return;
         }
+        if (stack.is(ModItems.HEART_PACT_GUIDE.get())) {
+            if (event.getPlayer() instanceof ServerPlayer player
+                    && MaidHugManager.startTutorialInteraction(player, event.getMaid())) {
+                event.setCanceled(true);
+            }
+            return;
+        }
         if (stack.is(ModItems.YES_PILLOW.get())) {
             if (MaidMoodManager.state(event.getMaid()).ordinal() < com.example.maidmarriage.data.MaidMoodData.MoodState.NORMAL.ordinal()) {
                 event.getPlayer().sendSystemMessage(DialogueScriptManager.componentForPlayer(event.getPlayer(),
@@ -215,6 +222,14 @@ public final class MarriageEventHandler {
             return;
         }
         if (!(event.getTarget() instanceof EntityMaid maid)) {
+            return;
+        }
+
+        if (stack.is(ModItems.HEART_PACT_GUIDE.get())) {
+            if (event.getEntity() instanceof ServerPlayer player && MaidHugManager.startTutorialInteraction(player, maid)) {
+                event.setCanceled(true);
+                event.setCancellationResult(InteractionResult.SUCCESS);
+            }
             return;
         }
 

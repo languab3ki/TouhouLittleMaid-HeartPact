@@ -3,6 +3,7 @@ package com.example.maidmarriage.client;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * 本地亲密交互会话的轻量客户端缓存。
@@ -17,6 +18,8 @@ import net.minecraft.client.Minecraft;
  * - 目标解析优先取“交互目标”，避免准星偏掉时点到错误女仆。
  */
 public final class HugClientState {
+    private static final ResourceLocation DEFAULT_SCENARIO_ID = ResourceLocation.fromNamespaceAndPath(com.example.maidmarriage.MaidMarriageMod.MOD_ID, "hug_menu_v2");
+
     public enum HeadCueType {
         NONE,
         LOWER_HEAD,
@@ -30,6 +33,7 @@ public final class HugClientState {
     private static boolean localHugging;
     private static boolean localChildNameRequired;
     private static boolean localChildLossGrief;
+    private static ResourceLocation localScenarioId = DEFAULT_SCENARIO_ID;
     @Nullable
     private static UUID shyTurnMaidUuid;
     private static long clientTick;
@@ -98,6 +102,15 @@ public final class HugClientState {
                                   boolean hugging,
                                   boolean childNameRequired,
                                   boolean childLossGrief) {
+        handleSync(playerUuid, maidUuid, hugging, childNameRequired, childLossGrief, DEFAULT_SCENARIO_ID);
+    }
+
+    public static void handleSync(UUID playerUuid,
+                                  @Nullable UUID maidUuid,
+                                  boolean hugging,
+                                  boolean childNameRequired,
+                                  boolean childLossGrief,
+                                  ResourceLocation scenarioId) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || !playerUuid.equals(minecraft.player.getUUID())) {
             return;
@@ -107,6 +120,7 @@ public final class HugClientState {
         localHugging = maidUuid != null && hugging;
         localChildNameRequired = maidUuid != null && childNameRequired;
         localChildLossGrief = maidUuid != null && childLossGrief;
+        localScenarioId = maidUuid == null || scenarioId == null ? DEFAULT_SCENARIO_ID : scenarioId;
     }
 
     public static void tick(Minecraft minecraft) {
@@ -127,6 +141,7 @@ public final class HugClientState {
             localHugging = false;
             localChildNameRequired = false;
             localChildLossGrief = false;
+            localScenarioId = DEFAULT_SCENARIO_ID;
         }
         if (shyTurnMaidUuid != null && clientTick > shyTurnEndTick) {
             clearShyTurn();
@@ -148,6 +163,7 @@ public final class HugClientState {
         localHugging = false;
         localChildNameRequired = false;
         localChildLossGrief = false;
+        localScenarioId = DEFAULT_SCENARIO_ID;
         clearShyTurn();
         clearHeadCue();
         clearShyCoverFace();
@@ -174,6 +190,10 @@ public final class HugClientState {
     @Nullable
     public static UUID getLocalInteractionMaidUuid() {
         return localInteractionMaidUuid;
+    }
+
+    public static ResourceLocation getLocalScenarioId() {
+        return localScenarioId == null ? DEFAULT_SCENARIO_ID : localScenarioId;
     }
 
     /**
@@ -670,7 +690,7 @@ public final class HugClientState {
             return;
         }
         if (minecraft.screen == null) {
-            minecraft.setScreen(new HugActionScreen());
+            minecraft.setScreen(HugActionScreen.interaction(getLocalScenarioId()));
             minecraft.mouseHandler.releaseMouse();
         }
     }

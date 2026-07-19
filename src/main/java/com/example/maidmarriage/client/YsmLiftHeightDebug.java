@@ -16,18 +16,20 @@ import org.lwjgl.glfw.GLFW;
 /**
  * YSM 专用调试面板。
  *
- * <p>当前负责：
+ * <p>
+ * 当前负责：
  * 1. `YSM举高高` 的高度基线；
  * 2. `YSM大女仆抱小女仆` 的左右 / 前后 / 上下三轴偏移。
  *
- * <p>按键：
+ * <p>
+ * 按键：
  * <ul>
- *   <li>`Shift + F8` 开启面板，面板开启后按 `F8` 关闭</li>
- *   <li>`↑ / ↓` 调抱小女仆上下</li>
- *   <li>`← / →` 调抱小女仆左右</li>
- *   <li>`Ctrl + ← / →` 调抱小女仆前后</li>
- *   <li>`Shift + ↑ / ↓` 调举高高高度</li>
- *   <li>`C` 复制参数，`R` 重置参数</li>
+ * <li>`Shift + F8` 开启面板，面板开启后按 `F8` 关闭</li>
+ * <li>`↑ / ↓` 调抱小女仆上下</li>
+ * <li>`← / →` 调抱小女仆左右</li>
+ * <li>`Ctrl + ← / →` 调抱小女仆前后</li>
+ * <li>`Shift + ↑ / ↓` 调举高高高度</li>
+ * <li>`C` 复制参数，`R` 重置参数</li>
  * </ul>
  */
 @EventBusSubscriber(modid = MaidMarriageMod.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -67,7 +69,7 @@ public final class YsmLiftHeightDebug {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        if (!ModConfigs.enableDebugTools()) {
+        if (!ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             enabled = false;
             clearEdges();
             return;
@@ -154,7 +156,7 @@ public final class YsmLiftHeightDebug {
 
     @SubscribeEvent
     public static void onRender(RenderGuiLayerEvent.Post event) {
-        if (!enabled || !ModConfigs.enableDebugTools()) {
+        if (!enabled || !ModConfigs.isLoaded() || !ModConfigs.enableDebugTools()) {
             return;
         }
 
@@ -177,11 +179,13 @@ public final class YsmLiftHeightDebug {
 
         int width = Math.max(
                 Math.max(
-                        Math.max(font.width(title), Math.max(font.width(liftValue), Math.max(font.width(carryX), Math.max(font.width(carryZ), font.width(carryY))))),
-                        Math.max(font.width(help1), Math.max(font.width(help2), Math.max(font.width(help3), font.width(help4))))
-                ),
-                font.width(help5)
-        ) + 18;
+                        Math.max(font.width(title),
+                                Math.max(font.width(liftValue),
+                                        Math.max(font.width(carryX),
+                                                Math.max(font.width(carryZ), font.width(carryY))))),
+                        Math.max(font.width(help1),
+                                Math.max(font.width(help2), Math.max(font.width(help3), font.width(help4))))),
+                font.width(help5)) + 18;
 
         int x = mc.getWindow().getGuiScaledWidth() - width - 10;
         int y = 42;
@@ -237,8 +241,7 @@ public final class YsmLiftHeightDebug {
                 visualHeight,
                 carryChildVisualOffsetX,
                 carryChildVisualOffsetZ,
-                carryChildVisualHeight
-        );
+                carryChildVisualHeight);
     }
 
     private static void draw(RenderGuiLayerEvent.Post event, Font font, int x, int y, String text, int color) {

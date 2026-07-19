@@ -1,0 +1,711 @@
+{
+  "id": "maidmarriage:tutorial_v1",
+  "theme": "maidmarriage:hug_default",
+  "start": "start",
+  "animationLibrary": "maidmarriage:default",
+  "portraits": {
+    "maid": {
+      "texture": "maidmarriage:textures/gui/emotion/soft_smile.png",
+      "defaultExpression": "soft_smile",
+      "expressions": {
+        "soft_smile": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "happy": "maidmarriage:textures/gui/emotion/soft_smile.png",
+        "shy": "maidmarriage:textures/gui/emotion/shy.png",
+        "embarrassed_smile": "maidmarriage:textures/gui/emotion/embarrassed_smile.png",
+        "serious": "maidmarriage:textures/gui/emotion/serious.png",
+        "sad": "maidmarriage:textures/gui/emotion/sad.png",
+        "action_shy": "maidmarriage:textures/gui/action/action_shy.png",
+        "action_touched": "maidmarriage:textures/gui/action/action_touched.png",
+        "action_flustered": "maidmarriage:textures/gui/action/action_flustered.png"
+      }
+    }
+  },
+  "nodes": {
+    "start": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "",
+        "text": "You gently touch ${maid} with the Heart Pact Guide.",
+        "narration": "Tutorial scene detected. Would you like your maid to guide you through Heart Pact?",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "enter",
+          "title": "Start Tutorial",
+          "description": "Check keys, camera, actions, mood, and relationship systems.",
+          "next": "intro"
+        },
+        {
+          "id": "menu",
+          "title": "Open Menu",
+          "description": "Choose a specific tutorial chapter.",
+          "next": "menu"
+        },
+        {
+          "id": "later",
+          "title": "Later",
+          "description": "Leave the tutorial.",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Leave it to me, Master. I will explain it softly, not like a stiff manual.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "First we check key bindings, then camera and action distance, and finally mood, relationship stages, and daily play.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "key_check": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "Please open Minecraft key settings and make sure Heart Pact keys do not conflict with other mods.",
+        "narration": "Check interaction, headpat/lift, fast-forward, hide/restore UI, and lap-pillow exit keys.",
+        "portrait": "maid",
+        "expression": "serious",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys_ok",
+          "title": "Keys Checked",
+          "description": "Continue to camera and action tests.",
+          "next": "camera_intro"
+        },
+        {
+          "id": "key_help",
+          "title": "Explain Keys",
+          "description": "Hear what each key does.",
+          "next": "key_help"
+        },
+        {
+          "id": "button_help",
+          "title": "Corner Buttons",
+          "description": "Explain hide, voice, exit, and camera buttons.",
+          "next": "button_help"
+        },
+        {
+          "id": "menu",
+          "title": "Tutorial Menu",
+          "description": "Return to the tutorial menu.",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "key_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "The interaction key opens or closes the main interaction screen.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "The headpat/lift key has two uses: it headpats a sitting adult maid, or lifts a standing little maid. Press it again while lifting to put her down.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Fast-forward is useful, but please do not spam it too hard. Voice and actions need a little time to follow.",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "button_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "The four buttons in the lower-right corner are quick controls. Hide temporarily clears the UI for viewing actions or screenshots.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "The microphone button replays prepared voice for the current line, and double-clicking can jump to the matching voice entry. It only works when the Heart Pact voice/TTS addon is installed.",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Exit leaves the current interaction. The camera button opens quick tuning for zoom, pitch, lap-pillow camera, and hug distance.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "key_check",
+      "events": []
+    },
+    "camera_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Now let us check camera and distance. Hugging, headpatting, kissing, and lap pillow all feel different.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "If something feels too close or too far, use the lower-right camera button to adjust zoom, pitch, lap-pillow camera, or hug distance, then test again.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "camera_menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "Which action should we test first?",
+        "narration": "Watch distance, camera angle, UI blocking, and whether the exit key feels right.",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "hug",
+          "title": "Test Hug",
+          "description": "Check hug distance and UI blocking.",
+          "next": "test_hug"
+        },
+        {
+          "id": "pet",
+          "title": "Test Headpat",
+          "description": "Check hand motion and expression visibility.",
+          "next": "test_pet"
+        },
+        {
+          "id": "kiss",
+          "title": "Test Kiss",
+          "description": "Check kiss camera and expression.",
+          "next": "test_kiss"
+        },
+        {
+          "id": "lap",
+          "title": "Test Lap Pillow",
+          "description": "Check lying camera and exit key.",
+          "next": "test_lap"
+        },
+        {
+          "id": "done",
+          "title": "Looks Good",
+          "description": "Continue to mood and relationship.",
+          "next": "mood_intro"
+        },
+        {
+          "id": "menu",
+          "title": "Tutorial Menu",
+          "description": "Return to the tutorial menu.",
+          "next": "menu"
+        }
+      ],
+      "events": []
+    },
+    "test_hug": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Let us start with a hug. Please watch the distance and whether the dialogue box covers me.",
+          "portrait": "maid",
+          "expression": "action_shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:hug_toggle"
+            }
+          ]
+        }
+      ],
+      "next": "test_hug_result",
+      "events": []
+    },
+    "test_hug_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "How does this feel?",
+        "portrait": "maid",
+        "expression": "embarrassed_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "Good",
+          "description": "Return to action tests.",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "Again",
+          "description": "Test the hug again.",
+          "next": "test_hug"
+        },
+        {
+          "id": "hint",
+          "title": "Uncomfortable",
+          "description": "See adjustment advice.",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_pet": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "For headpatting, please check whether you can still see my face.",
+          "portrait": "maid",
+          "expression": "shy",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:pet_head"
+            }
+          ]
+        }
+      ],
+      "next": "test_pet_result",
+      "events": []
+    },
+    "test_pet_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "Can you see my expression clearly?",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "Clear",
+          "description": "Return to action tests.",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "Again",
+          "description": "Test the headpat again.",
+          "next": "test_pet"
+        },
+        {
+          "id": "hint",
+          "title": "Blocked",
+          "description": "See adjustment advice.",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_kiss": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "A kiss test too...? Ahem. It is just for camera checking, okay?",
+          "portrait": "maid",
+          "expression": "action_flustered",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:interaction_kiss"
+            }
+          ]
+        }
+      ],
+      "next": "test_kiss_result",
+      "events": []
+    },
+    "test_kiss_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "Was that angle okay?",
+        "portrait": "maid",
+        "expression": "shy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "Just Right",
+          "description": "Return to action tests.",
+          "next": "camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "Again",
+          "description": "Test kiss again.",
+          "next": "test_kiss"
+        },
+        {
+          "id": "hint",
+          "title": "Hard to See",
+          "description": "See adjustment advice.",
+          "next": "camera_adjust_hint"
+        }
+      ],
+      "events": []
+    },
+    "test_lap": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Finally, lap pillow. Please check the lying camera, my position, and whether the exit key works.",
+          "portrait": "maid",
+          "expression": "action_touched",
+          "animation": "fade_in",
+          "events": [
+            {
+              "when": "line_start",
+              "type": "emit_action",
+              "value": "maidmarriage:lap_pillow_start"
+            }
+          ]
+        }
+      ],
+      "next": "test_lap_result",
+      "events": []
+    },
+    "test_lap_result": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "Does this view feel comfortable?",
+        "portrait": "maid",
+        "expression": "soft_smile",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "ok",
+          "title": "Comfortable",
+          "description": "Exit lap pillow and return.",
+          "next": "exit_lap_then_camera_menu"
+        },
+        {
+          "id": "again",
+          "title": "Again",
+          "description": "Exit and test again.",
+          "next": "exit_lap_then_test_lap"
+        },
+        {
+          "id": "hint",
+          "title": "Problem",
+          "description": "Exit and see adjustment advice.",
+          "next": "exit_lap_then_hint"
+        }
+      ],
+      "events": []
+    },
+    "exit_lap_then_camera_menu": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_menu",
+      "events": []
+    },
+    "exit_lap_then_test_lap": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "test_lap",
+      "events": []
+    },
+    "exit_lap_then_hint": {
+      "type": "action",
+      "action": "maidmarriage:lap_pillow_exit",
+      "next": "camera_adjust_hint",
+      "events": []
+    },
+    "camera_adjust_hint": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Please use the lower-right camera button to adjust camera, zoom, or hug distance. Change only a little each time, then test again.",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "camera_menu",
+      "events": []
+    },
+    "mood_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Mood is not just a number. Happy, normal, sad, and special states can change how I respond.",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Relationship stages also matter. From daily closeness to confession, lovers, and marriage, please take it step by step.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "systems_intro",
+      "events": []
+    },
+    "systems_intro": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "Start with daily interaction: chat, headpat, and hug. Later you can explore confession, marriage, sleep scenes, children, lap pillow recovery, and voice support.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "After marriage, sleep scenes can happen when I sleep in a maid bed and Master is near a suitable vanilla bed. Pregnancy, birth days, child growth days, and postpartum recovery follow the server config.",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "A newborn little maid is very small. On the first day, she cannot be placed on the ground, so her mother holds her first. If she has not been renamed yet, Master can give her one name.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Before growing up, a little maid can do tasks such as enchanting, alchemy, tactics, and exploration. Tasks progress during the maid WORK schedule, and pause while sleeping, sitting, or resting.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "But children get tired too. Study and tasks consume mood. If she is too tired, rewards get worse, exploration may stop, and forcing study at very low mood can reduce affection.",
+          "portrait": "maid",
+          "expression": "tired",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Voice playback needs the Heart Pact voice/TTS addon. TTS is currently mainly tested in the Chinese community, and more detailed guides will come later.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "finish",
+      "events": []
+    },
+    "item_help": {
+      "type": "sequence",
+      "lines": [
+        {
+          "speaker": "${maid}",
+          "text": "For items, remember the common ones first. Proposal rings are used for marriage, and you need one unbound ring in each hand during the proposal.",
+          "portrait": "maid",
+          "expression": "soft_smile",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "Sauce Duck can shorten little maid growth time, or shorten postpartum recovery for a maid who is recovering after birth.",
+          "portrait": "maid",
+          "expression": "happy",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "The Family Tree Viewer checks family relationships. The Marriage Consent Form transfers guardianship of an adult child maid; it is not a direct marriage item.",
+          "portrait": "maid",
+          "expression": "serious",
+          "animation": "fade_in",
+          "events": []
+        },
+        {
+          "speaker": "${maid}",
+          "text": "The YES Pillow is for post-marriage sleep content. The contraceptive potion is brewed from an Awkward Potion with cornflower or blue orchid. Safety lasts 5 minutes, and if either of us has it, pregnancy will not happen.",
+          "portrait": "maid",
+          "expression": "embarrassed_smile",
+          "animation": "fade_in",
+          "events": []
+        }
+      ],
+      "next": "menu",
+      "events": []
+    },
+    "menu": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "What would you like to check?",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "keys",
+          "title": "Keys",
+          "description": "Check key bindings.",
+          "next": "key_check"
+        },
+        {
+          "id": "buttons",
+          "title": "Corner Buttons",
+          "description": "Explain hide, voice, exit, and camera buttons.",
+          "next": "button_help"
+        },
+        {
+          "id": "camera",
+          "title": "Camera Tests",
+          "description": "Test hug, headpat, kiss, and lap pillow.",
+          "next": "camera_intro"
+        },
+        {
+          "id": "mood",
+          "title": "Mood",
+          "description": "Learn mood and relationship stages.",
+          "next": "mood_intro"
+        },
+        {
+          "id": "systems",
+          "title": "Systems",
+          "description": "Learn daily play systems.",
+          "next": "systems_intro"
+        },
+        {
+          "id": "items",
+          "title": "Items",
+          "description": "Learn rings, Sauce Duck, books, and contraceptive potion.",
+          "next": "item_help"
+        },
+        {
+          "id": "finish",
+          "title": "Finish",
+          "description": "Leave the tutorial.",
+          "next": "finish"
+        }
+      ],
+      "events": []
+    },
+    "finish": {
+      "type": "choice",
+      "prompt": {
+        "speaker": "${maid}",
+        "text": "That is all for now. If you forget anything, use the guide on me again.",
+        "narration": "You can enter this tutorial again at any time.",
+        "portrait": "maid",
+        "expression": "happy",
+        "animation": "fade_in",
+        "events": []
+      },
+      "choices": [
+        {
+          "id": "menu",
+          "title": "Back to Menu",
+          "description": "Check another chapter.",
+          "next": "menu"
+        },
+        {
+          "id": "end",
+          "title": "Finish Tutorial",
+          "description": "Leave the tutorial.",
+          "next": "end"
+        }
+      ],
+      "events": []
+    },
+    "end": {
+      "type": "end",
+      "events": [
+        {
+          "when": "enter",
+          "type": "emit_action",
+          "value": "maidmarriage:close_tutorial_interaction"
+        }
+      ]
+    }
+  }
+}

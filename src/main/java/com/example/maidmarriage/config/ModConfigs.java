@@ -1,6 +1,7 @@
 package com.example.maidmarriage.config;
 
 import com.example.maidmarriage.compat.RelationshipThresholds;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ModConfigs {
@@ -10,6 +11,7 @@ public final class ModConfigs {
 
     public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.BooleanValue HAREM_MODE;
+    private static final ModConfigSpec.BooleanValue RECRUIT_ANIMATION_ENABLED;
     private static final ModConfigSpec.IntValue REQUIRED_FAVORABILITY;
     private static final ModConfigSpec.DoubleValue PREGNANCY_CHANCE;
     private static final ModConfigSpec.IntValue PREGNANCY_BIRTH_DAYS;
@@ -37,6 +39,24 @@ public final class ModConfigs {
     private static final ModConfigSpec.BooleanValue SHOW_PREGNANCY_DEBUG_COUNTDOWN;
     private static final ModConfigSpec.BooleanValue SHOW_UI_ACTION_DEBUG;
 
+    /** 标记配置是否已从磁盘加载完成。 */
+    private static volatile boolean loaded = false;
+
+    /**
+     * MOD 总线事件：配置加载完成后调用。
+     * 在 ModConfigEvent.Loading / Reloading 中由 mod 总线分发。
+     */
+    public static void onConfigLoaded(final ModConfigEvent event) {
+        if (event.getConfig().getSpec() == SPEC) {
+            loaded = true;
+        }
+    }
+
+    /** 配置是否已加载完成，防止在配置加载前访问 {@code ConfigValue.get()} 导致崩溃。 */
+    public static boolean isLoaded() {
+        return loaded;
+    }
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.comment("General settings for Maid Marriage.")
@@ -48,10 +68,16 @@ public final class ModConfigs {
                 .translation("config.maidmarriage.harem_mode")
                 .define("haremMode", false);
 
+        RECRUIT_ANIMATION_ENABLED = builder
+                .comment("Enable the starfall magic circle recruitment animation for childbirth and spirit revival.")
+                .translation("config.maidmarriage.recruit_animation_enabled")
+                .define("recruitAnimationEnabled", true);
+
         REQUIRED_FAVORABILITY = builder
                 .comment("Favorability threshold to marry.")
                 .translation("config.maidmarriage.required_favorability")
-                .defineInRange("requiredFavorability", RelationshipThresholds.MARRIAGE_UNLOCK, 0, RelationshipThresholds.FAVORABILITY_MAX);
+                .defineInRange("requiredFavorability", RelationshipThresholds.MARRIAGE_UNLOCK, 0,
+                        RelationshipThresholds.FAVORABILITY_MAX);
 
         PREGNANCY_CHANCE = builder
                 .comment("Conception chance after each romance scene. Range: 0.0~1.0")
@@ -79,7 +105,8 @@ public final class ModConfigs {
                 .define("clingyMaidEnabled", true);
 
         POSTPARTUM_RECOVERY_ENABLED = builder
-                .comment("Server authority: enable postpartum recovery effects. Clients cannot disable this in the in-game config screen.")
+                .comment(
+                        "Server authority: enable postpartum recovery effects. Clients cannot disable this in the in-game config screen.")
                 .translation("config.maidmarriage.postpartum_recovery_enabled")
                 .define("postpartumRecoveryEnabled", true);
 
@@ -110,7 +137,8 @@ public final class ModConfigs {
                 .define("heartPactVoiceEnabled", false);
 
         HEART_PACT_VOICE_SCRIPT_NAME = builder
-                .comment("Dialogue locale/script name used by Heart Pact voice files, for example ja_jp, zh_cn or en_us.")
+                .comment(
+                        "Dialogue locale/script name used by Heart Pact voice files, for example ja_jp, zh_cn or en_us.")
                 .translation("config.maidmarriage.voice_script_name")
                 .define("heartPactVoiceScriptName", "ja_jp");
 
@@ -125,12 +153,14 @@ public final class ModConfigs {
                 .define("heartPactTtsChildName", "");
 
         HEART_PACT_TTS_PLAYER_NAME = builder
-                .comment("TTS-only replacement for {player} in Heart Pact voice text. Empty means use current addressing / player username.")
+                .comment(
+                        "TTS-only replacement for {player} in Heart Pact voice text. Empty means use current addressing / player username.")
                 .translation("config.maidmarriage.heart_pact_tts_player_name")
                 .define("heartPactTtsPlayerName", "");
 
         HEART_PACT_TTS_PLAYER_MAID_NAME = builder
-                .comment("TTS-only replacement for {player_maid} in Heart Pact voice text. Empty means use current maid addressing / player username.")
+                .comment(
+                        "TTS-only replacement for {player_maid} in Heart Pact voice text. Empty means use current maid addressing / player username.")
                 .translation("config.maidmarriage.heart_pact_tts_player_maid_name")
                 .define("heartPactTtsPlayerMaidName", "");
 
@@ -215,6 +245,14 @@ public final class ModConfigs {
 
     public static void setHaremMode(boolean enabled) {
         HAREM_MODE.set(enabled);
+    }
+
+    public static boolean recruitAnimationEnabled() {
+        return RECRUIT_ANIMATION_ENABLED.get();
+    }
+
+    public static void setRecruitAnimationEnabled(boolean enabled) {
+        RECRUIT_ANIMATION_ENABLED.set(enabled);
     }
 
     public static int requiredFavorability() {
@@ -330,8 +368,9 @@ public final class ModConfigs {
     }
 
     public static void setHeartPactVoiceScriptName(String value) {
-        String sanitized = value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT)
-                .replace('\\', '_').replace('/', '_');
+        String sanitized = value == null ? ""
+                : value.trim().toLowerCase(java.util.Locale.ROOT)
+                        .replace('\\', '_').replace('/', '_');
         HEART_PACT_VOICE_SCRIPT_NAME.set(sanitized.isBlank() ? "ja_jp" : sanitized);
     }
 
